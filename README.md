@@ -1,27 +1,95 @@
-# 🏢 Alami Gestion - Application de Gestion d'Entreprise
+# 🏪 Alami Gestion - Application de Gestion Commerciale
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black.svg)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/youssef10278/alami_gestion)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-6.16.3-2D3748?logo=prisma)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://www.postgresql.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Application complète de gestion d'entreprise avec Next.js 15, Prisma, PostgreSQL et design premium bleu clair. Optimisée pour mobile avec support PWA et **scanner de code-barres intégré**.
+Application web moderne et complète de gestion commerciale pour petites et moyennes entreprises, développée avec Next.js 15, TypeScript, Prisma et PostgreSQL. **Design premium avec 9 pages transformées** et **fonctionnalité client de passage**.
 
-## ✨ Fonctionnalités
+## ✨ Fonctionnalités Principales
 
-- 🔐 **Authentification sécurisée** avec JWT et cookies httpOnly
-- 👥 **Gestion des utilisateurs** (Propriétaire & Vendeur)
-- 📦 **Gestion des produits** avec catégories, stock et **photos** 📸
-- 📱 **Scanner de code-barres** avec détection automatique (NOUVEAU !)
-- 🛒 **Gestion des ventes** rapide et intuitive
-- 💳 **Système de crédit** avec plafonds et suivi
-- 👤 **Gestion des clients** complète
-- 📊 **Gestion du stock** avec alertes et statistiques
-- 📄 **Documents commerciaux** (Factures, Devis, Bons de livraison)
-- 📈 **Tableau de bord** avec KPI et graphiques interactifs
-- 🎨 **Design premium** avec glassmorphism et animations
-- 📱 **PWA** - Installation sur écran d'accueil
-- 🌐 **Mobile-first** optimisé pour les vendeurs
-- ⚡ **Performance optimisée** - Compression d'images, cache, debouncing
+### 📦 **Gestion des Produits**
+- ✅ CRUD complet avec images optimisées
+- ✅ Catégorisation et SKU
+- ✅ Gestion du stock en temps réel
+- ✅ Prix d'achat et de vente
+- ✅ **Calcul automatique des marges** avec code couleur
+- ✅ Alertes de stock faible
+- ✅ **Vue grille et tableau** avec toggle
+- ✅ **Tri avancé** (6 options) et filtrage
+- ✅ **Pagination** configurable
+- ✅ **Actions rapides** (vendre, ajouter stock, copier SKU)
+
+### 👥 **Gestion des Clients**
+- ✅ Profils clients détaillés
+- ✅ Gestion du crédit avec limites
+- ✅ Historique des achats
+- ✅ **Clients de passage** (NOUVEAU !)
+- ✅ Blocage/déblocage
+- ✅ Statistiques par client
+
+### 🛒 **Gestion des Ventes**
+- ✅ Interface de vente rapide
+- ✅ **Scanner de codes-barres** avec détection automatique
+- ✅ **Ventes au comptant et à crédit**
+- ✅ **Support client de passage** (sans enregistrement)
+- ✅ Multiples modes de paiement (Espèces, Carte, Virement, Crédit)
+- ✅ Génération automatique de documents
+- ✅ Historique complet avec filtres
+
+### 💳 **Gestion du Crédit**
+- ✅ Suivi des crédits clients
+- ✅ Paiements partiels
+- ✅ Historique des paiements
+- ✅ Alertes de dépassement
+- ✅ Rapports de crédit détaillés
+
+### 📊 **Tableau de Bord**
+- ✅ Statistiques en temps réel
+- ✅ Graphiques interactifs (Recharts)
+- ✅ Indicateurs de performance
+- ✅ Ventes récentes
+- ✅ Alertes de stock
+- ✅ **Suivi des bénéfices** avec prix d'achat
+
+### 📄 **Documents Commerciaux**
+- ✅ Factures professionnelles
+- ✅ Devis
+- ✅ Bons de livraison
+- ✅ Génération PDF (jsPDF)
+- ✅ Téléchargement et aperçu
+
+### 📈 **Rapports et Statistiques**
+- ✅ Rapports de ventes par période
+- ✅ Analyse des produits top
+- ✅ Performance des clients
+- ✅ Évolution du stock
+- ✅ Graphiques personnalisables
+
+### 🎨 **Design Premium**
+- ✅ **9 pages avec design unique** (dégradés personnalisés)
+- ✅ Glassmorphism et animations fluides
+- ✅ Cartes de stats animées
+- ✅ Emojis contextuels
+- ✅ Code couleur intelligent
+- ✅ **Score Design : 10/10** 🌟
+
+### 📱 **PWA et Mobile**
+- ✅ Installation sur écran d'accueil
+- ✅ Mode standalone
+- ✅ Mobile-first optimisé
+- ✅ Raccourcis rapides
+
+### ⚡ **Performance**
+- ✅ Compression d'images automatique
+- ✅ Cache API intelligent
+- ✅ Debouncing sur recherches
+- ✅ Lazy loading
+- ✅ Optimisations Tailwind CSS v4
 
 ## 🚀 Installation
 
@@ -99,17 +167,19 @@ L'application intègre un **système de détection automatique** qui supporte **
 
 📖 **[Documentation complète](docs/AUTO_BARCODE_DETECTION.md)**
 
-## 🔑 Identifiants de test
+## 🔑 Identifiants de Test
 
 Après le seed, vous pouvez vous connecter avec :
 
-**Propriétaire :**
-- Email: `owner@alami.com`
-- Mot de passe: `admin123`
+**Compte Propriétaire :**
+- Email : `admin@alami.com`
+- Mot de passe : `admin123`
+- Accès : Toutes les fonctionnalités
 
-**Vendeur :**
-- Email: `seller@alami.com`
-- Mot de passe: `seller123`
+**Compte Vendeur :**
+- Email : `vendeur@alami.com`
+- Mot de passe : `vendeur123`
+- Accès : Ventes, Produits, Clients (lecture seule)
 
 ## 📁 Structure du projet
 
