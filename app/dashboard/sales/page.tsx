@@ -499,7 +499,7 @@ export default function SalesPage() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  {isWalkInCustomer && (
+                  {isWalkInCustomer && paymentMethod === 'CREDIT' && (
                     <p className="text-xs text-orange-600 mt-1 flex items-center gap-1">
                       <span>⚠️</span>
                       <span>Paiement à crédit non disponible pour les clients de passage</span>
@@ -538,7 +538,7 @@ export default function SalesPage() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={loading || cart.length === 0 || !selectedCustomer}
+                  disabled={loading || cart.length === 0}
                 >
                   {loading ? 'Traitement...' : 'Valider la vente'}
                 </Button>
