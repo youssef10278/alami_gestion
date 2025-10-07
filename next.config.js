@@ -2,10 +2,10 @@
 const nextConfig = {
   // Configuration pour la production
   output: 'standalone',
-  
+
   // Optimisations
   experimental: {
-    serverComponentsExternalPackages: ['@prisma/client'],
+    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
   },
   
   // Configuration des images
