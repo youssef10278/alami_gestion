@@ -9,15 +9,28 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90",
+        default: "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90 shadow-sm",
         destructive:
-          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))]/90",
+          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))]/90 shadow-sm",
         outline:
-          "border border-[hsl(var(--input))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]",
+          "border border-[hsl(var(--input))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] shadow-sm",
         secondary:
-          "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary))]/80",
+          "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary))]/80 shadow-sm",
         ghost: "hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]",
         link: "text-[hsl(var(--primary))] underline-offset-4 hover:underline",
+
+        // === VARIANTES MÉTIER BUSINESS MODERNE ===
+        sales: "bg-[var(--color-sales)] text-white hover:bg-[var(--color-success-green-dark)] shadow-sm transition-all duration-200",
+        invoices: "bg-[var(--color-invoices)] text-white hover:bg-[var(--color-business-blue-dark)] shadow-sm transition-all duration-200",
+        quotes: "bg-[var(--color-quotes)] text-white hover:opacity-90 shadow-sm transition-all duration-200",
+        stock: "bg-[var(--color-stock)] text-white hover:opacity-90 shadow-sm transition-all duration-200",
+        customers: "bg-[var(--color-customers)] text-white hover:opacity-90 shadow-sm transition-all duration-200",
+
+        // Variantes outline pour modules
+        "sales-outline": "border-2 border-[var(--color-sales)] text-[var(--color-sales)] bg-transparent hover:bg-[var(--color-sales)] hover:text-white transition-all duration-200",
+        "invoices-outline": "border-2 border-[var(--color-invoices)] text-[var(--color-invoices)] bg-transparent hover:bg-[var(--color-invoices)] hover:text-white transition-all duration-200",
+        "quotes-outline": "border-2 border-[var(--color-quotes)] text-[var(--color-quotes)] bg-transparent hover:bg-[var(--color-quotes)] hover:text-white transition-all duration-200",
+        "stock-outline": "border-2 border-[var(--color-stock)] text-[var(--color-stock)] bg-transparent hover:bg-[var(--color-stock)] hover:text-white transition-all duration-200",
       },
       size: {
         default: "h-10 px-4 py-2",

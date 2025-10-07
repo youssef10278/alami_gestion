@@ -156,6 +156,17 @@ export default function ProductsPage() {
     }
   }
 
+  // Gérer la création d'une nouvelle catégorie
+  const handleCategoryCreated = (newCategory: any) => {
+    // Ajouter la propriété _count pour la compatibilité
+    const categoryWithCount = {
+      ...newCategory,
+      _count: { products: 0 }
+    }
+    setCategories(prev => [...prev, categoryWithCount])
+    toast.success(`Catégorie "${newCategory.name}" créée avec succès`)
+  }
+
   const handleProductSaved = () => {
     fetchProducts()
     setDialogOpen(false)
@@ -268,7 +279,8 @@ export default function ProductsPage() {
               setEditingProduct(null)
               setDialogOpen(true)
             }}
-            className="gap-2 bg-white text-blue-600 hover:bg-blue-50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 px-6 py-6 text-base font-semibold"
+            variant="stock"
+            className="gap-2 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 px-6 py-6 text-base font-semibold"
             size="lg"
           >
             <Plus className="w-5 h-5" />
@@ -432,7 +444,7 @@ export default function ProductsPage() {
             <p className="text-gray-600">Aucun produit trouvé</p>
             <Button
               onClick={() => setDialogOpen(true)}
-              variant="outline"
+              variant="stock-outline"
               className="mt-4"
             >
               Ajouter votre premier produit
@@ -553,6 +565,7 @@ export default function ProductsPage() {
         product={editingProduct}
         categories={categories}
         onSaved={handleProductSaved}
+        onCategoryCreated={handleCategoryCreated}
       />
     </div>
   )

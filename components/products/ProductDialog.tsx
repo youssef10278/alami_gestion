@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { BarcodeInput } from '@/components/ui/barcode-input'
 import { ImageUpload } from '@/components/ui/image-upload'
+import { CategoryCombobox } from '@/components/ui/category-combobox'
 
 interface Product {
   id: string
@@ -45,6 +46,7 @@ interface ProductDialogProps {
   product: Product | null
   categories: Category[]
   onSaved: () => void
+  onCategoryCreated?: (category: Category) => void
 }
 
 export default function ProductDialog({
@@ -53,6 +55,7 @@ export default function ProductDialog({
   product,
   categories,
   onSaved,
+  onCategoryCreated,
 }: ProductDialogProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -252,27 +255,18 @@ export default function ProductDialog({
             </div>
           </div>
 
-          {/* Catégorie */}
+          {/* Catégorie avec autocomplétion */}
           <div className="space-y-2">
             <Label htmlFor="category">Catégorie</Label>
-            <Select
+            <CategoryCombobox
               value={formData.categoryId}
               onValueChange={(value) =>
                 setFormData({ ...formData, categoryId: value })
               }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Aucune catégorie</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              categories={categories}
+              onCategoryCreated={onCategoryCreated}
+              placeholder="Sélectionner ou créer une catégorie..."
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -11,6 +11,9 @@ import {
   Plus,
   Minus,
   History,
+  DollarSign,
+  BarChart3,
+  Percent,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -57,6 +60,16 @@ export default function StockPage() {
     critical: 0,
     warning: 0,
   })
+  const [stockValue, setStockValue] = useState({
+    totalSaleValue: 0,
+    totalCostValue: 0,
+    totalQuantity: 0,
+    totalProducts: 0,
+    productsInStock: 0,
+    productsOutOfStock: 0,
+    potentialMargin: 0,
+    marginPercentage: 0,
+  })
 
   useEffect(() => {
     fetchData()
@@ -65,13 +78,15 @@ export default function StockPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [alertsRes, movementsRes] = await Promise.all([
+      const [alertsRes, movementsRes, stockValueRes] = await Promise.all([
         fetch('/api/stock/alerts'),
         fetch('/api/stock/movements?limit=20'),
+        fetch('/api/stock/value'),
       ])
 
       const alertsData = await alertsRes.json()
       const movementsData = await movementsRes.json()
+      const stockValueData = await stockValueRes.json()
 
       setAlerts(alertsData.products || [])
       setStats({
@@ -81,6 +96,16 @@ export default function StockPage() {
         warning: alertsData.warning || 0,
       })
       setMovements(movementsData.movements || [])
+      setStockValue(stockValueData.stockValue || {
+        totalSaleValue: 0,
+        totalCostValue: 0,
+        totalQuantity: 0,
+        totalProducts: 0,
+        productsInStock: 0,
+        productsOutOfStock: 0,
+        potentialMargin: 0,
+        marginPercentage: 0,
+      })
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -233,6 +258,131 @@ export default function StockPage() {
             <p className="text-xs text-yellow-600 mt-2 font-medium">
               ⚡ Surveiller
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Valeur du Stock */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-lg">
+            <DollarSign className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Valeur du Stock</h2>
+            <p className="text-sm text-gray-600">Analyse financière de votre inventaire</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Valeur Totale (Prix de Vente) */}
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 to-emerald-100/50">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16"></div>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-semibold text-green-900">
+                Valeur Totale
+              </CardTitle>
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+                <DollarSign className="w-5 h-5 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+                {(stockValue.totalSaleValue || 0).toFixed(2)} DH
+              </div>
+              <p className="text-xs text-green-600 mt-2 font-medium">
+                💰 Prix de vente
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Valeur d'Achat */}
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-cyan-100/50">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16"></div>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-semibold text-blue-900">
+                Coût d'Achat
+              </CardTitle>
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg">
+                <BarChart3 className="w-5 h-5 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                {(stockValue.totalCostValue || 0).toFixed(2)} DH
+              </div>
+              <p className="text-xs text-blue-600 mt-2 font-medium">
+                📊 Investissement
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Marge Potentielle */}
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-purple-50 to-violet-100/50">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -mr-16 -mt-16"></div>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-semibold text-purple-900">
+                Marge Potentielle
+              </CardTitle>
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl shadow-lg">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-violet-500 bg-clip-text text-transparent">
+                {(stockValue.potentialMargin || 0).toFixed(2)} DH
+              </div>
+              <p className="text-xs text-purple-600 mt-2 font-medium">
+                📈 Bénéfice potentiel
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Pourcentage de Marge */}
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-indigo-50 to-blue-100/50">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16"></div>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-semibold text-indigo-900">
+                Taux de Marge
+              </CardTitle>
+              <div className="p-3 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl shadow-lg">
+                <Percent className="w-5 h-5 text-white" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+                {(stockValue.marginPercentage || 0).toFixed(1)}%
+              </div>
+              <p className="text-xs text-indigo-600 mt-2 font-medium">
+                📊 Rentabilité
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Résumé de la valeur du stock */}
+        <Card className="bg-gradient-to-r from-slate-50 to-gray-100 border-0 shadow-lg">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {stockValue.totalQuantity || 0}
+                </div>
+                <p className="text-sm text-gray-600">Articles en stock</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {stockValue.totalProducts || 0}
+                </div>
+                <p className="text-sm text-gray-600">Produits différents</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {stockValue.productsInStock || 0}
+                </div>
+                <p className="text-sm text-gray-600">Produits disponibles</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

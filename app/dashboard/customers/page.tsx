@@ -114,7 +114,8 @@ export default function CustomersPage() {
               setEditingCustomer(null)
               setDialogOpen(true)
             }}
-            className="gap-2 bg-white text-green-600 hover:bg-green-50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 px-6 py-6 text-base font-semibold"
+            variant="customers"
+            className="gap-2 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 px-6 py-6 text-base font-semibold"
             size="lg"
           >
             <Plus className="w-5 h-5" />

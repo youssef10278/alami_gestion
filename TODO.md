@@ -13,6 +13,8 @@
 - [x] Navigation responsive
 - [x] Page d'accueil du dashboard avec KPI
 - [x] Script de seed pour données de test
+- [x] **💰 Montant en lettres** - Conversion automatique des montants en lettres françaises dans les factures (2025-01-07)
+- [x] **🔍 Autocomplétion de produits** - Recherche intelligente et sélection de produits directement dans le champ de saisie (2025-01-07)
 
 ## 🚧 En cours
 

@@ -8,13 +8,17 @@ export function Toaster() {
       position="top-right"
       toastOptions={{
         style: {
-          background: 'rgba(255, 255, 255, 0.95)',
+          background: 'hsl(var(--card))',
           backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(77, 166, 255, 0.2)',
+          border: '1px solid hsl(var(--border))',
           boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+          color: 'hsl(var(--foreground))',
         },
         className: 'glass',
       }}
+      theme="light"
+      richColors
+      closeButton
     />
   )
 }

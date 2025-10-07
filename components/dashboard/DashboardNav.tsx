@@ -13,7 +13,10 @@ import {
   LogOut,
   Menu,
   BarChart3,
-  Warehouse
+  Warehouse,
+  Truck,
+  FileCheck,
+  Receipt
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -45,7 +48,11 @@ export default function DashboardNav({ user }: DashboardNavProps) {
     { href: '/dashboard/products', label: 'Produits', icon: Package, roles: ['OWNER', 'SELLER'] },
     { href: '/dashboard/stock', label: 'Stock', icon: Warehouse, roles: ['OWNER', 'SELLER'] },
     { href: '/dashboard/customers', label: 'Clients', icon: Users, roles: ['OWNER', 'SELLER'] },
-    { href: '/dashboard/sales', label: 'Ventes', icon: ShoppingCart, roles: ['OWNER', 'SELLER'] },
+    { href: '/dashboard/sales', label: 'Nouvelle Vente', icon: ShoppingCart, roles: ['OWNER', 'SELLER'] },
+    { href: '/dashboard/sales/history', label: 'Historique Ventes', icon: FileText, roles: ['OWNER', 'SELLER'] },
+    { href: '/dashboard/quotes', label: 'Devis', icon: FileCheck, roles: ['OWNER', 'SELLER'] },
+    { href: '/dashboard/invoices', label: 'Factures', icon: Receipt, roles: ['OWNER'] },
+    { href: '/dashboard/suppliers', label: 'Fournisseurs', icon: Truck, roles: ['OWNER', 'SELLER'] },
     { href: '/dashboard/credit', label: 'Crédit', icon: CreditCard, roles: ['OWNER'] },
     { href: '/dashboard/reports', label: 'Rapports', icon: BarChart3, roles: ['OWNER'] },
     { href: '/dashboard/documents', label: 'Documents', icon: FileText, roles: ['OWNER'] },

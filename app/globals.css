@@ -1,53 +1,77 @@
 @import "tailwindcss";
 
 :root {
-  --background: 210 100% 98%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 207 90% 61%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 207 90% 61%;
+  /* === PALETTE BUSINESS MODERNE === */
+  --background: 220 14% 98%;        /* #F9FAFB - Gris très clair */
+  --foreground: 220 26% 18%;        /* #1F2937 - Gris anthracite */
+  --card: 0 0% 100%;                /* Blanc pur pour les cartes */
+  --card-foreground: 220 26% 18%;   /* #1F2937 - Gris anthracite */
+  --popover: 0 0% 100%;             /* Blanc pur */
+  --popover-foreground: 220 26% 18%; /* #1F2937 - Gris anthracite */
+
+  /* Couleur primaire - Bleu professionnel */
+  --primary: 224 76% 40%;           /* #1E40AF - Bleu professionnel */
+  --primary-foreground: 0 0% 100%;  /* Blanc sur bleu */
+
+  /* Couleur secondaire - Vert succès conservé */
+  --secondary: 220 14% 96%;         /* Gris très clair pour secondary */
+  --secondary-foreground: 220 26% 18%; /* #1F2937 - Gris anthracite */
+
+  /* Couleurs neutres modernes */
+  --muted: 220 14% 96%;             /* Gris clair pour éléments discrets */
+  --muted-foreground: 220 9% 46%;   /* Gris moyen pour texte secondaire */
+  --accent: 160 84% 30%;            /* #059669 - Vert succès pour accents */
+  --accent-foreground: 0 0% 100%;   /* Blanc sur vert */
+
+  /* Couleur destructive - Rouge moderne */
+  --destructive: 0 84% 51%;         /* #DC2626 - Rouge alertes */
+  --destructive-foreground: 0 0% 100%; /* Blanc sur rouge */
+
+  /* Bordures et inputs */
+  --border: 220 13% 91%;            /* Bordures subtiles */
+  --input: 220 13% 91%;             /* Champs de saisie */
+  --ring: 224 76% 40%;              /* #1E40AF - Focus ring bleu */
   --radius: 0.5rem;
-  --chart-1: 207 90% 61%;
-  --chart-2: 173 58% 39%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
+
+  /* Couleurs pour graphiques - Palette harmonieuse */
+  --chart-1: 224 76% 40%;           /* #1E40AF - Bleu principal */
+  --chart-2: 160 84% 30%;           /* #059669 - Vert succès */
+  --chart-3: 0 84% 51%;             /* #DC2626 - Rouge */
+  --chart-4: 45 93% 47%;            /* Orange complémentaire */
+  --chart-5: 262 83% 58%;           /* Violet moderne */
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 207 90% 54%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 207 90% 61%;
+  /* === MODE SOMBRE BUSINESS MODERNE === */
+  --background: 220 26% 9%;         /* Arrière-plan sombre professionnel */
+  --foreground: 220 14% 98%;        /* Texte clair */
+  --card: 220 26% 12%;              /* Cartes légèrement plus claires */
+  --card-foreground: 220 14% 98%;   /* Texte clair sur cartes */
+  --popover: 220 26% 12%;           /* Popovers sombres */
+  --popover-foreground: 220 14% 98%; /* Texte clair */
+
+  /* Couleur primaire adaptée au sombre */
+  --primary: 224 76% 55%;           /* Bleu plus clair pour le sombre */
+  --primary-foreground: 220 26% 9%; /* Texte sombre sur bleu */
+
+  /* Couleurs secondaires sombres */
+  --secondary: 220 26% 15%;         /* Gris sombre pour secondary */
+  --secondary-foreground: 220 14% 98%; /* Texte clair */
+
+  /* Couleurs neutres sombres */
+  --muted: 220 26% 15%;             /* Éléments discrets sombres */
+  --muted-foreground: 220 9% 65%;   /* Texte secondaire clair */
+  --accent: 160 84% 45%;            /* Vert plus clair pour le sombre */
+  --accent-foreground: 220 26% 9%;  /* Texte sombre sur vert */
+
+  /* Couleur destructive adaptée */
+  --destructive: 0 84% 65%;         /* Rouge plus clair */
+  --destructive-foreground: 220 26% 9%; /* Texte sombre sur rouge */
+
+  /* Bordures et inputs sombres */
+  --border: 220 26% 20%;            /* Bordures visibles en sombre */
+  --input: 220 26% 15%;             /* Champs de saisie sombres */
+  --ring: 224 76% 55%;              /* Focus ring bleu adapté */
 }
 
 @theme inline {
@@ -75,6 +99,31 @@
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
+
+  /* === COULEURS MÉTIER ALAMI GESTION === */
+  --color-business-blue: hsl(224, 76%, 40%);      /* #1E40AF - Bleu professionnel */
+  --color-business-blue-light: hsl(224, 76%, 55%); /* Version plus claire */
+  --color-business-blue-dark: hsl(224, 76%, 30%);  /* Version plus sombre */
+
+  --color-success-green: hsl(160, 84%, 30%);      /* #059669 - Vert succès */
+  --color-success-green-light: hsl(160, 84%, 45%); /* Version plus claire */
+  --color-success-green-dark: hsl(160, 84%, 20%);  /* Version plus sombre */
+
+  --color-alert-red: hsl(0, 84%, 51%);           /* #DC2626 - Rouge alertes */
+  --color-alert-red-light: hsl(0, 84%, 65%);     /* Version plus claire */
+  --color-alert-red-dark: hsl(0, 84%, 40%);      /* Version plus sombre */
+
+  --color-neutral-dark: hsl(220, 26%, 18%);      /* #1F2937 - Gris anthracite */
+  --color-neutral-light: hsl(220, 14%, 98%);     /* #F9FAFB - Gris très clair */
+  --color-neutral-medium: hsl(220, 9%, 46%);     /* Gris moyen */
+
+  /* === COULEURS PAR MODULE === */
+  --color-sales: var(--color-success-green);      /* Ventes - Vert */
+  --color-invoices: var(--color-business-blue);   /* Factures - Bleu */
+  --color-quotes: hsl(45, 93%, 47%);             /* Devis - Orange */
+  --color-stock: hsl(262, 83%, 58%);             /* Stock - Violet */
+  --color-customers: hsl(224, 76%, 55%);         /* Clients - Bleu clair */
+  --color-reports: var(--color-neutral-dark);     /* Rapports - Gris */
 }
 
 body {
@@ -169,32 +218,39 @@ body {
   animation: shimmer 2s infinite;
 }
 
-/* Gradient Text */
+/* Gradient Text - Business Moderne */
 .gradient-text {
-  background: linear-gradient(135deg, #4DA6FF 0%, #2E86DE 100%);
+  background: linear-gradient(135deg, var(--color-business-blue) 0%, var(--color-business-blue-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Custom Scrollbar */
+.gradient-text-success {
+  background: linear-gradient(135deg, var(--color-success-green) 0%, var(--color-success-green-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Custom Scrollbar - Business Moderne */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(240, 240, 240, 0.5);
+  background: hsl(var(--muted));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(77, 166, 255, 0.5);
+  background: hsl(var(--primary) / 0.5);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(77, 166, 255, 0.8);
+  background: hsl(var(--primary) / 0.8);
 }
 
 /* Grid Background Effect */
@@ -232,5 +288,103 @@ body {
 @layer base {
   * {
     border-color: hsl(var(--border));
+  }
+}
+
+/* === CLASSES UTILITAIRES BUSINESS MODERNE === */
+@layer utilities {
+  /* Couleurs de modules */
+  .text-sales { color: var(--color-sales); }
+  .bg-sales { background-color: var(--color-sales); }
+  .border-sales { border-color: var(--color-sales); }
+
+  .text-invoices { color: var(--color-invoices); }
+  .bg-invoices { background-color: var(--color-invoices); }
+  .border-invoices { border-color: var(--color-invoices); }
+
+  .text-quotes { color: var(--color-quotes); }
+  .bg-quotes { background-color: var(--color-quotes); }
+  .border-quotes { border-color: var(--color-quotes); }
+
+  .text-stock { color: var(--color-stock); }
+  .bg-stock { background-color: var(--color-stock); }
+  .border-stock { border-color: var(--color-stock); }
+
+  .text-customers { color: var(--color-customers); }
+  .bg-customers { background-color: var(--color-customers); }
+  .border-customers { border-color: var(--color-customers); }
+
+  .text-reports { color: var(--color-reports); }
+  .bg-reports { background-color: var(--color-reports); }
+  .border-reports { border-color: var(--color-reports); }
+
+  /* États sémantiques */
+  .status-completed {
+    @apply bg-success-green/10 text-success-green border-success-green/20;
+  }
+  .status-pending {
+    @apply bg-quotes/10 text-quotes border-quotes/20;
+  }
+  .status-cancelled {
+    @apply bg-alert-red/10 text-alert-red border-alert-red/20;
+  }
+  .status-draft {
+    @apply bg-neutral-medium/10 text-neutral-medium border-neutral-medium/20;
+  }
+
+  /* Boutons métier */
+  .btn-sales {
+    @apply bg-sales hover:bg-success-green-dark text-white;
+  }
+  .btn-invoices {
+    @apply bg-invoices hover:bg-business-blue-dark text-white;
+  }
+  .btn-quotes {
+    @apply bg-quotes hover:opacity-90 text-white;
+  }
+
+  /* Cartes avec couleurs métier */
+  .card-sales {
+    @apply border-l-4 border-l-sales bg-success-green/5;
+  }
+  .card-invoices {
+    @apply border-l-4 border-l-invoices bg-business-blue/5;
+  }
+  .card-quotes {
+    @apply border-l-4 border-l-quotes bg-quotes/5;
+  }
+  .card-stock {
+    @apply border-l-4 border-l-stock bg-stock/5;
+  }
+
+  /* === SCROLLBAR PERSONNALISÉE POUR SECTIONS SPÉCIFIQUES === */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground));
+  }
+
+  /* === UTILITAIRES TEXTE === */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

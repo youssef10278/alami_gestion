@@ -93,6 +93,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validation : montant payé requis pour crédit
+    if (paymentMethod === 'CREDIT' && (!amountPaid || parseFloat(amountPaid) <= 0)) {
+      return NextResponse.json(
+        { error: 'Le montant payé est requis pour un paiement à crédit' },
+        { status: 400 }
+      )
+    }
+
     // Calculer le total
     let total = 0
     const saleItems: Array<{
@@ -121,19 +129,38 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const itemTotal = Number(product.price) * item.quantity
+      // Utiliser le prix personnalisé si fourni, sinon le prix du produit
+      const unitPrice = item.customPrice !== undefined ? item.customPrice : Number(product.price)
+      const itemTotal = unitPrice * item.quantity
       total += itemTotal
 
       saleItems.push({
         productId: product.id,
         quantity: item.quantity,
-        unitPrice: Number(product.price),
+        unitPrice: unitPrice,
         total: itemTotal,
       })
     }
 
-    const paidAmount = parseFloat(amountPaid) || 0
+    // Calcul du montant payé selon la méthode de paiement
+    let paidAmount = 0
+    if (paymentMethod === 'CREDIT') {
+      // Pour crédit : utiliser le montant fourni
+      paidAmount = parseFloat(amountPaid) || 0
+    } else {
+      // Pour Espèces/Carte/Virement : montant total automatiquement
+      paidAmount = total
+    }
+
     const creditAmount = total - paidAmount
+
+    // Validation : pour les paiements comptants, le montant payé doit être égal au total
+    if (paymentMethod !== 'CREDIT' && creditAmount !== 0) {
+      return NextResponse.json(
+        { error: 'Pour les paiements comptants, le montant payé doit être égal au total' },
+        { status: 400 }
+      )
+    }
 
     // Vérifier la limite de crédit si paiement à crédit ET client enregistré
     if (creditAmount > 0 && customerId) {
@@ -239,7 +266,27 @@ export async function POST(request: NextRequest) {
       return newSale
     })
 
-    return NextResponse.json(sale, { status: 201 })
+    // Récupérer la vente complète avec toutes les relations pour l'impression
+    const completeSale = await prisma.sale.findUnique({
+      where: { id: sale.id },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        customer: true,
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    })
+
+    return NextResponse.json({ sale: completeSale }, { status: 201 })
   } catch (error) {
     console.error('Create sale error:', error)
     return NextResponse.json(

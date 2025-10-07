@@ -16,6 +16,7 @@ import {
 import { BarcodeScannerButton } from '@/components/ui/barcode-scanner'
 import { toast } from 'sonner'
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
+import DeliveryNoteButton from '@/components/sales/DeliveryNoteButton'
 import { Scan } from 'lucide-react'
 
 interface Product {
@@ -38,6 +39,7 @@ interface Customer {
 interface CartItem {
   product: Product
   quantity: number
+  customPrice?: number // Prix personnalisé pour négociation
 }
 
 export default function SalesPage() {
@@ -52,6 +54,14 @@ export default function SalesPage() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [lastSale, setLastSale] = useState<any>(null)
+  const [showReceiptDialog, setShowReceiptDialog] = useState(false)
+
+  // États pour les informations du chèque
+  const [checkNumber, setCheckNumber] = useState('')
+  const [checkIssuer, setCheckIssuer] = useState('')
+  const [checkBeneficiary, setCheckBeneficiary] = useState('')
+  const [checkDate, setCheckDate] = useState('')
 
   // Détection automatique du scanner physique
   const { isScanning } = useBarcodeScanner({
@@ -137,12 +147,243 @@ export default function SalesPage() {
     ))
   }
 
+  // Fonction pour mettre à jour le prix personnalisé
+  const updateCustomPrice = (productId: string, customPrice: number | undefined) => {
+    setCart(cart.map(item =>
+      item.product.id === productId
+        ? { ...item, customPrice }
+        : item
+    ))
+  }
+
   const removeFromCart = (productId: string) => {
     setCart(cart.filter(item => item.product.id !== productId))
   }
 
   const calculateTotal = () => {
-    return cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+    return cart.reduce((sum, item) => {
+      const price = item.customPrice !== undefined ? item.customPrice : Number(item.product.price)
+      return sum + (price * item.quantity)
+    }, 0)
+  }
+
+  const printReceipt = () => {
+    if (!lastSale) return
+
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      toast.error('Impossible d\'ouvrir la fenêtre d\'impression')
+      return
+    }
+
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Reçu de Vente - ${lastSale.saleNumber}</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            max-width: 80mm;
+            margin: 0 auto;
+          }
+          .receipt {
+            border: 2px solid #000;
+            padding: 15px;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+          }
+          .header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+          }
+          .header p {
+            font-size: 12px;
+            margin: 2px 0;
+          }
+          .info {
+            margin: 10px 0;
+            font-size: 12px;
+          }
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+          }
+          .items {
+            border-top: 2px dashed #000;
+            border-bottom: 2px dashed #000;
+            padding: 10px 0;
+            margin: 10px 0;
+          }
+          .item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 12px;
+          }
+          .item-name {
+            flex: 1;
+          }
+          .item-qty {
+            width: 60px;
+            text-align: center;
+          }
+          .item-price {
+            width: 80px;
+            text-align: right;
+          }
+          .totals {
+            margin: 10px 0;
+            font-size: 13px;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+          }
+          .total-row.grand {
+            font-weight: bold;
+            font-size: 16px;
+            border-top: 2px solid #000;
+            padding-top: 5px;
+            margin-top: 10px;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px dashed #000;
+            font-size: 11px;
+          }
+          @media print {
+            body {
+              padding: 0;
+            }
+            .receipt {
+              border: none;
+            }
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="header">
+            <h1>🏪 ALAMI GESTION</h1>
+            <p>Reçu de Vente</p>
+            <p>N° ${lastSale.saleNumber}</p>
+          </div>
+
+          <div class="info">
+            <div class="info-row">
+              <span>Date:</span>
+              <span>${new Date(lastSale.createdAt).toLocaleString('fr-FR')}</span>
+            </div>
+            <div class="info-row">
+              <span>Client:</span>
+              <span>${lastSale.customer ? lastSale.customer.name : 'Client de passage'}</span>
+            </div>
+            <div class="info-row">
+              <span>Vendeur:</span>
+              <span>${lastSale.seller.name}</span>
+            </div>
+            <div class="info-row">
+              <span>Paiement:</span>
+              <span>${getPaymentMethodLabel(lastSale.paymentMethod)}</span>
+            </div>
+          </div>
+
+          <div class="items">
+            <div class="item" style="font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 5px;">
+              <div class="item-name">Article</div>
+              <div class="item-qty">Qté</div>
+              <div class="item-price">Prix</div>
+            </div>
+            ${lastSale.items.map((item: any) => `
+              <div class="item">
+                <div class="item-name">${item.product.name}</div>
+                <div class="item-qty">${item.quantity}</div>
+                <div class="item-price">${Number(item.total).toFixed(2)} DH</div>
+              </div>
+              <div class="item" style="font-size: 10px; color: #666; margin-top: -3px;">
+                <div class="item-name" style="padding-left: 10px;">
+                  ${item.quantity} × ${Number(item.unitPrice).toFixed(2)} DH
+                </div>
+                <div class="item-qty"></div>
+                <div class="item-price"></div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="totals">
+            <div class="total-row">
+              <span>Sous-total:</span>
+              <span>${Number(lastSale.totalAmount).toFixed(2)} DH</span>
+            </div>
+            <div class="total-row">
+              <span>Montant payé:</span>
+              <span>${Number(lastSale.paidAmount).toFixed(2)} DH</span>
+            </div>
+            ${Number(lastSale.creditAmount) > 0 ? `
+              <div class="total-row" style="color: #d97706;">
+                <span>Reste à payer:</span>
+                <span>${Number(lastSale.creditAmount).toFixed(2)} DH</span>
+              </div>
+            ` : ''}
+            <div class="total-row grand">
+              <span>TOTAL:</span>
+              <span>${Number(lastSale.totalAmount).toFixed(2)} DH</span>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>Merci pour votre achat !</p>
+            <p>À bientôt chez Alami Gestion</p>
+            <p style="margin-top: 10px; font-size: 10px;">
+              ${new Date().toLocaleString('fr-FR')}
+            </p>
+          </div>
+        </div>
+
+        <div class="no-print" style="text-align: center; margin-top: 20px;">
+          <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 5px; margin-right: 10px;">
+            🖨️ Imprimer
+          </button>
+          <button onclick="window.close()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #6b7280; color: white; border: none; border-radius: 5px;">
+            Fermer
+          </button>
+        </div>
+      </body>
+      </html>
+    `
+
+    printWindow.document.write(receiptHTML)
+    printWindow.document.close()
+  }
+
+  const getPaymentMethodLabel = (method: string) => {
+    switch (method) {
+      case 'CASH': return '💵 Espèces'
+      case 'CARD': return '💳 Carte'
+      case 'CHECK': return '📄 Chèque'
+      case 'TRANSFER': return '🏦 Virement'
+      case 'CREDIT': return '📝 Crédit'
+      default: return method
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,9 +400,35 @@ export default function SalesPage() {
       return
     }
 
+    // Validation : Montant payé requis pour crédit
+    if (paymentMethod === 'CREDIT' && !amountPaid) {
+      toast.error('Veuillez saisir le montant payé pour un paiement à crédit')
+      return
+    }
+
+    // Validation : Informations chèque requises
+    if (paymentMethod === 'CHECK') {
+      if (!checkNumber || !checkIssuer || !checkBeneficiary || !checkDate) {
+        toast.error('Veuillez remplir toutes les informations du chèque')
+        return
+      }
+    }
+
     setLoading(true)
 
     try {
+      const total = calculateTotal()
+
+      // Calcul automatique du montant payé selon la méthode
+      let finalAmountPaid = 0
+      if (paymentMethod === 'CREDIT') {
+        // Pour crédit : utiliser le montant saisi
+        finalAmountPaid = parseFloat(amountPaid) || 0
+      } else {
+        // Pour Espèces/Carte/Chèque/Virement : montant total automatiquement
+        finalAmountPaid = total
+      }
+
       const response = await fetch('/api/sales', {
         method: 'POST',
         headers: {
@@ -172,14 +439,17 @@ export default function SalesPage() {
           items: cart.map(item => ({
             productId: item.product.id,
             quantity: item.quantity,
+            customPrice: item.customPrice, // Prix personnalisé si négocié
           })),
           paymentMethod,
-          amountPaid: parseFloat(amountPaid) || 0,
+          amountPaid: finalAmountPaid,
           notes,
         }),
       })
 
       const data = await response.json()
+
+      console.log('🔍 Réponse API:', { ok: response.ok, status: response.status, data })
 
       if (!response.ok) {
         toast.error(data.error || 'Erreur lors de la création de la vente')
@@ -187,15 +457,61 @@ export default function SalesPage() {
         return
       }
 
+      // Sauvegarder la vente pour l'impression
+      console.log('💾 Sauvegarde de la vente:', data.sale)
+      setLastSale(data.sale)
+
+      // Si paiement par chèque, créer l'enregistrement du chèque
+      if (paymentMethod === 'CHECK') {
+        try {
+          const checkResponse = await fetch('/api/sale-checks', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              saleId: data.sale.id,
+              checkNumber,
+              issuer: checkIssuer,
+              beneficiary: checkBeneficiary,
+              checkDate,
+              amount: total,
+              notes: `Chèque pour vente ${data.sale.saleNumber}`
+            }),
+          })
+
+          if (!checkResponse.ok) {
+            console.error('Erreur lors de la création du chèque')
+            toast.warning('Vente créée mais erreur lors de l\'enregistrement du chèque')
+          } else {
+            console.log('✅ Chèque enregistré avec succès')
+          }
+        } catch (checkError) {
+          console.error('Erreur lors de la création du chèque:', checkError)
+          toast.warning('Vente créée mais erreur lors de l\'enregistrement du chèque')
+        }
+      }
+
+      // Afficher le dialogue d'impression
+      console.log('📋 Affichage du dialogue d\'impression')
+      setShowReceiptDialog(true)
+
+      toast.success('Vente créée avec succès !')
+
       // Réinitialiser le formulaire
       setCart([])
       setSelectedCustomer(null)
       setIsWalkInCustomer(true) // Retour à client de passage par défaut
       setAmountPaid('')
       setNotes('')
+      // Réinitialiser les champs du chèque
+      setCheckNumber('')
+      setCheckIssuer('')
+      setCheckBeneficiary('')
+      setCheckDate('')
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
-      
+
       // Rafraîchir les données
       fetchProducts()
       fetchCustomers()
@@ -208,11 +524,19 @@ export default function SalesPage() {
   }
 
   const total = calculateTotal()
-  const paid = parseFloat(amountPaid) || 0
+
+  // Calcul du montant payé selon la méthode
+  const paid = paymentMethod === 'CREDIT'
+    ? (parseFloat(amountPaid) || 0)
+    : total // Pour Espèces/Carte/Chèque/Virement, montant total automatiquement
+
   const remaining = total - paid
-  const creditAvailable = selectedCustomer 
+  const creditAvailable = selectedCustomer
     ? Number(selectedCustomer.creditLimit) - Number(selectedCustomer.creditUsed)
     : 0
+
+  // Log pour déboguer
+  console.log('🔍 État du dialogue:', { showReceiptDialog, hasLastSale: !!lastSale })
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
@@ -221,35 +545,13 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header Premium */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-rose-600 p-8 shadow-2xl">
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-pink-400/20 backdrop-blur-3xl"></div>
-
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg">
-              <ShoppingCart className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-1 drop-shadow-lg">
-                Nouvelle Vente
-              </h1>
-              <p className="text-purple-100 text-sm">
-                Interface de vente rapide et intuitive
-              </p>
-              <div className="flex items-center gap-2 mt-2">
-                {isScanning && (
-                  <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg animate-pulse">
-                    <Scan className="w-4 h-4" />
-                    <span className="text-xs font-medium">Scanner actif...</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+      {/* Indicateur de scanner (si actif) */}
+      {isScanning && (
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-lg">
+          <Scan className="w-4 h-4" />
+          <span className="text-sm font-medium">Scanner actif...</span>
         </div>
-      </div>
+      )}
 
       {success && (
         <div className="relative overflow-hidden bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 text-green-800 px-6 py-4 rounded-xl shadow-lg">
@@ -268,25 +570,44 @@ export default function SalesPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Produits */}
+        {/* Produits - Design amélioré */}
         <div className="lg:col-span-2 space-y-4">
-          <Card className="glass">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5" />
-                Produits
-              </CardTitle>
+          <Card className="border border-[hsl(var(--border))] shadow-lg bg-[hsl(var(--card))] backdrop-blur-sm">
+            <CardHeader className="border-b border-[hsl(var(--border))] pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[var(--color-business-blue)]/10 rounded-lg">
+                    <ShoppingCart className="w-6 h-6 text-[var(--color-business-blue)]" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-bold text-[hsl(var(--foreground))]">
+                      Produits
+                    </CardTitle>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                      {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} disponible{filteredProducts.length > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    Total catalogue
+                  </div>
+                  <div className="text-lg font-bold text-[var(--color-business-blue)]">
+                    {products.length}
+                  </div>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Recherche et Scanner */}
-              <div className="flex gap-2">
+            <CardContent className="space-y-6 pt-6">
+              {/* Recherche et Scanner - Design amélioré */}
+              <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(var(--muted-foreground))] w-5 h-5" />
                   <Input
-                    placeholder="Rechercher un produit..."
+                    placeholder="Rechercher un produit par nom ou SKU..."
                     value={searchProduct}
                     onChange={(e) => setSearchProduct(e.target.value)}
-                    className="pl-10"
+                    className="pl-11 h-12 text-base border-2 focus:border-[var(--color-business-blue)] transition-colors"
                   />
                 </div>
                 <BarcodeScannerButton
@@ -303,28 +624,76 @@ export default function SalesPage() {
                 />
               </div>
 
-              {/* Liste des produits */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
+              {/* Liste des produits - Design amélioré */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="group relative p-4 border-2 border-[hsl(var(--border))] rounded-xl hover:border-[var(--color-business-blue)] hover:shadow-lg cursor-pointer transition-all duration-200 bg-[hsl(var(--card))] hover:bg-[hsl(var(--accent))]"
                     onClick={() => addToCart(product)}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-sm">{product.name}</h4>
-                        <p className="text-xs text-gray-500">{product.sku}</p>
+                    {/* Badge de stock */}
+                    <div className="absolute top-3 right-3">
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        product.stock > 10
+                          ? 'bg-green-100 text-green-700'
+                          : product.stock > 0
+                            ? 'bg-orange-100 text-orange-700'
+                            : 'bg-red-100 text-red-700'
+                      }`}>
+                        {product.stock > 0 ? `${product.stock} en stock` : 'Rupture'}
                       </div>
-                      <Plus className="w-4 h-4 text-blue-600" />
                     </div>
-                    <div className="mt-2 flex justify-between items-center">
-                      <span className="text-blue-600 font-bold">{Number(product.price).toFixed(2)} DH</span>
-                      <span className="text-xs text-gray-500">Stock: {product.stock}</span>
+
+                    {/* Contenu principal */}
+                    <div className="pr-20">
+                      <h4 className="font-bold text-base text-[hsl(var(--foreground))] group-hover:text-[var(--color-business-blue)] transition-colors line-clamp-2">
+                        {product.name}
+                      </h4>
+                      <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1 font-mono">
+                        {product.sku}
+                      </p>
                     </div>
+
+                    {/* Prix et action */}
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-2xl font-bold text-[var(--color-business-blue)]">
+                          {Number(product.price).toFixed(2)} DH
+                        </span>
+                        <span className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
+                          Prix unitaire
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-[var(--color-business-blue)]/10 rounded-lg group-hover:bg-[var(--color-business-blue)] transition-colors">
+                          <Plus className="w-5 h-5 text-[var(--color-business-blue)] group-hover:text-white transition-colors" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Effet de survol */}
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--color-business-blue)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
                   </div>
                 ))}
               </div>
+
+              {/* Message si aucun produit */}
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="p-4 bg-[hsl(var(--muted))]/20 rounded-xl inline-block">
+                    <ShoppingCart className="w-12 h-12 text-[hsl(var(--muted-foreground))] mx-auto mb-3" />
+                    <p className="text-[hsl(var(--muted-foreground))] font-medium">
+                      {searchProduct ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
+                    </p>
+                    {searchProduct && (
+                      <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                        Essayez un autre terme de recherche
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -414,31 +783,119 @@ export default function SalesPage() {
                     Panier vide
                   </p>
                 ) : (
-                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                    {cart.map((item) => (
-                      <div key={item.product.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{item.product.name}</p>
-                          <p className="text-xs text-gray-500">{Number(item.product.price).toFixed(2)} DH</p>
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+                    {cart.map((item) => {
+                      const currentPrice = item.customPrice !== undefined ? item.customPrice : Number(item.product.price)
+                      const originalPrice = Number(item.product.price)
+                      const isDiscounted = item.customPrice !== undefined && item.customPrice < originalPrice
+
+                      return (
+                        <div key={item.product.id} className="p-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg space-y-3">
+                          {/* En-tête du produit */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-[hsl(var(--foreground))]">{item.product.name}</p>
+                              <p className="text-xs text-[hsl(var(--muted-foreground))] font-mono">{item.product.sku}</p>
+                              {isDiscounted && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs line-through text-[hsl(var(--muted-foreground))]">
+                                    {originalPrice.toFixed(2)} DH
+                                  </span>
+                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                    Négocié
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeFromCart(item.product.id)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+
+                          {/* Contrôles de quantité et prix */}
+                          <div className="grid grid-cols-3 gap-2">
+                            {/* Quantité */}
+                            <div>
+                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Qté</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max={item.product.stock}
+                                value={item.quantity}
+                                onChange={(e) => updateQuantity(item.product.id, parseInt(e.target.value))}
+                                className="h-8 text-center text-sm"
+                              />
+                            </div>
+
+                            {/* Prix unitaire */}
+                            <div>
+                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Prix (DH)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={currentPrice.toFixed(2)}
+                                onChange={(e) => {
+                                  const newPrice = parseFloat(e.target.value)
+                                  if (isNaN(newPrice) || newPrice < 0) return
+                                  updateCustomPrice(item.product.id, newPrice === originalPrice ? undefined : newPrice)
+                                }}
+                                className="h-8 text-center text-sm"
+                                placeholder={originalPrice.toFixed(2)}
+                              />
+                            </div>
+
+                            {/* Total ligne */}
+                            <div>
+                              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Total</Label>
+                              <div className="h-8 flex items-center justify-center bg-[hsl(var(--muted))] rounded-md">
+                                <span className="text-sm font-bold text-[var(--color-business-blue)]">
+                                  {(currentPrice * item.quantity).toFixed(2)} DH
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Actions rapides */}
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateCustomPrice(item.product.id, undefined)}
+                              className="text-xs h-7 flex-1"
+                              disabled={item.customPrice === undefined}
+                            >
+                              Prix original
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateCustomPrice(item.product.id, originalPrice * 0.9)}
+                              className="text-xs h-7 flex-1"
+                            >
+                              -10%
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => updateCustomPrice(item.product.id, originalPrice * 0.8)}
+                              className="text-xs h-7 flex-1"
+                            >
+                              -20%
+                            </Button>
+                          </div>
                         </div>
-                        <Input
-                          type="number"
-                          min="1"
-                          max={item.product.stock}
-                          value={item.quantity}
-                          onChange={(e) => updateQuantity(item.product.id, parseInt(e.target.value))}
-                          className="w-16 h-8 text-center"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFromCart(item.product.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -479,6 +936,12 @@ export default function SalesPage() {
                           <span>Carte</span>
                         </div>
                       </SelectItem>
+                      <SelectItem value="CHECK">
+                        <div className="flex items-center gap-2">
+                          <span>📄</span>
+                          <span>Chèque</span>
+                        </div>
+                      </SelectItem>
                       <SelectItem value="TRANSFER">
                         <div className="flex items-center gap-2">
                           <span>🏦</span>
@@ -507,16 +970,104 @@ export default function SalesPage() {
                   )}
                 </div>
 
-                <div>
-                  <Label className="text-xs">Montant payé (DH)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={amountPaid}
-                    onChange={(e) => setAmountPaid(e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
+                {/* Champ Montant Payé - Visible uniquement pour Crédit */}
+                {paymentMethod === 'CREDIT' && (
+                  <div>
+                    <Label className="text-xs">
+                      Montant payé (DH) <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(e.target.value)}
+                      placeholder="0.00"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Saisissez le montant payé maintenant. Le reste sera en crédit.
+                    </p>
+                  </div>
+                )}
+
+                {/* Formulaire pour les informations du chèque */}
+                {paymentMethod === 'CHECK' && (
+                  <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span>📄</span>
+                      <span className="font-semibold text-blue-800">Informations du chèque</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">
+                          Numéro du chèque <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          type="text"
+                          value={checkNumber}
+                          onChange={(e) => setCheckNumber(e.target.value)}
+                          placeholder="Ex: 1234567"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs">
+                          Date du chèque <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          type="date"
+                          value={checkDate}
+                          onChange={(e) => setCheckDate(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs">
+                        Émetteur <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="text"
+                        value={checkIssuer}
+                        onChange={(e) => setCheckIssuer(e.target.value)}
+                        placeholder="Nom de la personne/entreprise qui émet le chèque"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-xs">
+                        Bénéficiaire <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="text"
+                        value={checkBeneficiary}
+                        onChange={(e) => setCheckBeneficiary(e.target.value)}
+                        placeholder="Nom du bénéficiaire du chèque"
+                        required
+                      />
+                    </div>
+
+                    <div className="p-2 bg-blue-100 rounded text-xs text-blue-700">
+                      💡 Le montant du chèque sera automatiquement défini au total de la vente ({total.toFixed(2)} DH)
+                    </div>
+                  </div>
+                )}
+
+                {/* Message pour paiements comptants */}
+                {paymentMethod !== 'CREDIT' && paymentMethod !== 'CHECK' && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs text-green-700 flex items-center gap-2">
+                      <span>✅</span>
+                      <span className="font-medium">
+                        Paiement comptant : Le montant total ({total.toFixed(2)} DH) sera automatiquement considéré comme payé.
+                      </span>
+                    </p>
+                  </div>
+                )}
 
                 <div className="pt-2 border-t space-y-1">
                   <div className="flex justify-between text-sm">
@@ -537,6 +1088,7 @@ export default function SalesPage() {
 
                 <Button
                   type="submit"
+                  variant="sales"
                   className="w-full"
                   disabled={loading || cart.length === 0}
                 >
@@ -547,6 +1099,99 @@ export default function SalesPage() {
           </form>
         </div>
       </div>
+
+      {/* Dialogue d'impression du reçu */}
+      {showReceiptDialog && lastSale && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => {
+            console.log('🔴 Fermeture du dialogue (clic fond)')
+            setShowReceiptDialog(false)
+          }}
+        >
+          <Card
+            className="max-w-md w-full"
+            onClick={(e) => {
+              console.log('🟢 Clic sur la carte (ne ferme pas)')
+              e.stopPropagation()
+            }}
+          >
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">✅ Vente Réussie !</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center space-y-2">
+                <p className="text-lg font-semibold text-green-600">
+                  Vente N° {lastSale.saleNumber}
+                </p>
+                <p className="text-3xl font-bold">
+                  {Number(lastSale.totalAmount).toFixed(2)} DH
+                </p>
+                {Number(lastSale.creditAmount) > 0 && (
+                  <p className="text-sm text-orange-600">
+                    Reste à payer : {Number(lastSale.creditAmount).toFixed(2)} DH
+                  </p>
+                )}
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Client :</span>
+                  <span className="font-medium">
+                    {lastSale.customer ? lastSale.customer.name : '🚶 Client de passage'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Paiement :</span>
+                  <span className="font-medium">
+                    {getPaymentMethodLabel(lastSale.paymentMethod)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Articles :</span>
+                  <span className="font-medium">{lastSale.items.length}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Button
+                  onClick={() => {
+                    printReceipt()
+                    setShowReceiptDialog(false)
+                  }}
+                  variant="invoices"
+                  className="w-full"
+                >
+                  🖨️ Imprimer le Reçu
+                </Button>
+
+                <DeliveryNoteButton
+                  saleId={lastSale.id}
+                  saleNumber={lastSale.saleNumber}
+                  isGenerated={lastSale.deliveryNoteGenerated || false}
+                  className="w-full"
+                  onGenerated={() => {
+                    // Optionnel: fermer le dialogue après génération
+                    // setShowReceiptDialog(false)
+                  }}
+                />
+
+                <Button
+                  onClick={() => setShowReceiptDialog(false)}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Fermer
+                </Button>
+              </div>
+
+              <p className="text-xs text-center text-gray-500">
+                💡 Vous pouvez réimprimer ce reçu depuis l'historique des ventes
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

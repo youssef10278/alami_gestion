@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Eye, Calendar, DollarSign } from 'lucide-react'
+import DeliveryNoteButton from '@/components/sales/DeliveryNoteButton'
+import { Eye, Calendar, DollarSign, Printer } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 
 interface Sale {
   id: string
@@ -16,11 +18,13 @@ interface Sale {
   creditAmount: number
   paymentMethod: string
   status: string
+  deliveryNoteGenerated: boolean
+  deliveryNoteGeneratedAt?: string
   createdAt: string
   customer: {
     name: string
     company: string | null
-  }
+  } | null
   seller: {
     name: string
   }
@@ -38,12 +42,20 @@ interface Sale {
 
 export default function SalesHistoryPage() {
   const [sales, setSales] = useState<Sale[]>([])
+  const [filteredSales, setFilteredSales] = useState<Sale[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
+  const [filterStatus, setFilterStatus] = useState<string>('ALL')
+  const [filterPayment, setFilterPayment] = useState<string>('ALL')
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     fetchSales()
   }, [])
+
+  useEffect(() => {
+    applyFilters()
+  }, [sales, filterStatus, filterPayment, searchTerm])
 
   const fetchSales = async () => {
     try {
@@ -57,16 +69,41 @@ export default function SalesHistoryPage() {
     }
   }
 
+  const applyFilters = () => {
+    let filtered = [...sales]
+
+    // Filtre par statut
+    if (filterStatus !== 'ALL') {
+      filtered = filtered.filter(sale => sale.status === filterStatus)
+    }
+
+    // Filtre par méthode de paiement
+    if (filterPayment !== 'ALL') {
+      filtered = filtered.filter(sale => sale.paymentMethod === filterPayment)
+    }
+
+    // Recherche par client ou numéro de vente
+    if (searchTerm) {
+      filtered = filtered.filter(sale =>
+        sale.saleNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sale.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+        (sale.customer?.company?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
+      )
+    }
+
+    setFilteredSales(filtered)
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return <Badge variant="success">Complétée</Badge>
+        return <Badge variant="completed">Complétée</Badge>
       case 'PENDING':
-        return <Badge variant="warning">En attente</Badge>
+        return <Badge variant="pending">En attente</Badge>
       case 'CANCELLED':
-        return <Badge variant="destructive">Annulée</Badge>
+        return <Badge variant="cancelled">Annulée</Badge>
       default:
-        return <Badge>{status}</Badge>
+        return <Badge variant="draft">{status}</Badge>
     }
   }
 
@@ -83,6 +120,212 @@ export default function SalesHistoryPage() {
       default:
         return method
     }
+  }
+
+  const printReceipt = (sale: Sale) => {
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      toast.error('Impossible d\'ouvrir la fenêtre d\'impression')
+      return
+    }
+
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Reçu de Vente - ${sale.saleNumber}</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            max-width: 80mm;
+            margin: 0 auto;
+          }
+          .receipt {
+            border: 2px solid #000;
+            padding: 15px;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+          }
+          .header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+          }
+          .header p {
+            font-size: 12px;
+            margin: 2px 0;
+          }
+          .info {
+            margin: 10px 0;
+            font-size: 12px;
+          }
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+          }
+          .items {
+            border-top: 2px dashed #000;
+            border-bottom: 2px dashed #000;
+            padding: 10px 0;
+            margin: 10px 0;
+          }
+          .item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 12px;
+          }
+          .item-name {
+            flex: 1;
+          }
+          .item-qty {
+            width: 60px;
+            text-align: center;
+          }
+          .item-price {
+            width: 80px;
+            text-align: right;
+          }
+          .totals {
+            margin: 10px 0;
+            font-size: 13px;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+          }
+          .total-row.grand {
+            font-weight: bold;
+            font-size: 16px;
+            border-top: 2px solid #000;
+            padding-top: 5px;
+            margin-top: 10px;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px dashed #000;
+            font-size: 11px;
+          }
+          @media print {
+            body {
+              padding: 0;
+            }
+            .receipt {
+              border: none;
+            }
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="header">
+            <h1>🏪 ALAMI GESTION</h1>
+            <p>Reçu de Vente</p>
+            <p>N° ${sale.saleNumber}</p>
+          </div>
+
+          <div class="info">
+            <div class="info-row">
+              <span>Date:</span>
+              <span>${new Date(sale.createdAt).toLocaleString('fr-FR')}</span>
+            </div>
+            <div class="info-row">
+              <span>Client:</span>
+              <span>${sale.customer ? sale.customer.name : 'Client de passage'}</span>
+            </div>
+            <div class="info-row">
+              <span>Vendeur:</span>
+              <span>${sale.seller.name}</span>
+            </div>
+            <div class="info-row">
+              <span>Paiement:</span>
+              <span>${getPaymentMethodLabel(sale.paymentMethod)}</span>
+            </div>
+          </div>
+
+          <div class="items">
+            <div class="item" style="font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 5px;">
+              <div class="item-name">Article</div>
+              <div class="item-qty">Qté</div>
+              <div class="item-price">Prix</div>
+            </div>
+            ${sale.items.map((item) => `
+              <div class="item">
+                <div class="item-name">${item.product.name}</div>
+                <div class="item-qty">${item.quantity}</div>
+                <div class="item-price">${Number(item.total).toFixed(2)} DH</div>
+              </div>
+              <div class="item" style="font-size: 10px; color: #666; margin-top: -3px;">
+                <div class="item-name" style="padding-left: 10px;">
+                  ${item.quantity} × ${Number(item.unitPrice).toFixed(2)} DH
+                </div>
+                <div class="item-qty"></div>
+                <div class="item-price"></div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="totals">
+            <div class="total-row">
+              <span>Sous-total:</span>
+              <span>${Number(sale.totalAmount).toFixed(2)} DH</span>
+            </div>
+            <div class="total-row">
+              <span>Montant payé:</span>
+              <span>${Number(sale.paidAmount).toFixed(2)} DH</span>
+            </div>
+            ${Number(sale.creditAmount) > 0 ? `
+              <div class="total-row" style="color: #d97706;">
+                <span>Reste à payer:</span>
+                <span>${Number(sale.creditAmount).toFixed(2)} DH</span>
+              </div>
+            ` : ''}
+            <div class="total-row grand">
+              <span>TOTAL:</span>
+              <span>${Number(sale.totalAmount).toFixed(2)} DH</span>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>Merci pour votre achat !</p>
+            <p>À bientôt chez Alami Gestion</p>
+            <p style="margin-top: 10px; font-size: 10px;">
+              Réimprimé le ${new Date().toLocaleString('fr-FR')}
+            </p>
+          </div>
+        </div>
+
+        <div class="no-print" style="text-align: center; margin-top: 20px;">
+          <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 5px; margin-right: 10px;">
+            🖨️ Imprimer
+          </button>
+          <button onclick="window.close()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #6b7280; color: white; border: none; border-radius: 5px;">
+            Fermer
+          </button>
+        </div>
+      </body>
+      </html>
+    `
+
+    printWindow.document.write(receiptHTML)
+    printWindow.document.close()
   }
 
   return (
@@ -114,6 +357,77 @@ export default function SalesHistoryPage() {
         </div>
       </div>
 
+      {/* Filtres */}
+      <Card className="glass">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Recherche */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                🔍 Rechercher
+              </label>
+              <input
+                type="text"
+                placeholder="Client, N° vente..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Filtre Statut */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                📊 Statut
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              >
+                <option value="ALL">Tous</option>
+                <option value="COMPLETED">Complétée</option>
+                <option value="PENDING">En attente</option>
+                <option value="CANCELLED">Annulée</option>
+              </select>
+            </div>
+
+            {/* Filtre Paiement */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                💳 Paiement
+              </label>
+              <select
+                value={filterPayment}
+                onChange={(e) => setFilterPayment(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              >
+                <option value="ALL">Tous</option>
+                <option value="CASH">Espèces</option>
+                <option value="CARD">Carte</option>
+                <option value="TRANSFER">Virement</option>
+                <option value="CREDIT">Crédit</option>
+              </select>
+            </div>
+
+            {/* Bouton Reset */}
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm('')
+                  setFilterStatus('ALL')
+                  setFilterPayment('ALL')
+                }}
+                className="w-full"
+              >
+                🔄 Réinitialiser
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats avec design premium */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Ventes */}
@@ -129,7 +443,7 @@ export default function SalesHistoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-rose-500 bg-clip-text text-transparent">
-              {sales.length}
+              {filteredSales.length}
             </div>
             <p className="text-xs text-pink-600 mt-2 font-medium">
               📋 Transactions
@@ -150,7 +464,7 @@ export default function SalesHistoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-              {sales.reduce((sum, s) => sum + Number(s.totalAmount), 0).toFixed(0)} DH
+              {filteredSales.reduce((sum, s) => sum + Number(s.totalAmount), 0).toFixed(0)} DH
             </div>
             <p className="text-xs text-green-600 mt-2 font-medium">
               💰 Total généré
@@ -171,7 +485,7 @@ export default function SalesHistoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-              {sales.reduce((sum, s) => sum + Number(s.paidAmount), 0).toFixed(0)} DH
+              {filteredSales.reduce((sum, s) => sum + Number(s.paidAmount), 0).toFixed(0)} DH
             </div>
             <p className="text-xs text-blue-600 mt-2 font-medium">
               ✅ Encaissé
@@ -186,10 +500,12 @@ export default function SalesHistoryPage() {
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <p className="mt-2 text-gray-600">Chargement...</p>
         </div>
-      ) : sales.length === 0 ? (
+      ) : filteredSales.length === 0 ? (
         <Card className="glass">
           <CardContent className="py-12 text-center">
-            <p className="text-gray-600">Aucune vente trouvée</p>
+            <p className="text-gray-600">
+              {sales.length === 0 ? 'Aucune vente trouvée' : 'Aucune vente ne correspond aux filtres'}
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -226,16 +542,16 @@ export default function SalesHistoryPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {sales.map((sale) => (
+                  {filteredSales.map((sale) => (
                     <tr key={sale.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {format(new Date(sale.createdAt), 'dd MMM yyyy HH:mm', { locale: fr })}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {sale.customer.name}
+                          {sale.customer ? sale.customer.name : '🚶 Client de passage'}
                         </div>
-                        {sale.customer.company && (
+                        {sale.customer?.company && (
                           <div className="text-sm text-gray-500">
                             {sale.customer.company}
                           </div>
@@ -257,13 +573,32 @@ export default function SalesHistoryPage() {
                         {getStatusBadge(sale.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedSale(sale)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedSale(sale)}
+                            title="Voir détails"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => printReceipt(sale)}
+                            title="Imprimer le reçu"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </Button>
+                          {sale.status === 'COMPLETED' && (
+                            <DeliveryNoteButton
+                              saleId={sale.id}
+                              saleNumber={sale.saleNumber}
+                              isGenerated={sale.deliveryNoteGenerated}
+                              className="ml-1"
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -301,7 +636,9 @@ export default function SalesHistoryPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Client</p>
-                  <p className="font-medium">{selectedSale.customer.name}</p>
+                  <p className="font-medium">
+                    {selectedSale.customer ? selectedSale.customer.name : '🚶 Client de passage'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Vendeur</p>
@@ -317,7 +654,7 @@ export default function SalesHistoryPage() {
                       <div>
                         <p className="font-medium">{item.product.name}</p>
                         <p className="text-sm text-gray-500">
-                          {item.quantity} × {Number(item.price).toFixed(2)} DH
+                          {item.quantity} × {Number(item.unitPrice).toFixed(2)} DH
                         </p>
                       </div>
                       <p className="font-semibold">{Number(item.total).toFixed(2)} DH</p>
@@ -345,12 +682,35 @@ export default function SalesHistoryPage() {
                 </div>
               </div>
 
-              <Button
-                onClick={() => setSelectedSale(null)}
-                className="w-full"
-              >
-                Fermer
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => {
+                    printReceipt(selectedSale)
+                    setSelectedSale(null)
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  Imprimer le Reçu
+                </Button>
+
+                {selectedSale.status === 'COMPLETED' && (
+                  <DeliveryNoteButton
+                    saleId={selectedSale.id}
+                    saleNumber={selectedSale.saleNumber}
+                    isGenerated={selectedSale.deliveryNoteGenerated}
+                    className="w-full"
+                  />
+                )}
+
+                <Button
+                  onClick={() => setSelectedSale(null)}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Fermer
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,42 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  OWNER
-  SELLER
-}
-
-enum PaymentMethod {
-  CASH
-  CREDIT
-  CARD
-  TRANSFER
-}
-
-enum DocumentType {
-  INVOICE
-  QUOTE
-  DELIVERY_NOTE
-}
-
-enum SaleStatus {
-  PENDING
-  COMPLETED
-  CANCELLED
-}
-
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String     @id @default(cuid())
+  email     String     @unique
   password  String
   name      String
-  role      UserRole @default(SELLER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  sales     Sale[]
+  role      UserRole   @default(SELLER)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   documents Document[]
+  invoices  Invoice[]
+  sales     Sale[]
 
   @@index([email])
   @@index([role])
@@ -63,21 +36,22 @@ model Category {
 }
 
 model Product {
-  id            String   @id @default(cuid())
-  sku           String   @unique
-  name          String
-  description   String?
-  image         String?
-  purchasePrice Decimal  @default(0) @db.Decimal(10, 2)
-  price         Decimal  @db.Decimal(10, 2)
-  stock         Int      @default(0)
-  minStock      Int      @default(10)
-  categoryId    String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  category       Category?        @relation(fields: [categoryId], references: [id])
+  id             String          @id @default(cuid())
+  sku            String          @unique
+  name           String
+  description    String?
+  image          String?
+  purchasePrice  Decimal         @default(0) @db.Decimal(10, 2)
+  price          Decimal         @db.Decimal(10, 2)
+  stock          Int             @default(0)
+  minStock       Int             @default(10)
+  categoryId     String?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  invoiceItems   InvoiceItem[]
+  category       Category?       @relation(fields: [categoryId], references: [id])
+  quoteItems     QuoteItem[]
   saleItems      SaleItem[]
   stockMovements StockMovement[]
 
@@ -88,20 +62,21 @@ model Product {
 }
 
 model Customer {
-  id           String   @id @default(cuid())
-  name         String
-  company      String?
-  email        String?
-  phone        String?
-  address      String?
-  creditLimit  Decimal  @default(0) @db.Decimal(10, 2)
-  creditUsed   Decimal  @default(0) @db.Decimal(10, 2)
-  isBlocked    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  sales        Sale[]
+  id             String          @id @default(cuid())
+  name           String
+  company        String?
+  email          String?
+  phone          String?
+  address        String?
+  creditLimit    Decimal         @default(0) @db.Decimal(10, 2)
+  creditUsed     Decimal         @default(0) @db.Decimal(10, 2)
+  isBlocked      Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   creditPayments CreditPayment[]
+  invoices       Invoice[]
+  quotes         Quote[]
+  sales          Sale[]
 
   @@index([name])
   @@index([email])
@@ -110,24 +85,27 @@ model Customer {
 }
 
 model Sale {
-  id            String        @id @default(cuid())
-  saleNumber    String        @unique
-  customerId    String?       // Optionnel pour les clients de passage
-  sellerId      String
-  totalAmount   Decimal       @db.Decimal(10, 2)
-  paidAmount    Decimal       @default(0) @db.Decimal(10, 2)
-  creditAmount  Decimal       @default(0) @db.Decimal(10, 2)
-  paymentMethod PaymentMethod
-  status        SaleStatus    @default(PENDING)
-  notes         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  customer      Customer?     @relation(fields: [customerId], references: [id])
-  seller        User          @relation(fields: [sellerId], references: [id])
-  items         SaleItem[]
-  documents     Document[]
-  creditPayments CreditPayment[]
+  id                      String          @id @default(cuid())
+  saleNumber              String          @unique
+  customerId              String?
+  sellerId                String
+  totalAmount             Decimal         @db.Decimal(10, 2)
+  paidAmount              Decimal         @default(0) @db.Decimal(10, 2)
+  creditAmount            Decimal         @default(0) @db.Decimal(10, 2)
+  paymentMethod           PaymentMethod
+  status                  SaleStatus      @default(PENDING)
+  notes                   String?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  deliveryNoteGenerated   Boolean         @default(false)
+  deliveryNoteGeneratedAt DateTime?
+  creditPayments          CreditPayment[]
+  documents               Document[]
+  quoteConverted          Quote?
+  customer                Customer?       @relation(fields: [customerId], references: [id])
+  seller                  User            @relation(fields: [sellerId], references: [id])
+  items                   SaleItem[]
+  saleCheck               SaleCheck?
 
   @@index([saleNumber])
   @@index([customerId])
@@ -144,24 +122,22 @@ model SaleItem {
   unitPrice Decimal  @db.Decimal(10, 2)
   total     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now())
-
-  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
 
   @@index([saleId])
   @@index([productId])
 }
 
 model StockMovement {
-  id          String   @id @default(cuid())
-  productId   String
-  quantity    Int
-  type        String // "IN" or "OUT"
-  reason      String
-  reference   String?
-  createdAt   DateTime @default(now())
-
-  product Product @relation(fields: [productId], references: [id])
+  id        String   @id @default(cuid())
+  productId String
+  quantity  Int
+  type      String
+  reason    String
+  reference String?
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
 
   @@index([productId])
   @@index([createdAt])
@@ -175,9 +151,8 @@ model CreditPayment {
   amount     Decimal  @db.Decimal(10, 2)
   notes      String?
   createdAt  DateTime @default(now())
-
-  sale     Sale     @relation(fields: [saleId], references: [id])
-  customer Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+  sale       Sale     @relation(fields: [saleId], references: [id])
 
   @@index([saleId])
   @@index([customerId])
@@ -192,9 +167,8 @@ model Document {
   generatedBy    String
   pdfUrl         String?
   createdAt      DateTime     @default(now())
-
-  sale      Sale @relation(fields: [saleId], references: [id])
-  generator User @relation(fields: [generatedBy], references: [id])
+  generator      User         @relation(fields: [generatedBy], references: [id])
+  sale           Sale         @relation(fields: [saleId], references: [id])
 
   @@index([documentNumber])
   @@index([saleId])
@@ -202,3 +176,302 @@ model Document {
   @@index([createdAt])
 }
 
+model Supplier {
+  id           String                @id @default(cuid())
+  name         String
+  company      String?
+  email        String?
+  phone        String
+  address      String?
+  taxId        String?
+  totalDebt    Decimal               @default(0) @db.Decimal(10, 2)
+  totalPaid    Decimal               @default(0) @db.Decimal(10, 2)
+  balance      Decimal               @default(0) @db.Decimal(10, 2)
+  notes        String?
+  isActive     Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  checks       Check[]
+  transactions SupplierTransaction[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model SupplierTransaction {
+  id                String            @id @default(cuid())
+  transactionNumber String            @unique
+  supplierId        String
+  type              TransactionType
+  amount            Decimal           @db.Decimal(10, 2)
+  description       String
+  date              DateTime          @default(now())
+  status            TransactionStatus @default(COMPLETED)
+  paymentMethod     String?
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  checks            Check[]
+  supplier          Supplier          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([transactionNumber])
+  @@index([supplierId])
+  @@index([type])
+  @@index([date])
+}
+
+model Check {
+  id            String               @id @default(cuid())
+  checkNumber   String               @unique
+  supplierId    String
+  transactionId String?
+  amount        Decimal              @db.Decimal(10, 2)
+  issueDate     DateTime             @default(now())
+  dueDate       DateTime
+  cashDate      DateTime?
+  status        CheckStatus          @default(ISSUED)
+  bankName      String
+  accountNumber String?
+  notes         String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  supplier      Supplier             @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  transaction   SupplierTransaction? @relation(fields: [transactionId], references: [id])
+
+  @@index([checkNumber])
+  @@index([supplierId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Quote {
+  id                String      @id @default(cuid())
+  quoteNumber       String      @unique
+  customerId        String?
+  customerName      String
+  customerPhone     String?
+  customerEmail     String?
+  customerAddress   String?
+  status            QuoteStatus @default(DRAFT)
+  validUntil        DateTime
+  subtotal          Decimal     @db.Decimal(10, 2)
+  discount          Decimal     @default(0) @db.Decimal(10, 2)
+  tax               Decimal     @default(0) @db.Decimal(10, 2)
+  total             Decimal     @db.Decimal(10, 2)
+  notes             String?
+  terms             String?
+  convertedToSaleId String?     @unique
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  convertedToSale   Sale?       @relation(fields: [convertedToSaleId], references: [id])
+  customer          Customer?   @relation(fields: [customerId], references: [id])
+  items             QuoteItem[]
+
+  @@index([quoteNumber])
+  @@index([customerId])
+  @@index([status])
+  @@index([validUntil])
+}
+
+model QuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  productId   String?
+  productName String
+  productSku  String?
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  discount    Decimal  @default(0) @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  product     Product? @relation(fields: [productId], references: [id])
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@index([productId])
+}
+
+model Invoice {
+  id                String        @id @default(cuid())
+  invoiceNumber     String        @unique
+  type              InvoiceType   @default(INVOICE)
+  customerId        String?
+  customerName      String
+  customerPhone     String?
+  customerEmail     String?
+  customerAddress   String?
+  customerTaxId     String?
+  originalInvoiceId String?
+  subtotal          Decimal       @db.Decimal(10, 2)
+  discountAmount    Decimal       @default(0) @db.Decimal(10, 2)
+  taxRate           Decimal       @default(20) @db.Decimal(5, 2)
+  taxAmount         Decimal       @default(0) @db.Decimal(10, 2)
+  total             Decimal       @db.Decimal(10, 2)
+  notes             String?
+  terms             String?
+  dueDate           DateTime?
+  createdBy         String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  creator           User          @relation(fields: [createdBy], references: [id])
+  customer          Customer?     @relation(fields: [customerId], references: [id])
+  originalInvoice   Invoice?      @relation("InvoiceCreditNote", fields: [originalInvoiceId], references: [id])
+  creditNotes       Invoice[]     @relation("InvoiceCreditNote")
+  items             InvoiceItem[]
+
+  @@index([invoiceNumber])
+  @@index([customerId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([originalInvoiceId])
+}
+
+model InvoiceItem {
+  id             String   @id @default(cuid())
+  invoiceId      String
+  productId      String?
+  productName    String
+  productSku     String?
+  description    String?
+  quantity       Int
+  unitPrice      Decimal  @db.Decimal(10, 2)
+  discountAmount Decimal  @default(0) @db.Decimal(10, 2)
+  total          Decimal  @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product        Product? @relation(fields: [productId], references: [id])
+
+  @@index([invoiceId])
+  @@index([productId])
+}
+
+model CompanySettings {
+  id               String   @id @default(cuid())
+  companyName      String   @default("Mon Entreprise")
+  companyLogo      String?
+  companyICE       String?
+  companyEmail     String?
+  companyPhone     String?
+  companyAddress   String?
+  companyWebsite   String?
+  companyTaxId     String?
+  invoicePrefix    String   @default("FAC")
+  creditNotePrefix String   @default("FAV")
+  defaultTaxRate   Decimal  @default(20) @db.Decimal(5, 2)
+  bankName         String?
+  bankAccount      String?
+  bankRIB          String?
+  legalMentions    String?
+  invoiceTheme     String   @default("modern")
+  primaryColor     String   @default("#2563EB")
+  secondaryColor   String   @default("#10B981")
+  tableHeaderColor String   @default("#10B981")
+  sectionColor     String   @default("#10B981")
+  accentColor      String   @default("#F59E0B")
+  textColor        String   @default("#1F2937")
+  headerTextColor  String   @default("#FFFFFF")
+  sectionTextColor String   @default("#FFFFFF")
+  backgroundColor  String   @default("#FFFFFF")
+  headerStyle      String   @default("gradient")
+  logoPosition     String   @default("left")
+  logoSize         String   @default("medium")
+  fontFamily       String   @default("helvetica")
+  fontSize         String   @default("normal")
+  borderRadius     String   @default("rounded")
+  showWatermark    Boolean  @default(false)
+  watermarkText    String?
+  customCSS        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("company_settings")
+}
+
+model SaleCheck {
+  id          String          @id @default(cuid())
+  saleId      String          @unique
+  checkNumber String
+  issuer      String
+  beneficiary String
+  checkDate   DateTime
+  amount      Decimal         @db.Decimal(10, 2)
+  status      SaleCheckStatus @default(PENDING)
+  cashedDate  DateTime?
+  notes       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  sale        Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([checkNumber])
+  @@index([status])
+  @@index([checkDate])
+  @@index([saleId])
+  @@map("sale_checks")
+}
+
+enum UserRole {
+  OWNER
+  SELLER
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT
+  CARD
+  TRANSFER
+  CHECK
+}
+
+enum DocumentType {
+  INVOICE
+  QUOTE
+  DELIVERY_NOTE
+}
+
+enum SaleStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionType {
+  PURCHASE
+  PAYMENT
+  ADJUSTMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum CheckStatus {
+  ISSUED
+  CASHED
+  CANCELLED
+  BOUNCED
+}
+
+enum SaleCheckStatus {
+  PENDING
+  CASHED
+  BOUNCED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
+enum InvoiceType {
+  INVOICE
+  CREDIT_NOTE
+}

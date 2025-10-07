@@ -12,6 +12,7 @@ import {
   DollarSign
 } from 'lucide-react'
 import ProfitStats from '@/components/dashboard/ProfitStats'
+import DashboardPageClient from '@/components/dashboard/DashboardPageClient'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -100,84 +101,144 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Header Premium */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
-        {/* Effet de fond animé */}
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 backdrop-blur-3xl"></div>
+    <DashboardPageClient>
+      <div className="space-y-6">
+      {/* Header Business Moderne */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-business-blue)] via-[var(--color-business-blue)] to-[var(--color-success-green)] p-8 shadow-2xl border border-[hsl(var(--border))]">
+        {/* Effet de fond moderne */}
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.3))]"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-business-blue)]/10 to-[var(--color-success-green)]/10 backdrop-blur-3xl"></div>
+
+        {/* Éléments décoratifs Business */}
+        <div className="absolute top-4 right-4 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+        <div className="absolute bottom-4 left-4 w-24 h-24 bg-[var(--color-success-green)]/10 rounded-full blur-xl"></div>
 
         <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg">
-              <TrendingUp className="w-8 h-8 text-white" />
+          <div className="flex items-center gap-6">
+            <div className="p-4 bg-white/15 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
+              <TrendingUp className="w-10 h-10 text-white drop-shadow-sm" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-white mb-1 drop-shadow-lg">
-                Tableau de bord
-              </h1>
-              <p className="text-blue-100 text-sm">
-                Vue d'ensemble de votre entreprise en temps réel
-              </p>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="text-xs text-white/80 bg-white/10 px-3 py-1 rounded-lg backdrop-blur-sm">
-                  👋 Bienvenue, {session?.user?.name}
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-4xl font-bold text-white drop-shadow-lg">
+                  Tableau de bord
+                </h1>
+                <div className="px-3 py-1 bg-[var(--color-success-green)]/20 text-[var(--color-success-green)] text-xs font-medium rounded-full border border-[var(--color-success-green)]/30 backdrop-blur-sm">
+                  ✨ Business Pro
                 </div>
               </div>
+              <p className="text-white/90 text-base font-medium mb-3">
+                Vue d'ensemble de votre entreprise en temps réel
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="text-sm text-white/90 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
+                  👋 Bienvenue, {session?.user?.name}
+                </div>
+                <div className="text-xs text-white/70 bg-white/5 px-3 py-2 rounded-lg backdrop-blur-sm">
+                  📊 Données en temps réel
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Indicateur de statut */}
+          <div className="hidden lg:flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2 text-white/90 text-sm">
+              <div className="w-3 h-3 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
+              Système opérationnel
+            </div>
+            <div className="text-xs text-white/70">
+              Dernière mise à jour : {new Date().toLocaleTimeString('fr-FR')}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid avec design premium */}
+      {/* Stats Grid Business Moderne */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon
-          const gradients = [
-            'from-blue-50 to-blue-100/50',
-            'from-green-50 to-emerald-100/50',
-            'from-purple-50 to-purple-100/50',
-            'from-emerald-50 to-teal-100/50',
-            'from-orange-50 to-amber-100/50',
-            'from-red-50 to-rose-100/50',
+
+          // Couleurs Business Moderne par module
+          const moduleColors = [
+            {
+              bg: 'bg-[var(--color-business-blue)]/5',
+              border: 'border-[var(--color-business-blue)]/20',
+              icon: 'bg-[var(--color-business-blue)]',
+              text: 'text-[var(--color-business-blue)]',
+              accent: 'var(--color-business-blue)'
+            },
+            {
+              bg: 'bg-[var(--color-success-green)]/5',
+              border: 'border-[var(--color-success-green)]/20',
+              icon: 'bg-[var(--color-success-green)]',
+              text: 'text-[var(--color-success-green)]',
+              accent: 'var(--color-success-green)'
+            },
+            {
+              bg: 'bg-[var(--color-quotes)]/5',
+              border: 'border-[var(--color-quotes)]/20',
+              icon: 'bg-[var(--color-quotes)]',
+              text: 'text-[var(--color-quotes)]',
+              accent: 'var(--color-quotes)'
+            },
+            {
+              bg: 'bg-[var(--color-stock)]/5',
+              border: 'border-[var(--color-stock)]/20',
+              icon: 'bg-[var(--color-stock)]',
+              text: 'text-[var(--color-stock)]',
+              accent: 'var(--color-stock)'
+            },
+            {
+              bg: 'bg-[var(--color-customers)]/5',
+              border: 'border-[var(--color-customers)]/20',
+              icon: 'bg-[var(--color-customers)]',
+              text: 'text-[var(--color-customers)]',
+              accent: 'var(--color-customers)'
+            },
+            {
+              bg: 'bg-[var(--color-alert-red)]/5',
+              border: 'border-[var(--color-alert-red)]/20',
+              icon: 'bg-[var(--color-alert-red)]',
+              text: 'text-[var(--color-alert-red)]',
+              accent: 'var(--color-alert-red)'
+            },
           ]
-          const iconGradients = [
-            'from-blue-500 to-blue-600',
-            'from-green-500 to-emerald-600',
-            'from-purple-500 to-purple-600',
-            'from-emerald-500 to-teal-600',
-            'from-orange-500 to-amber-600',
-            'from-red-500 to-rose-600',
-          ]
-          const textGradients = [
-            'from-blue-600 to-blue-500',
-            'from-green-600 to-emerald-500',
-            'from-purple-600 to-purple-500',
-            'from-emerald-600 to-teal-500',
-            'from-orange-600 to-amber-500',
-            'from-red-600 to-rose-500',
-          ]
+
+          const colorScheme = moduleColors[index % moduleColors.length]
 
           return (
             <Card
               key={stat.title}
-              className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br"
-              style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }}
+              className={`relative overflow-hidden ${colorScheme.bg} ${colorScheme.border} border-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group`}
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index]}`}></div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              {/* Éléments décoratifs Business */}
+              <div className="absolute top-0 right-0 w-24 h-24 opacity-10 rounded-full -mr-12 -mt-12"
+                   style={{ backgroundColor: colorScheme.accent }}></div>
+              <div className="absolute bottom-0 left-0 w-16 h-16 opacity-5 rounded-full -ml-8 -mb-8"
+                   style={{ backgroundColor: colorScheme.accent }}></div>
 
-              <CardHeader className="relative flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-900">
+              <CardHeader className="relative flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-sm font-semibold text-[hsl(var(--foreground))] group-hover:text-[hsl(var(--foreground))]/80 transition-colors">
                   {stat.title}
                 </CardTitle>
-                <div className={`p-3 bg-gradient-to-br ${iconGradients[index]} rounded-xl shadow-lg`}>
+                <div className={`p-3 ${colorScheme.icon} rounded-xl shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110`}>
                   <Icon className="w-5 h-5 text-white" />
                 </div>
               </CardHeader>
               <CardContent className="relative">
-                <div className={`text-4xl font-bold bg-gradient-to-r ${textGradients[index]} bg-clip-text text-transparent`}>
+                <div className={`text-4xl font-bold ${colorScheme.text} mb-1 group-hover:scale-105 transition-transform duration-300`}>
                   {stat.value}
+                </div>
+                <div className="w-full h-1 bg-[hsl(var(--muted))] rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-1000 ease-out"
+                    style={{
+                      backgroundColor: colorScheme.accent,
+                      width: `${Math.min(100, (parseInt(stat.value.toString()) / 100) * 100)}%`
+                    }}
+                  ></div>
                 </div>
               </CardContent>
             </Card>
@@ -185,65 +246,145 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Recent Sales avec design premium */}
-      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4">
-          <div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Ventes récentes
-            </CardTitle>
-            <p className="text-sm text-gray-500 mt-1">Dernières transactions effectuées</p>
+      {/* Ventes récentes Business Moderne */}
+      <Card className="border border-[hsl(var(--border))] shadow-lg bg-[hsl(var(--card))] backdrop-blur-sm">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-[hsl(var(--border))] pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-[var(--color-sales)]/10 rounded-lg">
+              <ShoppingCart className="w-6 h-6 text-[var(--color-sales)]" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold text-[hsl(var(--foreground))]">
+                Ventes récentes
+              </CardTitle>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">Dernières transactions effectuées</p>
+            </div>
           </div>
           <Link href="/dashboard/sales/history">
             <Button
-              variant="outline"
+              variant="sales-outline"
               size="sm"
-              className="border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all shadow-sm hover:shadow-md"
+              className="shadow-sm hover:shadow-md transition-all"
             >
               📊 Voir tout
             </Button>
           </Link>
         </CardHeader>
         <CardContent className="pt-6">
+          {recentSales.length > 0 && (
+            <div className="mb-6 p-4 bg-[var(--color-sales)]/5 border border-[var(--color-sales)]/10 rounded-xl">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--color-sales)]">
+                    {recentSales.length}
+                  </div>
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    Ventes récentes
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--color-success-green)]">
+                    {recentSales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0).toFixed(0)} DH
+                  </div>
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    Chiffre d'affaires
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[var(--color-business-blue)]">
+                    {(recentSales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0) / recentSales.length).toFixed(0)} DH
+                  </div>
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    Panier moyen
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {recentSales.length === 0 ? (
             <div className="text-center py-12">
-              <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">
+              <div className="p-4 bg-[var(--color-sales)]/5 rounded-full w-fit mx-auto mb-4">
+                <ShoppingCart className="w-16 h-16 text-[var(--color-sales)]/50" />
+              </div>
+              <p className="text-[hsl(var(--foreground))] font-medium">
                 Aucune vente enregistrée
               </p>
-              <p className="text-sm text-gray-400 mt-1">
-                Les ventes apparaîtront ici
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                Les ventes apparaîtront ici une fois effectuées
               </p>
+              <Link href="/dashboard/sales" className="inline-block mt-4">
+                <Button variant="sales" size="sm">
+                  🛒 Créer une vente
+                </Button>
+              </Link>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {recentSales.map((sale, index) => (
                 <div
                   key={sale.id}
-                  className="group relative overflow-hidden flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border-2 border-gray-100 hover:border-purple-200 hover:shadow-lg transition-all duration-300"
+                  className="group relative overflow-hidden flex items-center justify-between p-5 bg-[hsl(var(--card))] rounded-xl border border-[hsl(var(--border))] hover:border-[var(--color-sales)]/30 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                 >
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300"></div>
+                  {/* Barre latérale colorée */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-sales)] transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 rounded-r"></div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md">
-                      {index + 1}
+                  {/* Effet de fond subtil */}
+                  <div className="absolute inset-0 bg-[var(--color-sales)]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+
+                  <div className="relative flex items-center gap-4 flex-1">
+                    {/* Numéro de vente stylisé */}
+                    <div className="w-12 h-12 rounded-xl bg-[var(--color-sales)]/10 border border-[var(--color-sales)]/20 flex items-center justify-center text-[var(--color-sales)] font-bold shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-110">
+                      #{index + 1}
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-900">{sale.customer.name}</p>
-                      <p className="text-sm text-gray-500 flex items-center gap-2">
-                        <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">{sale.saleNumber}</span>
-                        <span>•</span>
-                        <span>👤 {sale.seller.name}</span>
-                      </p>
+
+                    <div className="flex-1">
+                      {/* Nom du client */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-[hsl(var(--foreground))] group-hover:text-[var(--color-sales)] transition-colors">
+                          {sale.customer ? sale.customer.name : 'Client de passage'}
+                        </p>
+                        {!sale.customer && (
+                          <span className="px-2 py-0.5 bg-[var(--color-quotes)]/10 text-[var(--color-quotes)] text-xs font-medium rounded-full border border-[var(--color-quotes)]/20">
+                            Passage
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Informations de la vente */}
+                      <div className="flex items-center gap-3 text-sm text-[hsl(var(--muted-foreground))]">
+                        <span className="font-mono text-xs bg-[hsl(var(--muted))] px-2 py-1 rounded border border-[hsl(var(--border))] group-hover:bg-[var(--color-sales)]/10 group-hover:border-[var(--color-sales)]/20 transition-all">
+                          {sale.saleNumber}
+                        </span>
+                        <span className="w-1 h-1 bg-[hsl(var(--muted-foreground))] rounded-full"></span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 bg-[var(--color-customers)] rounded-full"></span>
+                          {sale.seller.name}
+                        </span>
+                        <span className="w-1 h-1 bg-[hsl(var(--muted-foreground))] rounded-full"></span>
+                        <span className="flex items-center gap-1">
+                          📦 {sale.items?.length || 0} article{(sale.items?.length || 0) > 1 ? 's' : ''}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      {sale.totalAmount.toFixed(2)} DH
+
+                  {/* Montant et date */}
+                  <div className="relative text-right">
+                    <p className="text-2xl font-bold text-[var(--color-sales)] group-hover:scale-105 transition-transform duration-300">
+                      {Number(sale.totalAmount).toFixed(2)} DH
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      📅 {new Date(sale.createdAt).toLocaleDateString('fr-FR')}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1 justify-end">
+                      <div className="w-2 h-2 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                        {new Date(sale.createdAt).toLocaleDateString('fr-FR', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -252,25 +393,37 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Section Bénéfices avec design premium */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 p-6 border-2 border-green-100 shadow-xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full -mr-32 -mt-32"></div>
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
-              <TrendingUp className="w-6 h-6 text-white" />
+      {/* Section Bénéfices Business Moderne */}
+      <div className="relative overflow-hidden rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-success-green)]/5 rounded-full -mr-32 -mt-32"></div>
+        <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--color-business-blue)]/5 rounded-full -ml-16 -mt-16"></div>
+        <div className="relative p-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-gradient-to-br from-[var(--color-success-green)] to-[var(--color-business-blue)] rounded-2xl shadow-lg">
+                <TrendingUp className="w-8 h-8 text-white drop-shadow-sm" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">
+                  Analyse des Bénéfices
+                </h2>
+                <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                  Suivi de la rentabilité en temps réel avec indicateurs avancés
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-                Analyse des Bénéfices
-              </h2>
-              <p className="text-sm text-green-600">Suivi de la rentabilité en temps réel</p>
+            <div className="flex items-center gap-2">
+              <div className="px-3 py-1 bg-[var(--color-success-green)]/10 text-[var(--color-success-green)] text-xs font-medium rounded-full border border-[var(--color-success-green)]/20">
+                ✨ Analytics Pro
+              </div>
+              <div className="w-3 h-3 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
             </div>
           </div>
           <ProfitStats />
         </div>
       </div>
-    </div>
+      </div>
+    </DashboardPageClient>
   )
 }
 
