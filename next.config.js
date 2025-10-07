@@ -6,8 +6,12 @@ const nextConfig = {
   // Optimisations
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
+    // Désactiver le turbopack en production pour éviter les problèmes
+    ...(process.env.NODE_ENV === 'production' && {
+      turbo: false,
+    }),
   },
-  
+
   // Configuration des images
   images: {
     domains: ['localhost'],
@@ -18,15 +22,6 @@ const nextConfig = {
       },
     ],
   },
-  
-  // Configuration PWA (si utilisée)
-  ...(process.env.NODE_ENV === 'production' && {
-    // Désactiver le turbopack en production pour éviter les problèmes
-    experimental: {
-      ...nextConfig.experimental,
-      turbo: false,
-    },
-  }),
   
   // Headers de sécurité
   async headers() {
