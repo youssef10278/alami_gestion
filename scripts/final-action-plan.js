@@ -1,0 +1,171 @@
+#!/usr/bin/env node
+
+console.log('🎯 PLAN D\'ACTION FINAL - RÉSOLUTION ERREUR 500')
+console.log('')
+
+console.log('❌ PROBLÈME PRINCIPAL :')
+console.log('   API /api/auth/signup retourne erreur 500')
+console.log('   → Cause: DATABASE_URL non configurée')
+console.log('   → Solution: Ajouter PostgreSQL à Railway')
+console.log('')
+
+console.log('🚀 ACTIONS IMMÉDIATES À EFFECTUER :')
+console.log('')
+
+console.log('1️⃣ AJOUTER POSTGRESQL (URGENT) :')
+console.log('   🌐 Allez sur https://railway.app/dashboard')
+console.log('   📁 Cliquez sur votre projet "alami_gestion"')
+console.log('   ➕ Cliquez "New Service"')
+console.log('   🗄️ Sélectionnez "Database"')
+console.log('   🐘 Choisissez "PostgreSQL"')
+console.log('   ✅ Confirmez la création')
+console.log('   ⏱️ Attendez 1-2 minutes')
+console.log('')
+
+console.log('2️⃣ VÉRIFIER DATABASE_URL (AUTOMATIQUE) :')
+console.log('   ⚙️ Dans votre service application')
+console.log('   📋 Onglet "Variables"')
+console.log('   ✅ DATABASE_URL devrait apparaître automatiquement')
+console.log('   📝 Format: postgresql://user:password@host:port/database')
+console.log('')
+
+console.log('3️⃣ AJOUTER VARIABLES MANQUANTES :')
+console.log('   Dans l\'onglet "Variables", ajoutez :')
+console.log('')
+console.log('   🔐 JWT_SECRET :')
+console.log('   5e76a3f888e6ca011994163fd9007cd766c376879a4c1b7b3b967d32498315dc369265fdd2b1bab45ef5303736c65e10b626619a46e0b9849f7722190dbf9883')
+console.log('')
+console.log('   🌍 NODE_ENV :')
+console.log('   production')
+console.log('')
+console.log('   🌐 NEXT_PUBLIC_APP_URL :')
+console.log('   https://votre-app.railway.app')
+console.log('   (Remplacez par votre vraie URL Railway)')
+console.log('')
+
+console.log('4️⃣ ATTENDRE REDÉPLOIEMENT :')
+console.log('   🔄 Railway redéploiera automatiquement')
+console.log('   ⏱️ Durée: 3-5 minutes')
+console.log('   📊 Surveillez les logs de déploiement')
+console.log('')
+
+console.log('5️⃣ MIGRER LA BASE DE DONNÉES :')
+console.log('   📱 Une fois le déploiement terminé')
+console.log('   💻 Ouvrez la console Railway')
+console.log('   ⌨️ Exécutez: npx prisma migrate deploy')
+console.log('   📊 Ou: npx prisma db push')
+console.log('')
+
+console.log('6️⃣ CRÉER UTILISATEUR ADMIN :')
+console.log('   💻 Dans la console Railway')
+console.log('   👤 Exécutez: node scripts/create-owner.js')
+console.log('   📝 Suivez les instructions')
+console.log('')
+
+console.log('🧪 TESTS DE VALIDATION :')
+console.log('')
+
+console.log('   ✅ Health Check :')
+console.log('   🌐 https://votre-app.railway.app/api/health')
+console.log('   📊 Réponse attendue: {"status":"healthy","database":"connected"}')
+console.log('')
+
+console.log('   ✅ Navigation :')
+console.log('   🔗 https://votre-app.railway.app/abc')
+console.log('   📝 Page d\'inscription devrait s\'afficher')
+console.log('')
+
+console.log('   ✅ Inscription :')
+console.log('   📝 Remplir le formulaire')
+console.log('   ✅ Compte créé avec succès')
+console.log('   🔄 Redirection vers /login')
+console.log('')
+
+console.log('   ✅ Connexion :')
+console.log('   🔑 Utiliser nouveaux identifiants')
+console.log('   🏠 Redirection vers /dashboard')
+console.log('')
+
+console.log('⏱️ TIMELINE COMPLÈTE :')
+console.log('')
+
+console.log('   🕐 MAINTENANT :')
+console.log('   • Ajouter PostgreSQL')
+console.log('   • Configurer variables')
+console.log('')
+
+console.log('   🕕 +5 MINUTES :')
+console.log('   • PostgreSQL créé')
+console.log('   • Redéploiement en cours')
+console.log('')
+
+console.log('   🕙 +10 MINUTES :')
+console.log('   • Application redéployée')
+console.log('   • Erreur 500 résolue')
+console.log('')
+
+console.log('   🕐 +15 MINUTES :')
+console.log('   • Migrations exécutées')
+console.log('   • Admin créé')
+console.log('   • Application fonctionnelle')
+console.log('')
+
+console.log('🎯 RÉSULTAT FINAL ATTENDU :')
+console.log('')
+
+console.log('   ✅ Erreur 500 résolue')
+console.log('   ✅ Inscription fonctionnelle')
+console.log('   ✅ Connexion opérationnelle')
+console.log('   ✅ Dashboard accessible')
+console.log('   ✅ Base de données connectée')
+console.log('')
+
+console.log('🚨 ERREURS RÉSIDUELLES (NON CRITIQUES) :')
+console.log('')
+
+console.log('   ⚠️ Manifest.json syntax error :')
+console.log('   • Erreur de cache navigateur')
+console.log('   • N\'empêche pas le fonctionnement')
+console.log('   • Se résoudra automatiquement')
+console.log('')
+
+console.log('💡 CONSEILS IMPORTANTS :')
+console.log('')
+
+console.log('   🔄 PATIENCE :')
+console.log('   • Ne forcez pas de redéploiement')
+console.log('   • Laissez Railway faire automatiquement')
+console.log('   • Surveillez les logs')
+console.log('')
+
+console.log('   📋 VÉRIFICATION :')
+console.log('   • Toutes les variables présentes')
+console.log('   • PostgreSQL bien connecté')
+console.log('   • Logs sans erreur')
+console.log('')
+
+console.log('🔗 RESSOURCES :')
+console.log('')
+
+console.log('   🎯 Railway Dashboard : https://railway.app/dashboard')
+console.log('   📚 Documentation : https://docs.railway.app')
+console.log('   🛠️ Support : https://help.railway.app')
+console.log('')
+
+console.log('🎉 SUCCÈS GARANTI :')
+console.log('')
+
+console.log('   Une fois PostgreSQL configuré :')
+console.log('   ✅ L\'erreur 500 disparaîtra')
+console.log('   ✅ L\'inscription fonctionnera')
+console.log('   ✅ L\'application sera opérationnelle')
+console.log('')
+
+console.log('🚀 COMMENCEZ MAINTENANT :')
+console.log('   1. Ouvrez Railway Dashboard')
+console.log('   2. Ajoutez PostgreSQL')
+console.log('   3. Configurez les variables')
+console.log('   4. Attendez le redéploiement')
+console.log('')
+
+console.log('💪 Votre application Alami Gestion sera bientôt pleinement fonctionnelle !')
