@@ -6,9 +6,11 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/']
-  const isPublicRoute = publicRoutes.some(route => 
-    request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith('/api/auth/login')
+  const publicRoutes = ['/login', '/', '/abc']
+  const isPublicRoute = publicRoutes.some(route =>
+    request.nextUrl.pathname === route ||
+    request.nextUrl.pathname.startsWith('/api/auth/login') ||
+    request.nextUrl.pathname.startsWith('/api/auth/signup')
   )
 
   // If no token and trying to access protected route, redirect to login

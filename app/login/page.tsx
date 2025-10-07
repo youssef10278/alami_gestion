@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -100,12 +101,12 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Vous n'avez pas encore de compte ?{' '}
-              <button
-                onClick={() => router.push('/abc')}
+              <Link
+                href="/abc"
                 className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
               >
                 Créer un compte
-              </button>
+              </Link>
             </p>
           </div>
         </CardContent>
