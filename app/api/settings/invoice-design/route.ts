@@ -185,10 +185,12 @@ export async function PUT(request: NextRequest) {
       // Créer de nouveaux paramètres avec les valeurs de design
       settings = await prisma.companySettings.create({
         data: {
+          // Champs obligatoires de base
           companyName: 'Mon Entreprise',
           invoicePrefix: 'FAC',
           creditNotePrefix: 'FAV',
           defaultTaxRate: 20,
+          // Paramètres de design de facture
           invoiceTheme: validatedData.invoiceTheme,
           primaryColor: validatedData.primaryColor,
           secondaryColor: validatedData.secondaryColor,
@@ -208,6 +210,12 @@ export async function PUT(request: NextRequest) {
           showWatermark: validatedData.showWatermark,
           watermarkText: validatedData.watermarkText || null,
           customCSS: validatedData.customCSS || null,
+          // Paramètres de design de devis par défaut
+          quoteTheme: 'modern',
+          showValidityPeriod: true,
+          validityPeriodText: 'Ce devis est valable 30 jours à compter de la date d\'émission.',
+          showTermsAndConditions: true,
+          termsAndConditionsText: 'Conditions générales de vente disponibles sur demande.'
         }
       })
     }

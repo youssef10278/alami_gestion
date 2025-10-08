@@ -82,22 +82,32 @@ export async function GET(request: NextRequest) {
 // POST - Sauvegarder les paramètres de design du devis
 export async function POST(request: NextRequest) {
   try {
+    console.log('🎨 POST /api/settings/quote-design - Début')
+
     const session = await getSession()
+    console.log('👤 Session:', session ? `User ${session.userId} (${session.role})` : 'Aucune session')
+
     if (!session) {
+      console.log('❌ Pas de session - Non authentifié')
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     // Seuls les propriétaires peuvent modifier les paramètres
     if (session.role !== 'OWNER') {
+      console.log('❌ Rôle non autorisé:', session.role)
       return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
     }
 
+    console.log('✅ Authentification OK - Récupération des données...')
     const settings = await request.json()
+    console.log('📦 Données reçues:', Object.keys(settings).length, 'champs')
 
     // Vérifier si des paramètres d'entreprise existent déjà
     const existingSettings = await prisma.companySettings.findFirst()
 
     if (existingSettings) {
+      console.log('✅ Paramètres existants trouvés - Mise à jour...')
+
       // Mettre à jour les paramètres existants
       await prisma.companySettings.update({
         where: { id: existingSettings.id },
@@ -128,10 +138,22 @@ export async function POST(request: NextRequest) {
           updatedAt: new Date()
         }
       })
+
+      console.log('✅ Paramètres mis à jour avec succès')
     } else {
-      // Créer de nouveaux paramètres
+      console.log('⚠️ Aucun paramètre existant - Création avec valeurs par défaut...')
+
+      // Créer de nouveaux paramètres avec TOUS les champs obligatoires
       await prisma.companySettings.create({
         data: {
+          // Champs obligatoires de base
+          companyName: 'Mon Entreprise',
+          invoicePrefix: 'FAC',
+          creditNotePrefix: 'FAV',
+          defaultTaxRate: 20,
+          // Paramètres de design de facture par défaut
+          invoiceTheme: 'modern',
+          // Paramètres de design du devis (depuis la requête)
           quoteTheme: settings.quoteTheme || 'modern',
           primaryColor: settings.primaryColor || '#2563EB',
           secondaryColor: settings.secondaryColor || '#10B981',
@@ -145,9 +167,9 @@ export async function POST(request: NextRequest) {
           headerStyle: settings.headerStyle || 'gradient',
           logoPosition: settings.logoPosition || 'left',
           logoSize: settings.logoSize || 'medium',
-          fontFamily: settings.fontFamily || 'Inter',
-          fontSize: settings.fontSize || 'medium',
-          borderRadius: settings.borderRadius || 'medium',
+          fontFamily: settings.fontFamily || 'helvetica',
+          fontSize: settings.fontSize || 'normal',
+          borderRadius: settings.borderRadius || 'rounded',
           showWatermark: settings.showWatermark || false,
           watermarkText: settings.watermarkText || 'DEVIS',
           customCSS: settings.customCSS || '',
@@ -157,16 +179,23 @@ export async function POST(request: NextRequest) {
           termsAndConditionsText: settings.termsAndConditionsText || 'Conditions générales de vente disponibles sur demande.'
         }
       })
+
+      console.log('✅ Nouveaux paramètres créés avec succès')
     }
 
     return NextResponse.json({
       success: true,
       message: 'Paramètres de design du devis sauvegardés'
     })
-  } catch (error) {
-    console.error('Save quote design settings error:', error)
+  } catch (error: any) {
+    console.error('❌ Save quote design settings error:', error)
+    console.error('Stack:', error.stack)
+
     return NextResponse.json(
-      { error: 'Erreur lors de la sauvegarde des paramètres' },
+      {
+        error: 'Erreur lors de la sauvegarde des paramètres',
+        details: error.message
+      },
       { status: 500 }
     )
   }
