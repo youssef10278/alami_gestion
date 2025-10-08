@@ -16,12 +16,18 @@ export default function TestScannerPage() {
   const runDiagnostics = async () => {
     const results: any = {}
 
+    // Check if we're in browser environment
+    if (typeof window === 'undefined') {
+      setDiagnostics({ error: 'Diagnostics only available in browser' })
+      return
+    }
+
     // Test 1: Browser support
     results.browserSupport = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
 
     // Test 2: HTTPS check
-    results.httpsCheck = window.location.protocol === 'https:' || 
-                        window.location.hostname === 'localhost' || 
+    results.httpsCheck = window.location.protocol === 'https:' ||
+                        window.location.hostname === 'localhost' ||
                         window.location.hostname === '127.0.0.1'
 
     // Test 3: Camera permission
@@ -172,9 +178,9 @@ export default function TestScannerPage() {
             <div>
               <h4 className="font-medium mb-2">🌐 Environnement</h4>
               <ul className="space-y-1 text-gray-600">
-                <li>• Protocole: {window.location.protocol}</li>
-                <li>• Hostname: {window.location.hostname}</li>
-                <li>• User Agent: {navigator.userAgent.split(' ')[0]}</li>
+                <li>• Protocole: {typeof window !== 'undefined' ? window.location.protocol : 'N/A'}</li>
+                <li>• Hostname: {typeof window !== 'undefined' ? window.location.hostname : 'N/A'}</li>
+                <li>• User Agent: {typeof navigator !== 'undefined' ? navigator.userAgent.split(' ')[0] : 'N/A'}</li>
               </ul>
             </div>
             
