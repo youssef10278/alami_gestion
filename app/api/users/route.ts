@@ -141,16 +141,16 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Mettre à jour un utilisateur (OWNER seulement)
+// PUT - Mettre à jour un utilisateur
 export async function PUT(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'OWNER') {
-      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     const body = await request.json()
-    
+
     // Validation des données
     const validatedData = updateUserSchema.parse(body)
     const { id, ...updateData } = validatedData
@@ -167,12 +167,22 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Empêcher la modification de son propre compte
-    if (id === session.userId) {
+    // Vérifier les permissions
+    const isOwnProfile = id === session.userId
+    const isOwner = session.role === 'OWNER'
+
+    // Seuls les propriétaires peuvent modifier d'autres comptes, ou l'utilisateur peut modifier son propre profil
+    if (!isOwnProfile && !isOwner) {
       return NextResponse.json(
-        { error: 'Vous ne pouvez pas modifier votre propre compte' },
-        { status: 400 }
+        { error: 'Accès non autorisé' },
+        { status: 403 }
       )
+    }
+
+    // Si c'est son propre profil, on ne peut pas changer le rôle ou le statut actif
+    if (isOwnProfile) {
+      delete updateData.role
+      delete updateData.isActive
     }
 
     // Si l'email est modifié, vérifier qu'il n'existe pas déjà

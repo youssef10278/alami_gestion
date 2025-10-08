@@ -9,6 +9,7 @@ import CompanySettings from '@/components/settings/CompanySettings'
 import InvoiceDesigner from '@/components/settings/InvoiceDesigner'
 import QuoteDesigner from '@/components/settings/QuoteDesigner'
 import UserManagement from '@/components/settings/UserManagement'
+import ProfileSettings from '@/components/settings/ProfileSettings'
 
 export default function SettingsPage() {
   usePageTitle('Paramètres')
@@ -87,16 +88,7 @@ export default function SettingsPage() {
 
             {/* Onglet Profil */}
             <TabsContent value="profile">
-              <Card className="glass">
-                <CardHeader>
-                  <CardTitle>Paramètres du Profil</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-500">
-                    Les paramètres de profil seront disponibles prochainement.
-                  </p>
-                </CardContent>
-              </Card>
+              <ProfileSettings />
             </TabsContent>
 
             {/* Onglet Notifications */}

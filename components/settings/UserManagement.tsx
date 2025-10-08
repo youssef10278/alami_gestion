@@ -8,18 +8,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { 
-  UserPlus, 
-  Users, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
-  Crown, 
+import {
+  UserPlus,
+  Users,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  Crown,
   ShoppingCart,
-  AlertTriangle
+  AlertTriangle,
+  Key
 } from 'lucide-react'
 import { toast } from 'sonner'
+import PasswordSettings from './PasswordSettings'
 
 interface User {
   id: string
@@ -414,6 +416,11 @@ export default function UserManagement() {
                   >
                     {user.isActive ? 'Désactiver' : 'Activer'}
                   </Button>
+                  <PasswordSettings
+                    userId={user.id}
+                    userName={user.name}
+                    isAdminMode={true}
+                  />
                   <Button
                     variant="outline"
                     size="sm"
