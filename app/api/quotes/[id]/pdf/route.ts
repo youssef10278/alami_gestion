@@ -40,37 +40,64 @@ export async function GET(
     }
 
     console.log('✅ Devis trouvé:', quote.quoteNumber)
+    console.log('📊 Données brutes du devis:', {
+      total: quote.total,
+      subtotal: quote.subtotal,
+      tax: quote.tax,
+      taxAmount: quote.taxAmount,
+      discount: quote.discount,
+      itemsCount: quote.items.length
+    })
+
+    // Calculer le total si nécessaire
+    const quoteTotal = quote.total ? Number(quote.total) : 0
+    const quoteSubtotal = quote.subtotal ? Number(quote.subtotal) : 0
+    const quoteTax = quote.tax ? Number(quote.tax) : 0
+    const quoteTaxAmount = quote.taxAmount ? Number(quote.taxAmount) : 0
+    const quoteDiscount = quote.discount ? Number(quote.discount) : 0
+
+    console.log('💰 Montants calculés:', {
+      total: quoteTotal,
+      subtotal: quoteSubtotal,
+      tax: quoteTax,
+      taxAmount: quoteTaxAmount,
+      discount: quoteDiscount
+    })
 
     // Préparer les données pour le PDF
+    // Pour les devis, on utilise le format attendu par generateInvoicePDF
     const pdfData = {
       documentNumber: quote.quoteNumber,
       date: quote.createdAt,
-      dueDate: quote.validUntil,
       customer: {
-        name: quote.customer?.name || quote.customerName,
-        company: quote.customer?.company,
-        phone: quote.customer?.phone || quote.customerPhone,
-        email: quote.customer?.email || quote.customerEmail,
-        address: quote.customer?.address || quote.customerAddress,
+        name: quote.customer?.name || quote.customerName || 'Client',
+        company: quote.customer?.company || undefined,
+        phone: quote.customer?.phone || quote.customerPhone || undefined,
+        email: quote.customer?.email || quote.customerEmail || undefined,
+        address: quote.customer?.address || quote.customerAddress || undefined,
       },
       items: quote.items.map((item) => ({
-        name: item.productName,
+        name: item.productName || 'Produit',
         sku: item.productSku || '',
-        quantity: item.quantity,
-        unitPrice: Number(item.unitPrice),
-        discount: Number(item.discount || 0),
-        total: Number(item.total),
+        quantity: Number(item.quantity) || 0,
+        unitPrice: Number(item.unitPrice) || 0,
+        total: Number(item.total) || 0,
       })),
-      subtotal: Number(quote.subtotal),
-      discountAmount: Number(quote.discount || 0),
-      taxRate: Number(quote.tax || 0),
-      taxAmount: Number(quote.taxAmount || 0),
-      total: Number(quote.total),
+      // Pour les devis, on utilise totalAmount au lieu de total
+      totalAmount: quoteTotal,
+      // Les devis n'ont pas de paiement
+      paidAmount: 0,
+      creditAmount: quoteTotal,
+      paymentMethod: 'QUOTE', // Indicateur que c'est un devis
       notes: quote.notes || undefined,
-      terms: quote.terms || undefined,
     }
 
-    console.log('📦 Données PDF préparées')
+    console.log('📦 Données PDF préparées:', {
+      documentNumber: pdfData.documentNumber,
+      totalAmount: pdfData.totalAmount,
+      itemsCount: pdfData.items.length,
+      customerName: pdfData.customer.name
+    })
 
     // Récupérer les paramètres de l'entreprise et de design
     let designSettings
