@@ -653,6 +653,10 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   const tableHeaderColor = hexToRgb(designSettings?.tableHeaderColor || designSettings?.secondaryColor || '#10B981')
   const sectionColor = hexToRgb(designSettings?.sectionColor || designSettings?.secondaryColor || '#10B981')
 
+  // Couleurs supplémentaires
+  const darkGray = textColor
+  const lightGray: [number, number, number] = [245, 245, 245]
+
   // Nettoyer les données de l'entreprise
   company = {
     name: cleanText(company.name),
