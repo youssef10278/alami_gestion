@@ -13,6 +13,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:studio": "prisma studio",
     "db:migrate": "prisma migrate deploy",
+    "db:migrate:quote": "node scripts/migrate-quote-columns.js",
     "db:init": "node scripts/init-company-settings.js",
     "db:fix": "node scripts/emergency-fix-settings.js",
     "deploy:check": "node scripts/deploy-check.js",
