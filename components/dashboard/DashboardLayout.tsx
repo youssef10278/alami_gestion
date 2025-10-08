@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Menu } from 'lucide-react'
 
 interface User {
   id: string
@@ -76,6 +78,32 @@ export default function DashboardWrapper({
           </div>
         </div>
       )}
+
+      {/* Mobile Header with Hamburger */}
+      <div className="md:hidden bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMobileMenuOpen(true)}
+            className="p-2"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-[var(--color-business-blue)] to-[var(--color-business-blue-dark)] rounded-lg flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-sm">AG</span>
+            </div>
+            <h1 className="font-bold text-lg text-[hsl(var(--foreground))]">Alami Gestion</h1>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-medium">{user.name}</p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+            {user.role === 'OWNER' ? 'Propriétaire' : 'Vendeur'}
+          </p>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className={cn(
