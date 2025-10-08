@@ -14,7 +14,9 @@
     "db:studio": "prisma studio",
     "db:migrate": "prisma migrate deploy",
     "db:init": "node scripts/init-company-settings.js",
+    "db:fix": "node scripts/emergency-fix-settings.js",
     "deploy:check": "node scripts/deploy-check.js",
+    "test:quote-api": "node scripts/test-quote-design-api.js",
     "postinstall": "prisma generate",
     "railway:deploy": "prisma migrate deploy && npm run build"
   },
