@@ -29,23 +29,89 @@ const companySettingsSchema = z.object({
 // GET - Récupérer les paramètres de l'entreprise
 export async function GET() {
   try {
+    console.log('🔍 GET /api/settings/company - Début')
+
+    // Vérifier la session
     const session = await getSession()
-    if (!session || session.role !== 'OWNER') {
+    console.log('👤 Session:', session ? `User ${session.userId} (${session.role})` : 'Aucune session')
+
+    if (!session) {
+      console.log('❌ Pas de session - Non authentifié')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    // Permettre l'accès aux OWNER et SELLER (lecture seule pour SELLER)
+    if (session.role !== 'OWNER' && session.role !== 'SELLER') {
+      console.log('❌ Rôle non autorisé:', session.role)
       return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
     }
 
+    console.log('✅ Authentification OK - Récupération des paramètres...')
+
     // Récupérer les paramètres ou créer des paramètres par défaut
     let settings = await prisma.companySettings.findFirst()
-    
+
     if (!settings) {
-      // Créer des paramètres par défaut avec tous les champs requis
-      settings = await prisma.companySettings.create({
-        data: {
+      console.log('⚠️ Aucun paramètre trouvé - Création des paramètres par défaut...')
+
+      try {
+        // Créer des paramètres par défaut avec tous les champs requis
+        settings = await prisma.companySettings.create({
+          data: {
+            companyName: 'Mon Entreprise',
+            invoicePrefix: 'FAC',
+            creditNotePrefix: 'FAV',
+            defaultTaxRate: 20,
+            // Paramètres de design par défaut
+            invoiceTheme: 'modern',
+            primaryColor: '#2563EB',
+            secondaryColor: '#10B981',
+            tableHeaderColor: '#10B981',
+            sectionColor: '#10B981',
+            accentColor: '#F59E0B',
+            textColor: '#1F2937',
+            headerTextColor: '#FFFFFF',
+            sectionTextColor: '#FFFFFF',
+            backgroundColor: '#FFFFFF',
+            headerStyle: 'gradient',
+            logoPosition: 'left',
+            logoSize: 'medium',
+            fontFamily: 'helvetica',
+            fontSize: 'normal',
+            borderRadius: 'rounded',
+            showWatermark: false,
+            watermarkText: 'DEVIS',
+            customCSS: '',
+            // Paramètres spécifiques aux devis
+            quoteTheme: 'modern',
+            showValidityPeriod: true,
+            validityPeriodText: 'Ce devis est valable 30 jours à compter de la date d\'émission.',
+            showTermsAndConditions: true,
+            termsAndConditionsText: 'Conditions générales de vente disponibles sur demande.'
+          }
+        })
+        console.log('✅ Paramètres par défaut créés avec succès')
+      } catch (createError: any) {
+        console.error('❌ Erreur lors de la création des paramètres:', createError)
+
+        // Retourner des paramètres par défaut en mémoire si la création échoue
+        return NextResponse.json({
+          id: 'default',
           companyName: 'Mon Entreprise',
+          companyLogo: null,
+          companyICE: null,
+          companyEmail: null,
+          companyPhone: null,
+          companyAddress: null,
+          companyWebsite: null,
+          companyTaxId: null,
           invoicePrefix: 'FAC',
           creditNotePrefix: 'FAV',
           defaultTaxRate: 20,
-          // Paramètres de design par défaut
+          bankName: null,
+          bankAccount: null,
+          bankRIB: null,
+          legalMentions: null,
           invoiceTheme: 'modern',
           primaryColor: '#2563EB',
           secondaryColor: '#10B981',
@@ -65,23 +131,72 @@ export async function GET() {
           showWatermark: false,
           watermarkText: 'DEVIS',
           customCSS: '',
-          // Paramètres spécifiques aux devis
           quoteTheme: 'modern',
           showValidityPeriod: true,
           validityPeriodText: 'Ce devis est valable 30 jours à compter de la date d\'émission.',
           showTermsAndConditions: true,
-          termsAndConditionsText: 'Conditions générales de vente disponibles sur demande.'
-        }
-      })
+          termsAndConditionsText: 'Conditions générales de vente disponibles sur demande.',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          _isDefault: true
+        })
+      }
+    } else {
+      console.log('✅ Paramètres trouvés:', settings.id)
     }
 
     return NextResponse.json(settings)
-  } catch (error) {
-    console.error('Error fetching company settings:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la récupération des paramètres' },
-      { status: 500 }
-    )
+  } catch (error: any) {
+    console.error('❌ Error fetching company settings:', error)
+    console.error('Stack:', error.stack)
+
+    // Retourner des paramètres par défaut même en cas d'erreur
+    return NextResponse.json({
+      id: 'fallback',
+      companyName: 'Mon Entreprise',
+      companyLogo: null,
+      companyICE: null,
+      companyEmail: null,
+      companyPhone: null,
+      companyAddress: null,
+      companyWebsite: null,
+      companyTaxId: null,
+      invoicePrefix: 'FAC',
+      creditNotePrefix: 'FAV',
+      defaultTaxRate: 20,
+      bankName: null,
+      bankAccount: null,
+      bankRIB: null,
+      legalMentions: null,
+      invoiceTheme: 'modern',
+      primaryColor: '#2563EB',
+      secondaryColor: '#10B981',
+      tableHeaderColor: '#10B981',
+      sectionColor: '#10B981',
+      accentColor: '#F59E0B',
+      textColor: '#1F2937',
+      headerTextColor: '#FFFFFF',
+      sectionTextColor: '#FFFFFF',
+      backgroundColor: '#FFFFFF',
+      headerStyle: 'gradient',
+      logoPosition: 'left',
+      logoSize: 'medium',
+      fontFamily: 'helvetica',
+      fontSize: 'normal',
+      borderRadius: 'rounded',
+      showWatermark: false,
+      watermarkText: 'DEVIS',
+      customCSS: '',
+      quoteTheme: 'modern',
+      showValidityPeriod: true,
+      validityPeriodText: 'Ce devis est valable 30 jours à compter de la date d\'émission.',
+      showTermsAndConditions: true,
+      termsAndConditionsText: 'Conditions générales de vente disponibles sur demande.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      _isFallback: true,
+      _error: error.message
+    })
   }
 }
 
