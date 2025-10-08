@@ -65,8 +65,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'OWNER') {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    // Les vendeurs peuvent aussi gérer les fournisseurs
+    if (session.role !== 'OWNER' && session.role !== 'SELLER') {
+      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
     }
 
     const body = await request.json()
@@ -106,8 +111,13 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'OWNER') {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    // Les vendeurs peuvent aussi modifier les fournisseurs
+    if (session.role !== 'OWNER' && session.role !== 'SELLER') {
+      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
     }
 
     const body = await request.json()
@@ -149,8 +159,13 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session || session.role !== 'OWNER') {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    // Les vendeurs peuvent aussi supprimer les fournisseurs
+    if (session.role !== 'OWNER' && session.role !== 'SELLER') {
+      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)

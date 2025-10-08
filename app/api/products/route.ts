@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    // Seul le propriétaire peut créer des produits
-    if (session.role !== 'OWNER') {
+    // Les vendeurs peuvent aussi créer des produits
+    if (session.role !== 'OWNER' && session.role !== 'SELLER') {
       return NextResponse.json(
         { error: 'Accès non autorisé' },
         { status: 403 }

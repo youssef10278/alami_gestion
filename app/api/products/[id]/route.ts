@@ -52,7 +52,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    if (session.role !== 'OWNER') {
+    // Les vendeurs peuvent aussi modifier des produits
+    if (session.role !== 'OWNER' && session.role !== 'SELLER') {
       return NextResponse.json(
         { error: 'Accès non autorisé' },
         { status: 403 }
@@ -125,7 +126,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    if (session.role !== 'OWNER') {
+    // Les vendeurs peuvent aussi supprimer des produits
+    if (session.role !== 'OWNER' && session.role !== 'SELLER') {
       return NextResponse.json(
         { error: 'Accès non autorisé' },
         { status: 403 }

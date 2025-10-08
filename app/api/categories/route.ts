@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
-    if (session.role !== 'OWNER') {
+    // Les vendeurs peuvent aussi créer des catégories pour organiser les produits
+    if (session.role !== 'OWNER' && session.role !== 'SELLER') {
       return NextResponse.json(
         { error: 'Accès non autorisé' },
         { status: 403 }
