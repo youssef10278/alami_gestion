@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { Building2, User, Shield, Bell, Palette, Paintbrush, FileText } from 'lucide-react'
+import { Building2, User, Shield, Bell, Palette, Paintbrush, FileText, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CompanySettings from '@/components/settings/CompanySettings'
 import InvoiceDesigner from '@/components/settings/InvoiceDesigner'
 import QuoteDesigner from '@/components/settings/QuoteDesigner'
+import UserManagement from '@/components/settings/UserManagement'
 
 export default function SettingsPage() {
   usePageTitle('Paramètres')
@@ -33,10 +34,14 @@ export default function SettingsPage() {
       <Card className="glass">
         <CardContent className="p-6">
           <Tabs defaultValue="company" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="company" className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 Entreprise
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Utilisateurs
               </TabsTrigger>
               <TabsTrigger value="invoice-design" className="flex items-center gap-2">
                 <Paintbrush className="w-4 h-4" />
@@ -63,6 +68,11 @@ export default function SettingsPage() {
             {/* Onglet Entreprise */}
             <TabsContent value="company">
               <CompanySettings />
+            </TabsContent>
+
+            {/* Onglet Utilisateurs */}
+            <TabsContent value="users">
+              <UserManagement />
             </TabsContent>
 
             {/* Onglet Designer de Facture */}
