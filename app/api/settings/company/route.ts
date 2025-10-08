@@ -38,13 +38,39 @@ export async function GET() {
     let settings = await prisma.companySettings.findFirst()
     
     if (!settings) {
-      // Créer des paramètres par défaut
+      // Créer des paramètres par défaut avec tous les champs requis
       settings = await prisma.companySettings.create({
         data: {
           companyName: 'Mon Entreprise',
           invoicePrefix: 'FAC',
           creditNotePrefix: 'FAV',
           defaultTaxRate: 20,
+          // Paramètres de design par défaut
+          invoiceTheme: 'modern',
+          primaryColor: '#2563EB',
+          secondaryColor: '#10B981',
+          tableHeaderColor: '#10B981',
+          sectionColor: '#10B981',
+          accentColor: '#F59E0B',
+          textColor: '#1F2937',
+          headerTextColor: '#FFFFFF',
+          sectionTextColor: '#FFFFFF',
+          backgroundColor: '#FFFFFF',
+          headerStyle: 'gradient',
+          logoPosition: 'left',
+          logoSize: 'medium',
+          fontFamily: 'helvetica',
+          fontSize: 'normal',
+          borderRadius: 'rounded',
+          showWatermark: false,
+          watermarkText: 'DEVIS',
+          customCSS: '',
+          // Paramètres spécifiques aux devis
+          quoteTheme: 'modern',
+          showValidityPeriod: true,
+          validityPeriodText: 'Ce devis est valable 30 jours à compter de la date d\'émission.',
+          showTermsAndConditions: true,
+          termsAndConditionsText: 'Conditions générales de vente disponibles sur demande.'
         }
       })
     }
@@ -112,7 +138,7 @@ export async function PUT(request: NextRequest) {
         }
       })
     } else {
-      // Créer de nouveaux paramètres
+      // Créer de nouveaux paramètres avec tous les champs requis
       settings = await prisma.companySettings.create({
         data: {
           companyName: validatedData.companyName,
@@ -130,6 +156,32 @@ export async function PUT(request: NextRequest) {
           bankAccount: validatedData.bankAccount || null,
           bankRIB: validatedData.bankRIB || null,
           legalMentions: validatedData.legalMentions || null,
+          // Paramètres de design par défaut
+          invoiceTheme: 'modern',
+          primaryColor: '#2563EB',
+          secondaryColor: '#10B981',
+          tableHeaderColor: '#10B981',
+          sectionColor: '#10B981',
+          accentColor: '#F59E0B',
+          textColor: '#1F2937',
+          headerTextColor: '#FFFFFF',
+          sectionTextColor: '#FFFFFF',
+          backgroundColor: '#FFFFFF',
+          headerStyle: 'gradient',
+          logoPosition: 'left',
+          logoSize: 'medium',
+          fontFamily: 'helvetica',
+          fontSize: 'normal',
+          borderRadius: 'rounded',
+          showWatermark: false,
+          watermarkText: 'DEVIS',
+          customCSS: '',
+          // Paramètres spécifiques aux devis
+          quoteTheme: 'modern',
+          showValidityPeriod: true,
+          validityPeriodText: 'Ce devis est valable 30 jours à compter de la date d\'émission.',
+          showTermsAndConditions: true,
+          termsAndConditionsText: 'Conditions générales de vente disponibles sur demande.'
         }
       })
     }
