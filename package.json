@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build",
-    "build:production": "prisma generate && SKIP_ENV_VALIDATION=true next build",
+    "build": "prisma migrate deploy && prisma generate && next build",
+    "build:production": "prisma migrate deploy && prisma generate && SKIP_ENV_VALIDATION=true next build",
     "start": "next start",
     "lint": "eslint",
     "db:push": "prisma db push",
