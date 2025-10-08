@@ -19,9 +19,23 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
   useEffect(() => {
     let html5QrCode: any = null
+    let mounted = true
 
     const initScanner = async () => {
       try {
+        // Check if we're in a browser environment
+        if (typeof window === 'undefined') {
+          setError('Scanner non disponible côté serveur')
+          return
+        }
+
+        // Check if HTTPS is required (production)
+        if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+          setError('HTTPS requis pour accéder à la caméra. Utilisez une connexion sécurisée.')
+          setHasPermission(false)
+          return
+        }
+
         // Check camera permission
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           setHasPermission(false)
@@ -29,39 +43,98 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           return
         }
 
-        // Request camera permission
-        await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        setHasPermission(true)
+        // Request camera permission with better error handling
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          })
+
+          // Stop the stream immediately as Html5Qrcode will handle it
+          stream.getTracks().forEach(track => track.stop())
+
+          if (!mounted) return
+          setHasPermission(true)
+        } catch (permissionError: any) {
+          console.error('Camera permission error:', permissionError)
+          setHasPermission(false)
+
+          if (permissionError.name === 'NotAllowedError') {
+            setError('Accès à la caméra refusé. Veuillez autoriser l\'accès à la caméra dans les paramètres de votre navigateur.')
+          } else if (permissionError.name === 'NotFoundError') {
+            setError('Aucune caméra trouvée sur cet appareil.')
+          } else if (permissionError.name === 'NotReadableError') {
+            setError('Caméra déjà utilisée par une autre application.')
+          } else {
+            setError('Erreur d\'accès à la caméra: ' + permissionError.message)
+          }
+          return
+        }
 
         // Dynamically import Html5Qrcode
         const { Html5Qrcode } = await import('html5-qrcode')
 
+        if (!mounted) return
+
         html5QrCode = new Html5Qrcode(readerIdRef.current)
         scannerRef.current = html5QrCode
 
-        // Start scanning
+        // Start scanning with better configuration
         await html5QrCode.start(
           { facingMode: 'environment' },
           {
             fps: 10,
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0,
+            disableFlip: false,
+            supportedScanTypes: [
+              // Support for various barcode formats
+              0, // QR_CODE
+              1, // AZTEC
+              2, // CODABAR
+              3, // CODE_39
+              4, // CODE_93
+              5, // CODE_128
+              6, // DATA_MATRIX
+              7, // MAXICODE
+              8, // ITF
+              9, // EAN_13
+              10, // EAN_8
+              11, // PDF_417
+              12, // RSS_14
+              13, // RSS_EXPANDED
+              14, // UPC_A
+              15, // UPC_E
+              16, // UPC_EAN_EXTENSION
+            ]
           },
           (decodedText: string) => {
             // Success callback
+            console.log('Barcode scanned:', decodedText)
             onScan(decodedText)
             onClose()
           },
           (errorMessage: string) => {
             // Error callback (can be ignored for continuous scanning)
+            // Only log significant errors
+            if (!errorMessage.includes('No MultiFormat Readers')) {
+              console.debug('Scanner error:', errorMessage)
+            }
           }
         )
 
-        setIsScanning(true)
+        if (mounted) {
+          setIsScanning(true)
+        }
       } catch (err: any) {
         console.error('Scanner initialization error:', err)
-        setHasPermission(false)
-        setError('Accès à la caméra refusé. Veuillez autoriser l\'accès à la caméra.')
+        if (mounted) {
+          setHasPermission(false)
+          setError('Erreur d\'initialisation du scanner: ' + err.message)
+        }
       }
     }
 
@@ -69,14 +142,20 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
     // Cleanup
     return () => {
-      if (scannerRef.current && isScanning) {
+      mounted = false
+      if (scannerRef.current) {
         scannerRef.current
           .stop()
           .then(() => {
-            scannerRef.current.clear()
+            if (scannerRef.current) {
+              scannerRef.current.clear()
+            }
           })
           .catch((err: any) => {
             console.error('Error stopping scanner:', err)
+          })
+          .finally(() => {
+            scannerRef.current = null
           })
       }
     }
@@ -111,12 +190,28 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           )}
 
           {hasPermission === false && (
-            <div className="flex flex-col items-center justify-center h-64 text-center">
-              <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-              <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={onClose} variant="outline">
-                Fermer
-              </Button>
+            <div className="flex flex-col items-center justify-center h-64 text-center space-y-4">
+              <AlertCircle className="w-12 h-12 text-red-500" />
+              <div className="space-y-2">
+                <p className="text-red-600 font-medium">{error}</p>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>💡 <strong>Solutions possibles :</strong></p>
+                  <ul className="text-left space-y-1 max-w-sm">
+                    <li>• Autorisez l'accès à la caméra dans votre navigateur</li>
+                    <li>• Vérifiez que votre caméra fonctionne</li>
+                    <li>• Fermez les autres applications utilisant la caméra</li>
+                    <li>• Utilisez HTTPS si vous êtes en production</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+                  Réessayer
+                </Button>
+                <Button onClick={onClose} variant="outline" size="sm">
+                  Fermer
+                </Button>
+              </div>
             </div>
           )}
 
@@ -129,13 +224,21 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
                 style={{ width: '100%' }}
               />
 
-              <div className="text-center space-y-2">
-                <p className="text-sm text-gray-600">
-                  Positionnez le code-barres dans le cadre vert
-                </p>
-                <p className="text-xs text-gray-500">
-                  Le scan se fera automatiquement
-                </p>
+              <div className="text-center space-y-3">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800 font-medium mb-2">
+                    📱 Instructions de scan
+                  </p>
+                  <div className="text-xs text-blue-700 space-y-1">
+                    <p>• Positionnez le code-barres dans le cadre vert</p>
+                    <p>• Maintenez l'appareil stable</p>
+                    <p>• Assurez-vous d'avoir un bon éclairage</p>
+                    <p>• Le scan se fera automatiquement</p>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500">
+                  <p>📊 Formats supportés : EAN-13, EAN-8, UPC-A, Code 128, QR Code, etc.</p>
+                </div>
               </div>
 
               <Button onClick={onClose} variant="outline" className="w-full">
