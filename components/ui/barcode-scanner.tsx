@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { X, Camera, AlertCircle } from 'lucide-react'
 import { Button } from './button'
 import { Card } from './card'
+import { useCameraManager } from '@/lib/camera-manager'
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void
@@ -16,6 +17,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false)
   const scannerRef = useRef<any>(null)
   const readerIdRef = useRef<string>('reader-' + Math.random().toString(36).substr(2, 9))
+  const { requestCamera, releaseCamera } = useCameraManager()
 
   useEffect(() => {
     let html5QrCode: any = null
@@ -43,7 +45,17 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           return
         }
 
-        // Request camera permission with better error handling
+        // Request camera permission via camera manager
+        const cameraResult = await requestCamera('barcode-scanner')
+
+        if (!cameraResult.success) {
+          if (!mounted) return
+          setHasPermission(false)
+          setError(cameraResult.error || 'Erreur d\'accès à la caméra')
+          return
+        }
+
+        // Test camera access
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             video: {
@@ -67,7 +79,36 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           } else if (permissionError.name === 'NotFoundError') {
             setError('Aucune caméra trouvée sur cet appareil.')
           } else if (permissionError.name === 'NotReadableError') {
-            setError('Caméra déjà utilisée par une autre application.')
+            // Essayer de fermer les autres utilisations de la caméra
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('request-camera-close'))
+
+              // Attendre un peu et réessayer
+              setTimeout(async () => {
+                try {
+                  const retryStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                  })
+                  retryStream.getTracks().forEach(track => track.stop())
+
+                  if (mounted) {
+                    setHasPermission(true)
+                    setError(null)
+                    // Relancer l'initialisation
+                    initScanner()
+                  }
+                } catch (retryError) {
+                  if (mounted) {
+                    setError('Caméra déjà utilisée. Veuillez fermer la prise de photo du produit et réessayer.')
+                  }
+                }
+              }, 1000)
+
+              setError('Tentative de libération de la caméra en cours...')
+              return
+            }
+
+            setError('Caméra déjà utilisée. Veuillez fermer la prise de photo du produit et réessayer.')
           } else {
             setError('Erreur d\'accès à la caméra: ' + permissionError.message)
           }
@@ -158,6 +199,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
             scannerRef.current = null
           })
       }
+
+      // Libérer la caméra
+      releaseCamera('barcode-scanner')
     }
   }, [])
 
@@ -198,6 +242,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
                   <p>💡 <strong>Solutions possibles :</strong></p>
                   <ul className="text-left space-y-1 max-w-sm">
                     <li>• Autorisez l'accès à la caméra dans votre navigateur</li>
+                    <li>• <strong>Fermez la prise de photo du produit</strong> si elle est ouverte</li>
                     <li>• Vérifiez que votre caméra fonctionne</li>
                     <li>• Fermez les autres applications utilisant la caméra</li>
                     <li>• Utilisez HTTPS si vous êtes en production</li>

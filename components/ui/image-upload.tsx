@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Upload, Camera, X, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { Button } from './button'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { processUploadedImage, formatFileSize } from '@/lib/image-optimizer'
 import { toast } from 'sonner'
+import { useCameraManager } from '@/lib/camera-manager'
 
 interface ImageUploadProps {
   value?: string
@@ -29,6 +30,27 @@ export function ImageUpload({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { requestCamera, releaseCamera } = useCameraManager()
+
+  // Écouter les demandes de fermeture de caméra depuis d'autres composants
+  useEffect(() => {
+    const handleCameraRequest = () => {
+      if (showCamera && cameraStream) {
+        handleCloseCamera()
+        toast.info('Caméra fermée', {
+          description: 'La caméra a été libérée pour le scanner de code-barres'
+        })
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('request-camera-close', handleCameraRequest)
+
+      return () => {
+        window.removeEventListener('request-camera-close', handleCameraRequest)
+      }
+    }
+  }, [showCamera, cameraStream])
 
   // Ouvrir le sélecteur de fichiers
   const handleFileSelect = () => {
@@ -87,6 +109,16 @@ export function ImageUpload({
   // Ouvrir la caméra
   const handleOpenCamera = async () => {
     try {
+      // Demander l'accès via le gestionnaire de caméra
+      const result = await requestCamera('image-upload')
+
+      if (!result.success) {
+        toast.error('Caméra non disponible', {
+          description: result.error
+        })
+        return
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
       })
@@ -101,7 +133,9 @@ export function ImageUpload({
       }, 100)
     } catch (error) {
       console.error('Erreur d\'accès à la caméra:', error)
-      alert('Impossible d\'accéder à la caméra. Veuillez vérifier les permissions.')
+      toast.error('Erreur caméra', {
+        description: 'Impossible d\'accéder à la caméra. Veuillez vérifier les permissions.'
+      })
     }
   }
 
@@ -112,6 +146,14 @@ export function ImageUpload({
       setCameraStream(null)
     }
     setShowCamera(false)
+
+    // Libérer la caméra via le gestionnaire
+    releaseCamera('image-upload')
+
+    // Émettre un événement global pour signaler que la caméra est libérée
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('camera-released'))
+    }
   }
 
   // Capturer la photo avec optimisation

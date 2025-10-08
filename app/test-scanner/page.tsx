@@ -7,6 +7,7 @@ import { BarcodeScannerButton } from '@/components/ui/barcode-scanner'
 import { BarcodeInput } from '@/components/ui/barcode-input'
 import { Camera, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
 import { toast } from 'sonner'
+import { cameraUtils } from '@/lib/camera-manager'
 
 export default function TestScannerPage() {
   const [scannedCode, setScannedCode] = useState('')
@@ -14,41 +15,39 @@ export default function TestScannerPage() {
   const [diagnostics, setDiagnostics] = useState<any>({})
 
   const runDiagnostics = async () => {
-    const results: any = {}
-
     // Check if we're in browser environment
     if (typeof window === 'undefined') {
       setDiagnostics({ error: 'Diagnostics only available in browser' })
       return
     }
 
-    // Test 1: Browser support
-    results.browserSupport = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
-
-    // Test 2: HTTPS check
-    results.httpsCheck = window.location.protocol === 'https:' ||
-                        window.location.hostname === 'localhost' ||
-                        window.location.hostname === '127.0.0.1'
-
-    // Test 3: Camera permission
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      stream.getTracks().forEach(track => track.stop())
-      results.cameraPermission = true
-    } catch (error: any) {
-      results.cameraPermission = false
-      results.cameraError = error.name
-    }
+      // Utiliser le gestionnaire de caméra pour les diagnostics
+      const cameraInfo = await cameraUtils.getDiagnostics()
 
-    // Test 4: Html5Qrcode library
-    try {
-      const { Html5Qrcode } = await import('html5-qrcode')
-      results.libraryLoaded = true
+      // Test Html5Qrcode library
+      let libraryLoaded = true
+      try {
+        await import('html5-qrcode')
+      } catch (error) {
+        libraryLoaded = false
+      }
+
+      const results = {
+        browserSupport: cameraInfo.supported,
+        httpsCheck: cameraInfo.httpsOk,
+        cameraPermission: cameraInfo.permission === 'granted',
+        cameraError: cameraInfo.permission === 'denied' ? 'NotAllowedError' :
+                    cameraInfo.permission === 'prompt' ? 'PermissionPrompt' : null,
+        libraryLoaded,
+        cameraCurrentUser: cameraInfo.currentUser,
+        cameraAvailable: cameraInfo.available
+      }
+
+      setDiagnostics(results)
     } catch (error) {
-      results.libraryLoaded = false
+      setDiagnostics({ error: 'Erreur lors des diagnostics' })
     }
-
-    setDiagnostics(results)
   }
 
   const handleScan = (code: string) => {
@@ -111,9 +110,14 @@ export default function TestScannerPage() {
                 status={diagnostics.cameraPermission} 
                 error={diagnostics.cameraError}
               />
-              <DiagnosticItem 
-                title="Bibliothèque html5-qrcode" 
-                status={diagnostics.libraryLoaded} 
+              <DiagnosticItem
+                title="Bibliothèque html5-qrcode"
+                status={diagnostics.libraryLoaded}
+              />
+              <DiagnosticItem
+                title="Caméra disponible"
+                status={diagnostics.cameraAvailable}
+                error={diagnostics.cameraCurrentUser ? `Utilisée par: ${diagnostics.cameraCurrentUser}` : undefined}
               />
             </div>
           )}
