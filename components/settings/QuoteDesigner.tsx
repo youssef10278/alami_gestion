@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileText, Eye, Save, RotateCcw, Download, Palette } from 'lucide-react'
+import { FileText, Eye, Save, RotateCcw, Download, Palette, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -67,7 +67,7 @@ const defaultSettings: QuoteDesignSettings = {
 
 export default function QuoteDesigner() {
   const [settings, setSettings] = useState<QuoteDesignSettings>(defaultSettings)
-  const [showPreview, setShowPreview] = useState(false)
+  const [showPreview, setShowPreview] = useState(true) // Aperçu activé par défaut
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -126,7 +126,15 @@ export default function QuoteDesigner() {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Designer de Devis</h2>
-            <p className="text-sm text-gray-600">Personnalisez l'apparence de vos devis</p>
+            <p className="text-sm text-gray-600">
+              Personnalisez l'apparence de vos devis avec aperçu en temps réel
+            </p>
+            {showPreview && (
+              <div className="flex items-center gap-1 mt-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-600 font-medium">Aperçu actif</span>
+              </div>
+            )}
           </div>
         </div>
         
@@ -137,7 +145,7 @@ export default function QuoteDesigner() {
             className="flex items-center gap-2"
           >
             <Eye className="w-4 h-4" />
-            {showPreview ? 'Masquer' : 'Aperçu'}
+            {showPreview ? 'Masquer l\'aperçu' : 'Afficher l\'aperçu'}
           </Button>
           <Button
             variant="outline"
@@ -158,9 +166,9 @@ export default function QuoteDesigner() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={`grid gap-6 ${showPreview ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
         {/* Panneau de configuration */}
-        <div className="space-y-6">
+        <div className="space-y-6 order-2 xl:order-1">
           <Tabs defaultValue="theme" className="space-y-4">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="theme">Thème</TabsTrigger>
@@ -436,18 +444,29 @@ export default function QuoteDesigner() {
           </Tabs>
         </div>
 
-        {/* Aperçu */}
+        {/* Aperçu en temps réel */}
         {showPreview && (
-          <div className="lg:sticky lg:top-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="w-5 h-5" />
-                  Aperçu du devis
-                </CardTitle>
+          <div className="order-1 xl:order-2 xl:sticky xl:top-6">
+            <Card className="border-2 border-blue-200 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-blue-800">
+                    <Eye className="w-5 h-5" />
+                    Aperçu en Temps Réel
+                  </CardTitle>
+                  <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    <Zap className="w-3 h-3" />
+                    LIVE
+                  </div>
+                </div>
+                <p className="text-sm text-blue-600 mt-1">
+                  Les modifications sont appliquées instantanément
+                </p>
               </CardHeader>
-              <CardContent>
-                <QuotePreview settings={settings} />
+              <CardContent className="p-4">
+                <div className="bg-white rounded-lg border shadow-sm overflow-hidden transition-all duration-300 ease-in-out">
+                  <QuotePreview settings={settings} />
+                </div>
               </CardContent>
             </Card>
           </div>
