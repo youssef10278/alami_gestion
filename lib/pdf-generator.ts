@@ -672,235 +672,471 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   // Titre du document
   const title = type === 'invoice' ? 'FACTURE' : type === 'quote' ? 'DEVIS' : 'BON DE LIVRAISON'
 
-  // En-tête - Logo et informations entreprise avec style personnalisé
+  // === EN-TÊTE PROFESSIONNEL ===
   const headerStyle = designSettings?.headerStyle || 'gradient'
-  
+
   if (headerStyle === 'gradient') {
-    // En-tête avec dégradé horizontal (comme l'aperçu)
-    const steps = 20
+    // En-tête avec dégradé élégant
+    const steps = 30
     const stepWidth = 210 / steps
-    
+
     for (let i = 0; i < steps; i++) {
-      // Interpolation des couleurs de primaryColor vers secondaryColor
       const ratio = i / (steps - 1)
       const r = Math.round(primaryColor[0] + (secondaryColor[0] - primaryColor[0]) * ratio)
       const g = Math.round(primaryColor[1] + (secondaryColor[1] - primaryColor[1]) * ratio)
       const b = Math.round(primaryColor[2] + (secondaryColor[2] - primaryColor[2]) * ratio)
-      
+
       doc.setFillColor(r, g, b)
-      doc.rect(i * stepWidth, 0, stepWidth + 1, 40, 'F')
+      doc.rect(i * stepWidth, 0, stepWidth + 1, 50, 'F')
     }
+
+    // Ligne décorative en bas de l'en-tête
+    doc.setDrawColor(...accentColor)
+    doc.setLineWidth(1.5)
+    doc.line(0, 50, 210, 50)
   } else if (headerStyle === 'solid') {
-    // En-tête avec couleur unie
+    // En-tête avec couleur unie + ombre
     doc.setFillColor(...primaryColor)
-  doc.rect(0, 0, 210, 40, 'F')
+    doc.rect(0, 0, 210, 50, 'F')
+
+    // Ligne d'accent
+    doc.setFillColor(...accentColor)
+    doc.rect(0, 48, 210, 2, 'F')
   } else {
-    // Style minimal - pas de fond, juste une bordure
+    // Style minimal élégant
+    doc.setFillColor(250, 250, 250)
+    doc.rect(0, 0, 210, 50, 'F')
+
     doc.setDrawColor(...primaryColor)
-    doc.setLineWidth(2)
-    doc.line(0, 40, 210, 40)
+    doc.setLineWidth(3)
+    doc.line(0, 50, 210, 50)
   }
 
-  // Ajouter le logo en haut à gauche
-  await addCompanyLogo(doc, company, 20, 25, 20, headerTextColor)
+  // === LOGO ET INFORMATIONS ENTREPRISE ===
+  const logoSize = designSettings?.logoSize === 'large' ? 25 : designSettings?.logoSize === 'small' ? 15 : 20
+  await addCompanyLogo(doc, company, 15, 30, logoSize, headerTextColor)
 
-  doc.setTextColor(...(headerStyle === 'minimal' ? textColor : headerTextColor))
-  doc.setFontSize(24)
-  doc.setFont('helvetica', 'bold')
-  doc.text(cleanText(company.name), 45, 20)
-
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  if (company.address) doc.text(cleanText(company.address), 45, 27)
-  if (company.phone) doc.text(cleanText(`Tel: ${company.phone}`), 45, 32)
-  if (company.email) doc.text(cleanText(`Email: ${company.email}`), 45, 37)
-
-  // Titre du document
+  // Nom de l'entreprise
   doc.setTextColor(...(headerStyle === 'minimal' ? primaryColor : headerTextColor))
-  doc.setFontSize(20)
+  doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
-  doc.text(cleanText(title), 150, 20)
+  doc.text(cleanText(company.name), 45, 18)
 
-  // Numéro et date
-  doc.setFontSize(10)
+  // Informations de contact
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...(headerStyle === 'minimal' ? textColor : headerTextColor))
-  doc.text(cleanText(`N°: ${data.documentNumber}`), 150, 27)
-  doc.text(cleanText(`Date: ${data.date.toLocaleDateString('fr-FR')}`), 150, 32)
+  let contactY = 25
+  if (company.address) {
+    doc.text(cleanText(company.address), 45, contactY)
+    contactY += 4
+  }
+  if (company.phone) {
+    doc.text(cleanText(`📞 ${company.phone}`), 45, contactY)
+    contactY += 4
+  }
+  if (company.email) {
+    doc.text(cleanText(`✉ ${company.email}`), 45, contactY)
+    contactY += 4
+  }
+  if (company.website) {
+    doc.text(cleanText(`🌐 ${company.website}`), 45, contactY)
+  }
 
-  // Informations client
-  doc.setFillColor(...secondaryColor)
-  doc.rect(15, 50, 180, 30, 'F')
+  // === TITRE DU DOCUMENT (Côté droit) ===
+  // Badge pour le type de document
+  const badgeX = 155
+  const badgeY = 15
+  const badgeWidth = 40
+  const badgeHeight = 12
 
-  doc.setFontSize(12)
+  // Fond du badge
+  doc.setFillColor(...(type === 'quote' ? accentColor : primaryColor))
+  doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 2, 2, 'F')
+
+  // Texte du badge
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
-  doc.setTextColor(...sectionTextColor)
-  doc.text(cleanText('CLIENT'), 20, 58)
+  doc.text(cleanText(title), badgeX + badgeWidth / 2, badgeY + 8, { align: 'center' })
 
-  doc.setFontSize(10)
+  // Numéro et date dans un encadré élégant
+  const infoBoxY = 32
+  doc.setFillColor(255, 255, 255)
+  doc.setDrawColor(...sectionColor)
+  doc.setLineWidth(0.5)
+  doc.roundedRect(155, infoBoxY, 40, 15, 1, 1, 'FD')
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...primaryColor)
+  doc.text(cleanText('N°'), 158, infoBoxY + 5)
   doc.setFont('helvetica', 'normal')
-  let yPos = 65
-  doc.text(cleanText(data.customer.name), 20, yPos)
+  doc.setTextColor(...textColor)
+  doc.text(cleanText(data.documentNumber), 165, infoBoxY + 5)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...primaryColor)
+  doc.text(cleanText('Date'), 158, infoBoxY + 11)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...textColor)
+  doc.text(cleanText(data.date.toLocaleDateString('fr-FR')), 165, infoBoxY + 11)
+
+  // === SECTION CLIENT PROFESSIONNELLE ===
+  const clientY = 60
+
+  // Fond avec dégradé subtil
+  doc.setFillColor(248, 250, 252)
+  doc.roundedRect(15, clientY, 90, 35, 2, 2, 'F')
+
+  // Bordure gauche colorée
+  doc.setFillColor(...primaryColor)
+  doc.rect(15, clientY, 3, 35, 'F')
+
+  // Titre "CLIENT"
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...primaryColor)
+  doc.text(cleanText('INFORMATIONS CLIENT'), 22, clientY + 7)
+
+  // Ligne de séparation
+  doc.setDrawColor(...sectionColor)
+  doc.setLineWidth(0.3)
+  doc.line(22, clientY + 9, 102, clientY + 9)
+
+  // Informations du client
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...textColor)
+  let yPos = clientY + 15
+  doc.text(cleanText(data.customer.name), 22, yPos)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(100, 100, 100)
+
   if (data.customer.company) {
     yPos += 5
-    doc.text(cleanText(data.customer.company), 20, yPos)
-  }
-  if (data.customer.address) {
-    yPos += 5
-    doc.text(cleanText(data.customer.address), 20, yPos)
+    doc.text(cleanText(`🏢 ${data.customer.company}`), 22, yPos)
   }
   if (data.customer.phone) {
     yPos += 5
-    doc.text(cleanText(`Tel: ${data.customer.phone}`), 20, yPos)
+    doc.text(cleanText(`📞 ${data.customer.phone}`), 22, yPos)
+  }
+  if (data.customer.email) {
+    yPos += 5
+    doc.text(cleanText(`✉ ${data.customer.email}`), 22, yPos)
+  }
+  if (data.customer.address) {
+    yPos += 5
+    const addressLines = doc.splitTextToSize(cleanText(`📍 ${data.customer.address}`), 75)
+    doc.text(addressLines, 22, yPos)
   }
 
-  // Tableau des articles
+  // === INFORMATIONS SUPPLÉMENTAIRES (Devis uniquement) ===
+  if (type === 'quote') {
+    const quoteInfoY = clientY
+
+    // Encadré pour la validité
+    doc.setFillColor(255, 250, 240)
+    doc.roundedRect(110, quoteInfoY, 85, 35, 2, 2, 'F')
+
+    // Bordure gauche colorée
+    doc.setFillColor(...accentColor)
+    doc.rect(110, quoteInfoY, 3, 35, 'F')
+
+    // Titre
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...accentColor)
+    doc.text(cleanText('VALIDITÉ DU DEVIS'), 117, quoteInfoY + 7)
+
+    // Ligne de séparation
+    doc.setDrawColor(...accentColor)
+    doc.setLineWidth(0.3)
+    doc.line(117, quoteInfoY + 9, 192, quoteInfoY + 9)
+
+    // Date de validité
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 100, 100)
+
+    const validityText = designSettings?.validityPeriodText || 'Ce devis est valable 30 jours'
+    const validityLines = doc.splitTextToSize(cleanText(validityText), 75)
+    doc.text(validityLines, 117, quoteInfoY + 15)
+
+    // Icône de calendrier (décoratif)
+    doc.setFontSize(20)
+    doc.setTextColor(...accentColor)
+    doc.text('📅', 117, quoteInfoY + 30)
+  }
+
+  // === TABLEAU DES ARTICLES PROFESSIONNEL ===
+  const tableStartY = 105
+
+  // Titre de la section avec icône
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...primaryColor)
+  doc.text(cleanText('📋 DÉTAIL DES PRESTATIONS'), 15, tableStartY - 5)
+
   const tableData = data.items.map((item) => [
-    cleanText(item.sku),
+    cleanText(item.sku || '-'),
     cleanText(item.name),
     item.quantity.toString(),
-    `${item.unitPrice.toFixed(0)}DH`,
-    `${item.total.toFixed(0)}DH`,
+    `${item.unitPrice.toFixed(2)} DH`,
+    `${item.total.toFixed(2)} DH`,
   ])
 
   autoTable(doc, {
-    startY: 90,
+    startY: tableStartY,
     head: [[
-      cleanText('SKU'),
-      cleanText('Designation'),
-      cleanText('Qte'),
-      cleanText('Prix Unit.'),
-      cleanText('Total')
+      cleanText('RÉF.'),
+      cleanText('DÉSIGNATION'),
+      cleanText('QTÉ'),
+      cleanText('PRIX UNIT.'),
+      cleanText('TOTAL HT')
     ]],
     body: tableData,
-    theme: 'grid',
+    theme: 'striped',
     headStyles: {
       fillColor: tableHeaderColor,
-      textColor: sectionTextColor,
+      textColor: [255, 255, 255],
       fontStyle: 'bold',
+      fontSize: 9,
+      halign: 'center',
+      cellPadding: 4,
     },
     styles: {
-      fontSize: 10,
-      cellPadding: 5,
+      fontSize: 9,
+      cellPadding: 3,
+      lineColor: [220, 220, 220],
+      lineWidth: 0.1,
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252]
     },
     columnStyles: {
-      0: { cellWidth: 30 }, // SKU
-      1: { cellWidth: 70 }, // Designation
-      2: { cellWidth: 20, halign: 'center' }, // Qté
-      3: { cellWidth: 30, halign: 'center', fontSize: 8 }, // Prix Unit. - CENTRÉ + police plus petite
-      4: { cellWidth: 30, halign: 'center', fontSize: 8 }, // Total - CENTRÉ + police plus petite
+      0: { cellWidth: 25, halign: 'center', textColor: [100, 100, 100], fontSize: 8 },
+      1: { cellWidth: 80, halign: 'left', fontStyle: 'bold' },
+      2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
+      3: { cellWidth: 32, halign: 'right' },
+      4: { cellWidth: 33, halign: 'right', fontStyle: 'bold', textColor: primaryColor },
     },
+    margin: { left: 15, right: 15 }
   })
 
-  // Totaux
-  const finalY = (doc as any).lastAutoTable.finalY || 90
-  const totalsY = finalY + 10
+  // === SECTION TOTAUX PROFESSIONNELLE ===
+  const finalY = (doc as any).lastAutoTable.finalY || 105
+  const totalsY = finalY + 12
 
-  doc.setFillColor(...sectionColor)
-  doc.rect(120, totalsY, 85, 30, 'F')
+  // Encadré élégant pour les totaux
+  doc.setFillColor(255, 255, 255)
+  doc.setDrawColor(...primaryColor)
+  doc.setLineWidth(0.5)
+  doc.roundedRect(120, totalsY - 5, 75, type === 'invoice' ? 35 : 20, 2, 2, 'FD')
 
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(...sectionTextColor)
-  doc.text(cleanText('Total:'), 125, totalsY + 7)
+  // Bande de couleur en haut
+  doc.setFillColor(...primaryColor)
+  doc.roundedRect(120, totalsY - 5, 75, 6, 2, 2, 'F')
+
+  // Titre "MONTANTS"
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(255, 255, 255)
+  doc.text(cleanText('MONTANTS'), 157.5, totalsY - 1, { align: 'center' })
+
+  // Total HT
   doc.setFontSize(9)
-  doc.text(`${data.totalAmount.toFixed(0)}DH`, 195, totalsY + 7, { align: 'right' })
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...textColor)
+  doc.text(cleanText('Total HT'), 125, totalsY + 7)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...primaryColor)
+  doc.text(`${data.totalAmount.toFixed(2)} DH`, 190, totalsY + 7, { align: 'right' })
 
   if (type === 'invoice') {
-    doc.setFontSize(10)
-    doc.text(cleanText('Paye:'), 125, totalsY + 14)
-    doc.setFontSize(9)
-    doc.text(`${data.paidAmount.toFixed(0)}DH`, 195, totalsY + 14, { align: 'right' })
+    // Payé
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...textColor)
+    doc.text(cleanText('Payé'), 125, totalsY + 14)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(16, 185, 129) // Vert
+    doc.text(`${data.paidAmount.toFixed(2)} DH`, 190, totalsY + 14, { align: 'right' })
+
+    // Reste à payer (en grand)
+    doc.setFillColor(255, 250, 240)
+    doc.roundedRect(120, totalsY + 18, 75, 10, 1, 1, 'F')
 
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
-    doc.text(cleanText('Reste a payer:'), 125, totalsY + 21)
-    doc.setFontSize(9)
-    doc.text(`${data.creditAmount.toFixed(0)}DH`, 195, totalsY + 21, { align: 'right' })
+    doc.setTextColor(...accentColor)
+    doc.text(cleanText('RESTE À PAYER'), 125, totalsY + 24)
+    doc.setFontSize(11)
+    doc.text(`${data.creditAmount.toFixed(2)} DH`, 190, totalsY + 24, { align: 'right' })
   }
 
-  // === MONTANT EN LETTRES ===
-  const amountInWordsY = totalsY + 35
+  // === MONTANT EN LETTRES (Élégant) ===
+  const amountInWordsY = totalsY + (type === 'invoice' ? 45 : 30)
 
-  // Cadre pour le montant en lettres
-  doc.setFillColor(245, 245, 245) // Gris très clair
-  doc.setDrawColor(...sectionColor)
-  doc.setLineWidth(1)
-  doc.rect(15, amountInWordsY - 5, 180, 15, 'FD')
+  // Encadré avec icône
+  doc.setFillColor(248, 250, 252)
+  doc.setDrawColor(...primaryColor)
+  doc.setLineWidth(0.5)
+  doc.roundedRect(15, amountInWordsY - 5, 180, 18, 2, 2, 'FD')
 
-  // Texte du montant en lettres
-  doc.setTextColor(...darkGray)
+  // Icône et titre
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...primaryColor)
+  doc.text(cleanText('💰 MONTANT EN LETTRES'), 20, amountInWordsY + 1)
+
+  // Montant en lettres
+  doc.setTextColor(...textColor)
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(9)
   const amountInWords = formatAmountInWords(data.totalAmount)
   const wordsLines = doc.splitTextToSize(cleanText(amountInWords), 170)
-  doc.text(wordsLines, 20, amountInWordsY + 3)
+  doc.text(wordsLines, 20, amountInWordsY + 7)
 
-  // Méthode de paiement
+  // Méthode de paiement (factures uniquement)
   if (type === 'invoice') {
-    const paymentY = amountInWordsY + 20
+    const paymentY = amountInWordsY + 22
+    doc.setFillColor(255, 250, 240)
+    doc.roundedRect(15, paymentY - 3, 85, 10, 1, 1, 'F')
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8)
+    doc.setTextColor(...accentColor)
+    doc.text(cleanText('MODE DE PAIEMENT'), 20, paymentY + 2)
+
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
+    doc.setTextColor(...textColor)
     const paymentMethodLabel = getPaymentMethodLabel(data.paymentMethod)
-    doc.text(cleanText(`Mode de paiement: ${paymentMethodLabel}`), 15, paymentY)
+    doc.text(cleanText(paymentMethodLabel), 20, paymentY + 6)
   }
 
   // Notes
-  let currentY = amountInWordsY + 25
+  let currentY = amountInWordsY + (type === 'invoice' ? 35 : 25)
   if (data.notes) {
+    doc.setFillColor(255, 255, 240)
+    doc.roundedRect(15, currentY - 3, 180, 15, 2, 2, 'F')
+
     doc.setFontSize(9)
-    doc.setFont('helvetica', 'italic')
-    doc.setTextColor(...textColor)
-    doc.text(cleanText('Notes:'), 15, currentY)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...accentColor)
+    doc.text(cleanText('📝 NOTES'), 20, currentY + 2)
+
     doc.setFont('helvetica', 'normal')
-    const splitNotes = doc.splitTextToSize(cleanText(data.notes), 180)
-    doc.text(splitNotes, 15, currentY + 5)
-    currentY += 5 + (splitNotes.length * 5)
+    doc.setTextColor(...textColor)
+    doc.setFontSize(8)
+    const splitNotes = doc.splitTextToSize(cleanText(data.notes), 170)
+    doc.text(splitNotes, 20, currentY + 7)
+    currentY += 15 + (splitNotes.length * 3)
   }
 
-  // Paramètres spécifiques aux devis
+  // === SECTIONS SPÉCIFIQUES AUX DEVIS (Design Professionnel) ===
   if (type === 'quote') {
     // Période de validité
     if (designSettings?.showValidityPeriod && designSettings?.validityPeriodText) {
-      currentY += 5
-      doc.setFillColor(...sectionColor)
-      doc.rect(15, currentY - 3, 180, 12, 'F')
+      currentY += 8
 
+      // Encadré avec bordure colorée
+      doc.setFillColor(240, 253, 244) // Vert très clair
+      doc.setDrawColor(...sectionColor)
+      doc.setLineWidth(0.5)
+      doc.roundedRect(15, currentY - 3, 180, 18, 2, 2, 'FD')
+
+      // Barre latérale colorée
+      doc.setFillColor(...sectionColor)
+      doc.rect(15, currentY - 3, 4, 18, 'F')
+
+      // Icône et titre
       doc.setFontSize(9)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(...sectionTextColor)
-      doc.text(cleanText('Validite du devis'), 20, currentY + 3)
+      doc.setTextColor(...sectionColor)
+      doc.text(cleanText('⏰ VALIDITÉ DU DEVIS'), 23, currentY + 3)
 
+      // Texte de validité
       doc.setFont('helvetica', 'normal')
-      const splitValidity = doc.splitTextToSize(cleanText(designSettings.validityPeriodText), 170)
-      doc.text(splitValidity, 20, currentY + 8)
-      currentY += 12 + (splitValidity.length * 4)
+      doc.setFontSize(8)
+      doc.setTextColor(...textColor)
+      const splitValidity = doc.splitTextToSize(cleanText(designSettings.validityPeriodText), 165)
+      doc.text(splitValidity, 23, currentY + 9)
+      currentY += 18 + (splitValidity.length * 2)
     }
 
     // Conditions générales
     if (designSettings?.showTermsAndConditions && designSettings?.termsAndConditionsText) {
       currentY += 5
-      doc.setFillColor(...accentColor)
-      doc.rect(15, currentY - 3, 180, 12, 'F')
 
+      // Encadré avec bordure colorée
+      doc.setFillColor(255, 247, 237) // Orange très clair
+      doc.setDrawColor(...accentColor)
+      doc.setLineWidth(0.5)
+      doc.roundedRect(15, currentY - 3, 180, 18, 2, 2, 'FD')
+
+      // Barre latérale colorée
+      doc.setFillColor(...accentColor)
+      doc.rect(15, currentY - 3, 4, 18, 'F')
+
+      // Icône et titre
       doc.setFontSize(9)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(...headerTextColor)
-      doc.text(cleanText('Conditions generales'), 20, currentY + 3)
+      doc.setTextColor(...accentColor)
+      doc.text(cleanText('📋 CONDITIONS GÉNÉRALES'), 23, currentY + 3)
 
+      // Texte des conditions
       doc.setFont('helvetica', 'normal')
-      const splitTerms = doc.splitTextToSize(cleanText(designSettings.termsAndConditionsText), 170)
-      doc.text(splitTerms, 20, currentY + 8)
-      currentY += 12 + (splitTerms.length * 4)
+      doc.setFontSize(8)
+      doc.setTextColor(...textColor)
+      const splitTerms = doc.splitTextToSize(cleanText(designSettings.termsAndConditionsText), 165)
+      doc.text(splitTerms, 23, currentY + 9)
+      currentY += 18 + (splitTerms.length * 2)
     }
   }
 
-  // Pied de page
-  doc.setFontSize(8)
-  doc.setTextColor(...textColor)
-  doc.text(cleanText('Merci pour votre confiance !'), 105, 280, { align: 'center' })
-  const footerInfo = [company.name, company.email].filter(Boolean).join(' - ')
-  doc.text(cleanText(footerInfo), 105, 285, { align: 'center' })
+  // === PIED DE PAGE PROFESSIONNEL ===
+  const pageHeight = doc.internal.pageSize.height
+  const footerY = pageHeight - 20
+
+  // Ligne de séparation élégante
+  doc.setDrawColor(...primaryColor)
+  doc.setLineWidth(0.5)
+  doc.line(15, footerY - 5, 195, footerY - 5)
+
+  // Message de remerciement
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...primaryColor)
+  doc.text(cleanText('✨ Merci pour votre confiance !'), 105, footerY, { align: 'center' })
+
+  // Informations de contact
+  doc.setFontSize(7)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(100, 100, 100)
+  const footerParts = []
+  if (company.name) footerParts.push(company.name)
+  if (company.phone) footerParts.push(`📞 ${company.phone}`)
+  if (company.email) footerParts.push(`✉ ${company.email}`)
+  if (company.website) footerParts.push(`🌐 ${company.website}`)
+
+  const footerInfo = footerParts.join(' • ')
+  doc.text(cleanText(footerInfo), 105, footerY + 5, { align: 'center' })
+
+  // Informations légales
+  if (company.ice || company.taxId) {
+    doc.setFontSize(6)
+    const legalInfo = []
+    if (company.ice) legalInfo.push(`ICE: ${company.ice}`)
+    if (company.taxId) legalInfo.push(`IF: ${company.taxId}`)
+    doc.text(cleanText(legalInfo.join(' • ')), 105, footerY + 9, { align: 'center' })
+  }
+
+  // Numéro de page (si multi-pages)
+  doc.setFontSize(7)
+  doc.setTextColor(150, 150, 150)
+  doc.text(cleanText(`Page 1`), 195, footerY + 9, { align: 'right' })
 
   return doc
 }
