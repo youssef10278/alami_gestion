@@ -1382,8 +1382,8 @@ function generateSimpleQuotePDF(
   // === BANDEAU JAUNE - VALIDITÉ ===
   yPos += 8
 
-  const validityDate = data.dueDate ? new Date(data.dueDate).toLocaleDateString('fr-FR') : '06/11/2025'
-  const validityText = `Ce devis est valable jusqu'au ${validityDate}`
+  const validityEndDate = data.dueDate ? new Date(data.dueDate).toLocaleDateString('fr-FR') : '06/11/2025'
+  const validityText = `Ce devis est valable jusqu'au ${validityEndDate}`
 
   // Fond jaune
   doc.setFillColor(255, 243, 205) // Jaune clair
