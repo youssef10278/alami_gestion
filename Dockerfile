@@ -46,58 +46,21 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma/
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma/
 
-# Créer le script de démarrage directement dans le container
-RUN mkdir -p ./scripts && \
-    echo '#!/bin/bash' > ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo 'echo "🚀 Démarrage de l'\''application Alami Gestion"' >> ./scripts/start.sh && \
-    echo 'echo ""' >> ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo '# Vérifier si DATABASE_URL est définie' >> ./scripts/start.sh && \
-    echo 'if [ -z "$DATABASE_URL" ]; then' >> ./scripts/start.sh && \
-    echo '    echo "❌ ERREUR: DATABASE_URL n'\''est pas définie"' >> ./scripts/start.sh && \
-    echo '    echo "Veuillez configurer PostgreSQL sur Railway"' >> ./scripts/start.sh && \
-    echo '    exit 1' >> ./scripts/start.sh && \
-    echo 'fi' >> ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo 'echo "✅ DATABASE_URL détectée"' >> ./scripts/start.sh && \
-    echo 'echo ""' >> ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo '# Exécuter les migrations Prisma' >> ./scripts/start.sh && \
-    echo 'echo "🗄️ Exécution des migrations Prisma..."' >> ./scripts/start.sh && \
-    echo 'npx prisma migrate deploy' >> ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo 'if [ $? -eq 0 ]; then' >> ./scripts/start.sh && \
-    echo '    echo "✅ Migrations exécutées avec succès"' >> ./scripts/start.sh && \
-    echo 'else' >> ./scripts/start.sh && \
-    echo '    echo "❌ Erreur lors des migrations"' >> ./scripts/start.sh && \
-    echo '    echo "Tentative avec db push..."' >> ./scripts/start.sh && \
-    echo '    npx prisma db push' >> ./scripts/start.sh && \
-    echo '    if [ $? -eq 0 ]; then' >> ./scripts/start.sh && \
-    echo '        echo "✅ Schema synchronisé avec db push"' >> ./scripts/start.sh && \
-    echo '    else' >> ./scripts/start.sh && \
-    echo '        echo "❌ Impossible de synchroniser la base de données"' >> ./scripts/start.sh && \
-    echo '        exit 1' >> ./scripts/start.sh && \
-    echo '    fi' >> ./scripts/start.sh && \
-    echo 'fi' >> ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo 'echo ""' >> ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo '# Générer le client Prisma (au cas où)' >> ./scripts/start.sh && \
-    echo 'echo "🔧 Génération du client Prisma..."' >> ./scripts/start.sh && \
-    echo 'npx prisma generate' >> ./scripts/start.sh && \
-    echo 'echo "✅ Client Prisma généré"' >> ./scripts/start.sh && \
-    echo 'echo ""' >> ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo '# Démarrer l'\''application Next.js' >> ./scripts/start.sh && \
-    echo 'echo "🌐 Démarrage du serveur Next.js..."' >> ./scripts/start.sh && \
-    echo 'echo "📍 Port: $PORT"' >> ./scripts/start.sh && \
-    echo 'echo "🌍 Environnement: $NODE_ENV"' >> ./scripts/start.sh && \
-    echo 'echo ""' >> ./scripts/start.sh && \
-    echo '' >> ./scripts/start.sh && \
-    echo 'exec node server.js' >> ./scripts/start.sh && \
-    chmod +x ./scripts/start.sh && \
-    chown -R nextjs:nodejs /app
+# Créer un script de démarrage simple
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo 'echo "🚀 Starting Alami Gestion Application"' >> /start.sh && \
+    echo 'if [ -n "$DATABASE_URL" ]; then' >> /start.sh && \
+    echo '  echo "✅ DATABASE_URL found"' >> /start.sh && \
+    echo '  echo "🗄️ Running Prisma migrations..."' >> /start.sh && \
+    echo '  npx prisma migrate deploy || npx prisma db push' >> /start.sh && \
+    echo '  echo "✅ Database ready"' >> /start.sh && \
+    echo 'else' >> /start.sh && \
+    echo '  echo "⚠️ DATABASE_URL not found, starting without migrations"' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo 'echo "🌐 Starting Next.js server..."' >> /start.sh && \
+    echo 'exec node server.js' >> /start.sh && \
+    chmod +x /start.sh && \
+    chown nextjs:nodejs /start.sh
 
 # Utiliser l'utilisateur non-root
 USER nextjs
@@ -110,4 +73,4 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 # Commande de démarrage avec migrations
-CMD ["./scripts/start.sh"]
+CMD ["/start.sh"]
