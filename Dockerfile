@@ -45,10 +45,12 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma/
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma/
-COPY --from=builder /app/scripts/start.sh ./scripts/start.sh
 
-# Rendre le script exécutable et changer le propriétaire des fichiers
-RUN chmod +x ./scripts/start.sh && chown -R nextjs:nodejs /app
+# Copier le script de démarrage directement
+COPY scripts/start.sh ./scripts/start.sh
+
+# Créer le répertoire scripts, rendre le script exécutable et changer le propriétaire des fichiers
+RUN mkdir -p ./scripts && chmod +x ./scripts/start.sh && chown -R nextjs:nodejs /app
 
 # Utiliser l'utilisateur non-root
 USER nextjs
