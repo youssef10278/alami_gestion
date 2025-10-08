@@ -100,13 +100,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier si le SKU existe déjà
-    const existingProduct = await prisma.product.findUnique({
+    const existingProductBySku = await prisma.product.findUnique({
       where: { sku },
     })
 
-    if (existingProduct) {
+    if (existingProductBySku) {
       return NextResponse.json(
         { error: 'Un produit avec ce SKU existe déjà' },
+        { status: 400 }
+      )
+    }
+
+    // Vérifier si le nom existe déjà (insensible à la casse)
+    const existingProductByName = await prisma.product.findFirst({
+      where: {
+        name: {
+          equals: name,
+          mode: 'insensitive'
+        }
+      }
+    })
+
+    if (existingProductByName) {
+      return NextResponse.json(
+        { error: 'Un produit avec ce nom existe déjà' },
         { status: 400 }
       )
     }

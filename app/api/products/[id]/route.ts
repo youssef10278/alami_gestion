@@ -74,6 +74,28 @@ export async function PUT(
       )
     }
 
+    // Vérifier si le nouveau nom existe déjà (sauf pour le produit actuel)
+    if (name && name !== product.name) {
+      const existingProductByName = await prisma.product.findFirst({
+        where: {
+          name: {
+            equals: name,
+            mode: 'insensitive'
+          },
+          id: {
+            not: params.id
+          }
+        }
+      })
+
+      if (existingProductByName) {
+        return NextResponse.json(
+          { error: 'Un produit avec ce nom existe déjà' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Si le stock change, créer un mouvement de stock
     if (stock !== undefined && parseInt(stock) !== product.stock) {
       const difference = parseInt(stock) - product.stock
