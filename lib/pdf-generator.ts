@@ -815,37 +815,7 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   }
 
   // === INFORMATIONS SUPPLÉMENTAIRES (Devis uniquement) ===
-  if (type === 'quote') {
-    const quoteInfoY = clientY
-
-    // Encadré pour la validité
-    doc.setFillColor(255, 250, 240)
-    doc.roundedRect(110, quoteInfoY, 85, 35, 2, 2, 'F')
-
-    // Bordure gauche colorée
-    doc.setFillColor(...accentColor)
-    doc.rect(110, quoteInfoY, 3, 35, 'F')
-
-    // Titre
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...accentColor)
-    doc.text(cleanText('VALIDITÉ DU DEVIS'), 117, quoteInfoY + 7)
-
-    // Ligne de séparation
-    doc.setDrawColor(...accentColor)
-    doc.setLineWidth(0.3)
-    doc.line(117, quoteInfoY + 9, 192, quoteInfoY + 9)
-
-    // Date de validité
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(100, 100, 100)
-
-    const validityText = designSettings?.validityPeriodText || 'Ce devis est valable 30 jours'
-    const validityLines = doc.splitTextToSize(cleanText(validityText), 75)
-    doc.text(validityLines, 117, quoteInfoY + 15)
-  }
+  // Note: La validité du devis est affichée en bas du document (section contrôlable)
 
   // === TABLEAU DES ARTICLES PROFESSIONNEL ===
   const tableStartY = 105
