@@ -244,53 +244,57 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header avec design amélioré */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-purple-600 p-8 shadow-2xl">
+      {/* Header avec design amélioré - Responsive */}
+      <div className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-purple-600 p-4 md:p-8 shadow-2xl">
         {/* Effet de fond animé */}
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 backdrop-blur-3xl"></div>
 
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg">
-              <Package className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-1 drop-shadow-lg">
-                Gestion des Produits
-              </h1>
-              <p className="text-blue-100 text-sm">
-                Gérez votre catalogue de produits et stock en temps réel
-              </p>
-              <div className="flex items-center gap-3 mt-2">
-                <div className="flex items-center gap-1.5 text-xs text-white/80 bg-white/10 px-2 py-1 rounded-lg backdrop-blur-sm">
-                  <kbd className="px-1.5 py-0.5 bg-white/20 rounded text-xs font-semibold">Ctrl+N</kbd>
-                  <span>Nouveau</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-white/80 bg-white/10 px-2 py-1 rounded-lg backdrop-blur-sm">
-                  <kbd className="px-1.5 py-0.5 bg-white/20 rounded text-xs font-semibold">Ctrl+F</kbd>
-                  <span>Rechercher</span>
+        <div className="relative">
+          {/* Layout mobile : vertical, desktop : horizontal */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-0">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="p-2 md:p-3 bg-white/20 backdrop-blur-sm rounded-lg md:rounded-xl shadow-lg">
+                <Package className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-2xl md:text-4xl font-bold text-white mb-1 drop-shadow-lg">
+                  Gestion des Produits
+                </h1>
+                <p className="text-blue-100 text-xs md:text-sm">
+                  Gérez votre catalogue de produits et stock en temps réel
+                </p>
+                <div className="hidden sm:flex items-center gap-2 md:gap-3 mt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-white/80 bg-white/10 px-2 py-1 rounded-lg backdrop-blur-sm">
+                    <kbd className="px-1.5 py-0.5 bg-white/20 rounded text-xs font-semibold">Ctrl+N</kbd>
+                    <span>Nouveau</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-white/80 bg-white/10 px-2 py-1 rounded-lg backdrop-blur-sm">
+                    <kbd className="px-1.5 py-0.5 bg-white/20 rounded text-xs font-semibold">Ctrl+F</kbd>
+                    <span>Rechercher</span>
+                  </div>
                 </div>
               </div>
             </div>
+            <Button
+              onClick={() => {
+                setEditingProduct(null)
+                setDialogOpen(true)
+              }}
+              variant="stock"
+              className="gap-2 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 px-4 py-3 md:px-6 md:py-6 text-sm md:text-base font-semibold w-full md:w-auto"
+              size="lg"
+            >
+              <Plus className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="md:hidden">Nouveau</span>
+              <span className="hidden md:inline">Nouveau Produit</span>
+            </Button>
           </div>
-          <Button
-            onClick={() => {
-              setEditingProduct(null)
-              setDialogOpen(true)
-            }}
-            variant="stock"
-            className="gap-2 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 px-6 py-6 text-base font-semibold"
-            size="lg"
-          >
-            <Plus className="w-5 h-5" />
-            Nouveau Produit
-          </Button>
         </div>
       </div>
 
-      {/* Stats avec design amélioré */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stats avec design amélioré - Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Carte Total Produits */}
         <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-blue-100/50">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16"></div>
@@ -303,10 +307,10 @@ export default function ProductsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
+            <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
               {products.length}
             </div>
-            <p className="text-xs text-blue-600 mt-2 font-medium">
+            <p className="text-xs md:text-sm text-blue-600 mt-2 font-medium">
               📂 {categories.length} catégories
             </p>
           </CardContent>
@@ -324,10 +328,10 @@ export default function ProductsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+            <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
               {stockValue.toFixed(0)} DH
             </div>
-            <p className="text-xs text-green-600 mt-2 font-medium">
+            <p className="text-xs md:text-sm text-green-600 mt-2 font-medium">
               💰 Potentiel: {potentialValue.toFixed(0)} DH
             </p>
           </CardContent>
@@ -345,87 +349,92 @@ export default function ProductsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent">
+            <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent">
               {lowStockCount}
             </div>
-            <p className="text-xs text-orange-600 mt-2 font-medium">
+            <p className="text-xs md:text-sm text-orange-600 mt-2 font-medium">
               📈 Bénéfice: {potentialProfit.toFixed(0)} DH
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters avec design amélioré */}
+      {/* Filters avec design amélioré - Responsive */}
       <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Recherche avec icône animée */}
-            <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
+        <CardContent className="pt-4 md:pt-6">
+          <div className="space-y-4">
+            {/* Ligne 1: Recherche */}
+            <div className="relative group">
+              <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5 group-focus-within:text-blue-500 transition-colors" />
               <Input
                 placeholder="🔍 Rechercher par nom, SKU ou description..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-12 h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl shadow-sm hover:shadow-md transition-all"
+                className="pl-10 md:pl-12 h-10 md:h-12 border-2 border-gray-200 focus:border-blue-500 rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all text-sm md:text-base"
               />
             </div>
 
-            {/* Filtre catégorie */}
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-[220px] h-12 border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
-                <SelectValue placeholder="📂 Toutes les catégories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">📂 Toutes les catégories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    📁 {category.name} ({category._count.products})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Ligne 2: Filtres et contrôles */}
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+              {/* Filtre catégorie */}
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-[180px] md:w-[220px] h-10 md:h-12 border-2 border-gray-200 rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all text-sm md:text-base">
+                  <SelectValue placeholder="📂 Catégories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">📂 Toutes les catégories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      📁 {category.name} ({category._count.products})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {/* Tri */}
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-[220px] h-12 border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
-                <SelectValue placeholder="🔄 Trier par..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">🔤 Nom (A-Z)</SelectItem>
-                <SelectItem value="price-asc">💰 Prix croissant</SelectItem>
-                <SelectItem value="price-desc">💎 Prix décroissant</SelectItem>
-                <SelectItem value="margin-desc">📈 Marge décroissante</SelectItem>
-                <SelectItem value="stock-asc">⚠️ Stock faible d'abord</SelectItem>
-                <SelectItem value="stock-desc">✅ Stock élevé d'abord</SelectItem>
-              </SelectContent>
-            </Select>
+              {/* Tri */}
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full sm:w-[160px] md:w-[220px] h-10 md:h-12 border-2 border-gray-200 rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all text-sm md:text-base">
+                  <SelectValue placeholder="🔄 Trier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">🔤 Nom (A-Z)</SelectItem>
+                  <SelectItem value="price-asc">💰 Prix croissant</SelectItem>
+                  <SelectItem value="price-desc">💎 Prix décroissant</SelectItem>
+                  <SelectItem value="margin-desc">📈 Marge décroissante</SelectItem>
+                  <SelectItem value="stock-asc">⚠️ Stock faible d'abord</SelectItem>
+                  <SelectItem value="stock-desc">✅ Stock élevé d'abord</SelectItem>
+                </SelectContent>
+              </Select>
 
-            {/* Toggle Vue Grille/Liste avec design amélioré */}
-            <div className="flex gap-2 bg-gray-100 rounded-xl p-1.5 shadow-inner">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className={`h-9 px-4 rounded-lg transition-all ${
-                  viewMode === 'grid'
-                    ? 'bg-white shadow-md'
-                    : 'hover:bg-white/50'
-                }`}
-              >
-                <Grid3x3 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className={`h-9 px-4 rounded-lg transition-all ${
-                  viewMode === 'list'
-                    ? 'bg-white shadow-md'
-                    : 'hover:bg-white/50'
-                }`}
-              >
-                <List className="w-4 h-4" />
-              </Button>
+              {/* Toggle Vue Grille/Liste avec design amélioré */}
+              <div className="flex gap-1 md:gap-2 bg-gray-100 rounded-lg md:rounded-xl p-1 md:p-1.5 shadow-inner ml-auto">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className={`h-8 md:h-9 px-3 md:px-4 rounded-md md:rounded-lg transition-all ${
+                    viewMode === 'grid'
+                      ? 'bg-white shadow-md'
+                      : 'hover:bg-white/50'
+                  }`}
+                >
+                  <Grid3x3 className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline ml-1 md:ml-2 text-xs md:text-sm">Grille</span>
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className={`h-8 md:h-9 px-3 md:px-4 rounded-md md:rounded-lg transition-all ${
+                    viewMode === 'list'
+                      ? 'bg-white shadow-md'
+                      : 'hover:bg-white/50'
+                  }`}
+                >
+                  <List className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline ml-1 md:ml-2 text-xs md:text-sm">Liste</span>
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -454,7 +463,7 @@ export default function ProductsPage() {
       ) : (
         <>
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {paginatedProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -474,81 +483,91 @@ export default function ProductsPage() {
             />
           )}
 
-          {/* Pagination avec design moderne */}
+          {/* Pagination avec design moderne - Responsive */}
           {totalPages > 1 && (
             <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
-              <CardContent className="py-6">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm">
-                      <span className="text-sm font-medium text-gray-700">
-                        📊 Affichage
-                      </span>
-                      <span className="font-bold text-blue-600">
-                        {startIndex + 1}-{Math.min(endIndex, sortedProducts.length)}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        sur {sortedProducts.length}
-                      </span>
+              <CardContent className="py-4 md:py-6">
+                <div className="space-y-4">
+                  {/* Informations d'affichage et sélecteur */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 md:gap-4 order-2 sm:order-1">
+                      <div className="flex items-center gap-2 bg-white px-3 md:px-4 py-2 rounded-lg md:rounded-xl shadow-sm text-sm">
+                        <span className="font-medium text-gray-700">
+                          📊 <span className="hidden sm:inline">Affichage</span>
+                        </span>
+                        <span className="font-bold text-blue-600">
+                          {startIndex + 1}-{Math.min(endIndex, sortedProducts.length)}
+                        </span>
+                        <span className="text-gray-500">
+                          <span className="hidden sm:inline">sur</span> {sortedProducts.length}
+                        </span>
+                      </div>
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(Number(value))
+                          setCurrentPage(1)
+                        }}
+                      >
+                        <SelectTrigger className="w-[100px] md:w-[130px] bg-white border-2 border-gray-200 rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">📄 10</SelectItem>
+                          <SelectItem value="20">📄 20</SelectItem>
+                          <SelectItem value="50">📄 50</SelectItem>
+                          <SelectItem value="100">📄 100</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Select
-                      value={itemsPerPage.toString()}
-                      onValueChange={(value) => {
-                        setItemsPerPage(Number(value))
-                        setCurrentPage(1)
-                      }}
-                    >
-                      <SelectTrigger className="w-[130px] bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">📄 10 / page</SelectItem>
-                        <SelectItem value="20">📄 20 / page</SelectItem>
-                        <SelectItem value="50">📄 50 / page</SelectItem>
-                        <SelectItem value="100">📄 100 / page</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                    {/* Indicateur de page mobile */}
+                    <div className="px-3 md:px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg md:rounded-xl shadow-md text-sm order-1 sm:order-2">
+                      Page {currentPage} / {totalPages}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  {/* Contrôles de navigation */}
+                  <div className="flex items-center justify-center gap-1 md:gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage(1)}
                       disabled={currentPage === 1}
-                      className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm hover:shadow-md transition-all"
+                      className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all px-2 md:px-3 text-xs md:text-sm"
                     >
-                      ⏮️ Premier
+                      <span className="md:hidden">⏮️</span>
+                      <span className="hidden md:inline">⏮️ Premier</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm hover:shadow-md transition-all"
+                      className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all px-2 md:px-3 text-xs md:text-sm"
                     >
-                      ◀️ Précédent
+                      <span className="md:hidden">◀️</span>
+                      <span className="hidden md:inline">◀️ Précédent</span>
                     </Button>
-                    <div className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl shadow-md">
-                      Page {currentPage} / {totalPages}
-                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm hover:shadow-md transition-all"
+                      className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all px-2 md:px-3 text-xs md:text-sm"
                     >
-                      Suivant ▶️
+                      <span className="md:hidden">▶️</span>
+                      <span className="hidden md:inline">Suivant ▶️</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage(totalPages)}
                       disabled={currentPage === totalPages}
-                      className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm hover:shadow-md transition-all"
+                      className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg md:rounded-xl shadow-sm hover:shadow-md transition-all px-2 md:px-3 text-xs md:text-sm"
                     >
-                      Dernier ⏭️
+                      <span className="md:hidden">⏭️</span>
+                      <span className="hidden md:inline">Dernier ⏭️</span>
                     </Button>
                   </div>
                 </div>
