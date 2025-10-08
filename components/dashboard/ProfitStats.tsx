@@ -85,12 +85,12 @@ export default function ProfitStats() {
 
   return (
     <div className="space-y-6">
-      {/* Sélecteur de période */}
-      <div className="flex justify-end">
+      {/* Sélecteur de période - Responsive */}
+      <div className="flex justify-center md:justify-end">
         <select
           value={period}
           onChange={(e) => setPeriod(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 md:px-4 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base w-full max-w-xs md:w-auto"
         >
           <option value="7">7 derniers jours</option>
           <option value="30">30 derniers jours</option>
@@ -99,8 +99,8 @@ export default function ProfitStats() {
         </select>
       </div>
 
-      {/* KPIs avec design Business Moderne */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* KPIs avec design Business Moderne - Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Chiffre d'affaires */}
         <Card className="group relative overflow-hidden border border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-[var(--color-sales)]/30 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
           <div className="absolute inset-0 bg-[var(--color-sales)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -110,7 +110,7 @@ export default function ProfitStats() {
                 <p className="text-sm font-medium text-[hsl(var(--muted-foreground))] mb-2">
                   Chiffre d'affaires
                 </p>
-                <p className="text-2xl font-bold text-[var(--color-sales)] group-hover:scale-105 transition-transform duration-300">
+                <p className="text-xl md:text-2xl font-bold text-[var(--color-sales)] group-hover:scale-105 transition-transform duration-300">
                   {data.summary.totalRevenue.toFixed(2)} DH
                 </p>
                 <div className="flex items-center gap-2 mt-2">
@@ -120,8 +120,8 @@ export default function ProfitStats() {
                   </span>
                 </div>
               </div>
-              <div className="p-3 bg-[var(--color-sales)]/10 border border-[var(--color-sales)]/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                <DollarSign className="w-6 h-6 text-[var(--color-sales)]" />
+              <div className="p-2 md:p-3 bg-[var(--color-sales)]/10 border border-[var(--color-sales)]/20 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform duration-300">
+                <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-[var(--color-sales)]" />
               </div>
             </div>
           </CardContent>

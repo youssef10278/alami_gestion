@@ -103,60 +103,63 @@ export default async function DashboardPage() {
   return (
     <DashboardPageClient>
       <div className="space-y-6">
-      {/* Header Business Moderne */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-business-blue)] via-[var(--color-business-blue)] to-[var(--color-success-green)] p-8 shadow-2xl border border-[hsl(var(--border))]">
+      {/* Header Business Moderne - Responsive */}
+      <div className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-[var(--color-business-blue)] via-[var(--color-business-blue)] to-[var(--color-success-green)] p-4 md:p-8 shadow-2xl border border-[hsl(var(--border))]">
         {/* Effet de fond moderne */}
         <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.3))]"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-business-blue)]/10 to-[var(--color-success-green)]/10 backdrop-blur-3xl"></div>
 
-        {/* Éléments décoratifs Business */}
-        <div className="absolute top-4 right-4 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
-        <div className="absolute bottom-4 left-4 w-24 h-24 bg-[var(--color-success-green)]/10 rounded-full blur-xl"></div>
+        {/* Éléments décoratifs Business - Adaptés mobile */}
+        <div className="absolute top-2 right-2 md:top-4 md:right-4 w-16 h-16 md:w-32 md:h-32 bg-white/5 rounded-full blur-xl md:blur-2xl"></div>
+        <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4 w-12 h-12 md:w-24 md:h-24 bg-[var(--color-success-green)]/10 rounded-full blur-lg md:blur-xl"></div>
 
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="p-4 bg-white/15 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
-              <TrendingUp className="w-10 h-10 text-white drop-shadow-sm" />
-            </div>
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-4xl font-bold text-white drop-shadow-lg">
-                  Tableau de bord
-                </h1>
-                <div className="px-3 py-1 bg-[var(--color-success-green)]/20 text-[var(--color-success-green)] text-xs font-medium rounded-full border border-[var(--color-success-green)]/30 backdrop-blur-sm">
-                  ✨ Business Pro
+        <div className="relative">
+          {/* Layout mobile : vertical, desktop : horizontal */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+            <div className="flex items-center gap-3 md:gap-6">
+              <div className="p-2 md:p-4 bg-white/15 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-lg border border-white/20">
+                <TrendingUp className="w-6 h-6 md:w-10 md:h-10 text-white drop-shadow-sm" />
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
+                  <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg">
+                    Tableau de bord
+                  </h1>
+                  <div className="px-2 py-1 md:px-3 md:py-1 bg-[var(--color-success-green)]/20 text-[var(--color-success-green)] text-xs font-medium rounded-full border border-[var(--color-success-green)]/30 backdrop-blur-sm w-fit">
+                    ✨ Business Pro
+                  </div>
+                </div>
+                <p className="text-white/90 text-sm md:text-base font-medium mb-2 md:mb-3">
+                  Vue d'ensemble de votre entreprise en temps réel
+                </p>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3">
+                  <div className="text-xs md:text-sm text-white/90 bg-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
+                    👋 Bienvenue, {session?.user?.name}
+                  </div>
+                  <div className="text-xs text-white/70 bg-white/5 px-2 py-1 md:px-3 md:py-2 rounded-md md:rounded-lg backdrop-blur-sm">
+                    📊 Données en temps réel
+                  </div>
                 </div>
               </div>
-              <p className="text-white/90 text-base font-medium mb-3">
-                Vue d'ensemble de votre entreprise en temps réel
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="text-sm text-white/90 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/20 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
-                  👋 Bienvenue, {session?.user?.name}
-                </div>
-                <div className="text-xs text-white/70 bg-white/5 px-3 py-2 rounded-lg backdrop-blur-sm">
-                  📊 Données en temps réel
-                </div>
-              </div>
             </div>
-          </div>
 
-          {/* Indicateur de statut */}
-          <div className="hidden lg:flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2 text-white/90 text-sm">
-              <div className="w-3 h-3 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
-              Système opérationnel
-            </div>
-            <div className="text-xs text-white/70">
-              Dernière mise à jour : {new Date().toLocaleTimeString('fr-FR')}
+            {/* Indicateur de statut - Caché sur mobile, visible sur desktop */}
+            <div className="hidden lg:flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2 text-white/90 text-sm">
+                <div className="w-3 h-3 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
+                Système opérationnel
+              </div>
+              <div className="text-xs text-white/70">
+                Dernière mise à jour : {new Date().toLocaleTimeString('fr-FR')}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid Business Moderne */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Stats Grid Business Moderne - Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon
 
@@ -219,16 +222,16 @@ export default async function DashboardPage() {
               <div className="absolute bottom-0 left-0 w-16 h-16 opacity-5 rounded-full -ml-8 -mb-8"
                    style={{ backgroundColor: colorScheme.accent }}></div>
 
-              <CardHeader className="relative flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-sm font-semibold text-[hsl(var(--foreground))] group-hover:text-[hsl(var(--foreground))]/80 transition-colors">
+              <CardHeader className="relative flex flex-row items-center justify-between pb-2 md:pb-3">
+                <CardTitle className="text-xs md:text-sm font-semibold text-[hsl(var(--foreground))] group-hover:text-[hsl(var(--foreground))]/80 transition-colors">
                   {stat.title}
                 </CardTitle>
-                <div className={`p-3 ${colorScheme.icon} rounded-xl shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110`}>
-                  <Icon className="w-5 h-5 text-white" />
+                <div className={`p-2 md:p-3 ${colorScheme.icon} rounded-lg md:rounded-xl shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110`}>
+                  <Icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </div>
               </CardHeader>
-              <CardContent className="relative">
-                <div className={`text-4xl font-bold ${colorScheme.text} mb-1 group-hover:scale-105 transition-transform duration-300`}>
+              <CardContent className="relative pt-2 md:pt-4">
+                <div className={`text-2xl md:text-4xl font-bold ${colorScheme.text} mb-1 group-hover:scale-105 transition-transform duration-300`}>
                   {stat.value}
                 </div>
                 <div className="w-full h-1 bg-[hsl(var(--muted))] rounded-full overflow-hidden">
@@ -272,29 +275,29 @@ export default async function DashboardPage() {
         </CardHeader>
         <CardContent className="pt-6">
           {recentSales.length > 0 && (
-            <div className="mb-6 p-4 bg-[var(--color-sales)]/5 border border-[var(--color-sales)]/10 rounded-xl">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mb-4 md:mb-6 p-3 md:p-4 bg-[var(--color-sales)]/5 border border-[var(--color-sales)]/10 rounded-lg md:rounded-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--color-sales)]">
+                  <div className="text-xl md:text-2xl font-bold text-[var(--color-sales)]">
                     {recentSales.length}
                   </div>
-                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                  <div className="text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
                     Ventes récentes
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--color-success-green)]">
+                  <div className="text-xl md:text-2xl font-bold text-[var(--color-success-green)]">
                     {recentSales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0).toFixed(0)} DH
                   </div>
-                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                  <div className="text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
                     Chiffre d'affaires
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-[var(--color-business-blue)]">
+                  <div className="text-xl md:text-2xl font-bold text-[var(--color-business-blue)]">
                     {(recentSales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0) / recentSales.length).toFixed(0)} DH
                   </div>
-                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                  <div className="text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
                     Panier moyen
                   </div>
                 </div>
@@ -324,7 +327,7 @@ export default async function DashboardPage() {
               {recentSales.map((sale, index) => (
                 <div
                   key={sale.id}
-                  className="group relative overflow-hidden flex items-center justify-between p-5 bg-[hsl(var(--card))] rounded-xl border border-[hsl(var(--border))] hover:border-[var(--color-sales)]/30 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                  className="group relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-5 bg-[hsl(var(--card))] rounded-lg md:rounded-xl border border-[hsl(var(--border))] hover:border-[var(--color-sales)]/30 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 gap-3 sm:gap-0"
                 >
                   {/* Barre latérale colorée */}
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-sales)] transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 rounded-r"></div>
@@ -332,46 +335,47 @@ export default async function DashboardPage() {
                   {/* Effet de fond subtil */}
                   <div className="absolute inset-0 bg-[var(--color-sales)]/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
 
-                  <div className="relative flex items-center gap-4 flex-1">
+                  <div className="relative flex items-center gap-3 md:gap-4 flex-1">
                     {/* Numéro de vente stylisé */}
-                    <div className="w-12 h-12 rounded-xl bg-[var(--color-sales)]/10 border border-[var(--color-sales)]/20 flex items-center justify-center text-[var(--color-sales)] font-bold shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-110">
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-[var(--color-sales)]/10 border border-[var(--color-sales)]/20 flex items-center justify-center text-[var(--color-sales)] font-bold shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-110 text-sm md:text-base">
                       #{index + 1}
                     </div>
 
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       {/* Nom du client */}
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-semibold text-[hsl(var(--foreground))] group-hover:text-[var(--color-sales)] transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                        <p className="font-semibold text-sm md:text-base text-[hsl(var(--foreground))] group-hover:text-[var(--color-sales)] transition-colors truncate">
                           {sale.customer ? sale.customer.name : 'Client de passage'}
                         </p>
                         {!sale.customer && (
-                          <span className="px-2 py-0.5 bg-[var(--color-quotes)]/10 text-[var(--color-quotes)] text-xs font-medium rounded-full border border-[var(--color-quotes)]/20">
+                          <span className="px-2 py-0.5 bg-[var(--color-quotes)]/10 text-[var(--color-quotes)] text-xs font-medium rounded-full border border-[var(--color-quotes)]/20 w-fit">
                             Passage
                           </span>
                         )}
                       </div>
 
                       {/* Informations de la vente */}
-                      <div className="flex items-center gap-3 text-sm text-[hsl(var(--muted-foreground))]">
-                        <span className="font-mono text-xs bg-[hsl(var(--muted))] px-2 py-1 rounded border border-[hsl(var(--border))] group-hover:bg-[var(--color-sales)]/10 group-hover:border-[var(--color-sales)]/20 transition-all">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
+                        <span className="font-mono text-xs bg-[hsl(var(--muted))] px-2 py-1 rounded border border-[hsl(var(--border))] group-hover:bg-[var(--color-sales)]/10 group-hover:border-[var(--color-sales)]/20 transition-all w-fit">
                           {sale.saleNumber}
                         </span>
-                        <span className="w-1 h-1 bg-[hsl(var(--muted-foreground))] rounded-full"></span>
-                        <span className="flex items-center gap-1">
-                          <span className="w-2 h-2 bg-[var(--color-customers)] rounded-full"></span>
-                          {sale.seller.name}
-                        </span>
-                        <span className="w-1 h-1 bg-[hsl(var(--muted-foreground))] rounded-full"></span>
-                        <span className="flex items-center gap-1">
-                          📦 {sale.items?.length || 0} article{(sale.items?.length || 0) > 1 ? 's' : ''}
-                        </span>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 bg-[var(--color-customers)] rounded-full"></span>
+                            <span className="truncate">{sale.seller.name}</span>
+                          </span>
+                          <span className="hidden sm:inline w-1 h-1 bg-[hsl(var(--muted-foreground))] rounded-full"></span>
+                          <span className="flex items-center gap-1">
+                            📦 {sale.items?.length || 0} article{(sale.items?.length || 0) > 1 ? 's' : ''}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Montant et date */}
-                  <div className="relative text-right">
-                    <p className="text-2xl font-bold text-[var(--color-sales)] group-hover:scale-105 transition-transform duration-300">
+                  <div className="relative text-right sm:text-right">
+                    <p className="text-xl md:text-2xl font-bold text-[var(--color-sales)] group-hover:scale-105 transition-transform duration-300">
                       {Number(sale.totalAmount).toFixed(2)} DH
                     </p>
                     <div className="flex items-center gap-2 mt-1 justify-end">
@@ -393,27 +397,27 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Section Bénéfices Business Moderne */}
-      <div className="relative overflow-hidden rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-success-green)]/5 rounded-full -mr-32 -mt-32"></div>
-        <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--color-business-blue)]/5 rounded-full -ml-16 -mt-16"></div>
-        <div className="relative p-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-[var(--color-success-green)] to-[var(--color-business-blue)] rounded-2xl shadow-lg">
-                <TrendingUp className="w-8 h-8 text-white drop-shadow-sm" />
+      {/* Section Bénéfices Business Moderne - Responsive */}
+      <div className="relative overflow-hidden rounded-xl md:rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-xl">
+        <div className="absolute top-0 right-0 w-32 h-32 md:w-64 md:h-64 bg-[var(--color-success-green)]/5 rounded-full -mr-16 -mt-16 md:-mr-32 md:-mt-32"></div>
+        <div className="absolute top-0 left-0 w-16 h-16 md:w-32 md:h-32 bg-[var(--color-business-blue)]/5 rounded-full -ml-8 -mt-8 md:-ml-16 md:-mt-16"></div>
+        <div className="relative p-4 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-0 mb-6 md:mb-8">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="p-3 md:p-4 bg-gradient-to-br from-[var(--color-success-green)] to-[var(--color-business-blue)] rounded-xl md:rounded-2xl shadow-lg">
+                <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-white drop-shadow-sm" />
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-[hsl(var(--foreground))]">
+                <h2 className="text-xl md:text-3xl font-bold text-[hsl(var(--foreground))]">
                   Analyse des Bénéfices
                 </h2>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                <p className="text-xs md:text-sm text-[hsl(var(--muted-foreground))] mt-1">
                   Suivi de la rentabilité en temps réel avec indicateurs avancés
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="px-3 py-1 bg-[var(--color-success-green)]/10 text-[var(--color-success-green)] text-xs font-medium rounded-full border border-[var(--color-success-green)]/20">
+              <div className="px-2 py-1 md:px-3 md:py-1 bg-[var(--color-success-green)]/10 text-[var(--color-success-green)] text-xs font-medium rounded-full border border-[var(--color-success-green)]/20">
                 ✨ Analytics Pro
               </div>
               <div className="w-3 h-3 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>
