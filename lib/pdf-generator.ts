@@ -83,43 +83,24 @@ async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: nu
   return false
 }
 
-// Fonction pour nettoyer et encoder correctement le texte
+// Fonction pour nettoyer le texte (GARDE LES ACCENTS, supprime uniquement les émojis)
 function cleanText(text: string): string {
   if (!text) return ''
 
-  // Remplacer les caractères problématiques
+  // Supprimer uniquement les émojis et caractères problématiques
+  // GARDER les accents français (é, è, à, ç, etc.)
   return text
-    .replace(/[^\x00-\x7F]/g, (char) => {
-      // Mapping des caractères spéciaux courants
-      const charMap: { [key: string]: string } = {
-        'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a',
-        'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
-        'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
-        'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
-        'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
-        'ç': 'c', 'ñ': 'n', 'œ': 'oe', 'æ': 'ae',
-        'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A', 'Å': 'A',
-        'È': 'E', 'É': 'E', 'Ê': 'E', 'Ë': 'E',
-        'Ì': 'I', 'Í': 'I', 'Î': 'I', 'Ï': 'I',
-        'Ò': 'O', 'Ó': 'O', 'Ô': 'O', 'Õ': 'O', 'Ö': 'O',
-        'Ù': 'U', 'Ú': 'U', 'Û': 'U', 'Ü': 'U',
-        'Ç': 'C', 'Ñ': 'N', 'Œ': 'OE', 'Æ': 'AE',
-        // Caractères arabes courants - translittération
-        'ا': 'a', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h',
-        'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z', 'س': 's',
-        'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a',
-        'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm',
-        'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'a', 'ء': 'a',
-        'أ': 'a', 'إ': 'i', 'آ': 'aa', 'ؤ': 'ou', 'ئ': 'i',
-        // Autres caractères spéciaux
-        '€': 'EUR', '£': 'GBP', '$': 'USD',
-        '°': 'deg', '©': '(c)', '®': '(r)', '™': '(tm)',
-        '"': '"', '"': '"', "'": "'", "'": "'",
-        '–': '-', '—': '-', '…': '...'
-      }
-
-      return charMap[char] || char
-    })
+    // Supprimer les émojis
+    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Émojis divers
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Symboles
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+    // Remplacer les guillemets typographiques
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    // Remplacer les tirets longs
+    .replace(/[–—]/g, '-')
+    // Remplacer les points de suspension
+    .replace(/…/g, '...')
     .trim()
 }
 
@@ -732,15 +713,15 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
     contactY += 4
   }
   if (company.phone) {
-    doc.text(cleanText(`📞 ${company.phone}`), 45, contactY)
+    doc.text(cleanText(`Tel: ${company.phone}`), 45, contactY)
     contactY += 4
   }
   if (company.email) {
-    doc.text(cleanText(`✉ ${company.email}`), 45, contactY)
+    doc.text(cleanText(`Email: ${company.email}`), 45, contactY)
     contactY += 4
   }
   if (company.website) {
-    doc.text(cleanText(`🌐 ${company.website}`), 45, contactY)
+    doc.text(cleanText(`Web: ${company.website}`), 45, contactY)
   }
 
   // === TITRE DU DOCUMENT (Côté droit) ===
@@ -817,19 +798,19 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
   if (data.customer.company) {
     yPos += 5
-    doc.text(cleanText(`🏢 ${data.customer.company}`), 22, yPos)
+    doc.text(cleanText(data.customer.company), 22, yPos)
   }
   if (data.customer.phone) {
     yPos += 5
-    doc.text(cleanText(`📞 ${data.customer.phone}`), 22, yPos)
+    doc.text(cleanText(`Tel: ${data.customer.phone}`), 22, yPos)
   }
   if (data.customer.email) {
     yPos += 5
-    doc.text(cleanText(`✉ ${data.customer.email}`), 22, yPos)
+    doc.text(cleanText(`Email: ${data.customer.email}`), 22, yPos)
   }
   if (data.customer.address) {
     yPos += 5
-    const addressLines = doc.splitTextToSize(cleanText(`📍 ${data.customer.address}`), 75)
+    const addressLines = doc.splitTextToSize(cleanText(data.customer.address), 75)
     doc.text(addressLines, 22, yPos)
   }
 
@@ -864,21 +845,16 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
     const validityText = designSettings?.validityPeriodText || 'Ce devis est valable 30 jours'
     const validityLines = doc.splitTextToSize(cleanText(validityText), 75)
     doc.text(validityLines, 117, quoteInfoY + 15)
-
-    // Icône de calendrier (décoratif)
-    doc.setFontSize(20)
-    doc.setTextColor(...accentColor)
-    doc.text('📅', 117, quoteInfoY + 30)
   }
 
   // === TABLEAU DES ARTICLES PROFESSIONNEL ===
   const tableStartY = 105
 
-  // Titre de la section avec icône
+  // Titre de la section
   doc.setFontSize(11)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...primaryColor)
-  doc.text(cleanText('📋 DÉTAIL DES PRESTATIONS'), 15, tableStartY - 5)
+  doc.text(cleanText('DÉTAIL DES PRESTATIONS'), 15, tableStartY - 5)
 
   const tableData = data.items.map((item) => [
     cleanText(item.sku || '-'),
@@ -985,11 +961,11 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   doc.setLineWidth(0.5)
   doc.roundedRect(15, amountInWordsY - 5, 180, 18, 2, 2, 'FD')
 
-  // Icône et titre
+  // Titre
   doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...primaryColor)
-  doc.text(cleanText('💰 MONTANT EN LETTRES'), 20, amountInWordsY + 1)
+  doc.text(cleanText('MONTANT EN LETTRES'), 20, amountInWordsY + 1)
 
   // Montant en lettres
   doc.setTextColor(...textColor)
@@ -1025,7 +1001,7 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
     doc.setFontSize(9)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(...accentColor)
-    doc.text(cleanText('📝 NOTES'), 20, currentY + 2)
+    doc.text(cleanText('NOTES'), 20, currentY + 2)
 
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...textColor)
@@ -1051,11 +1027,11 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
       doc.setFillColor(...sectionColor)
       doc.rect(15, currentY - 3, 4, 18, 'F')
 
-      // Icône et titre
+      // Titre
       doc.setFontSize(9)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...sectionColor)
-      doc.text(cleanText('⏰ VALIDITÉ DU DEVIS'), 23, currentY + 3)
+      doc.text(cleanText('VALIDITÉ DU DEVIS'), 23, currentY + 3)
 
       // Texte de validité
       doc.setFont('helvetica', 'normal')
@@ -1080,11 +1056,11 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
       doc.setFillColor(...accentColor)
       doc.rect(15, currentY - 3, 4, 18, 'F')
 
-      // Icône et titre
+      // Titre
       doc.setFontSize(9)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...accentColor)
-      doc.text(cleanText('📋 CONDITIONS GÉNÉRALES'), 23, currentY + 3)
+      doc.text(cleanText('CONDITIONS GÉNÉRALES'), 23, currentY + 3)
 
       // Texte des conditions
       doc.setFont('helvetica', 'normal')
@@ -1109,7 +1085,7 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(...primaryColor)
-  doc.text(cleanText('✨ Merci pour votre confiance !'), 105, footerY, { align: 'center' })
+  doc.text(cleanText('Merci pour votre confiance !'), 105, footerY, { align: 'center' })
 
   // Informations de contact
   doc.setFontSize(7)
@@ -1117,9 +1093,9 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   doc.setTextColor(100, 100, 100)
   const footerParts = []
   if (company.name) footerParts.push(company.name)
-  if (company.phone) footerParts.push(`📞 ${company.phone}`)
-  if (company.email) footerParts.push(`✉ ${company.email}`)
-  if (company.website) footerParts.push(`🌐 ${company.website}`)
+  if (company.phone) footerParts.push(`Tel: ${company.phone}`)
+  if (company.email) footerParts.push(`Email: ${company.email}`)
+  if (company.website) footerParts.push(company.website)
 
   const footerInfo = footerParts.join(' • ')
   doc.text(cleanText(footerInfo), 105, footerY + 5, { align: 'center' })
