@@ -1128,7 +1128,7 @@ export function openPDFInNewTab(doc: jsPDF) {
   window.open(pdfUrl, '_blank')
 }
 
-// === FONCTION POUR GÉNÉRER UN DEVIS SIMPLE (comme l'aperçu HTML) ===
+// === FONCTION POUR GÉNÉRER UN DEVIS PROFESSIONNEL (design moderne) ===
 
 // Helper pour créer une couleur transparente (mélange avec du blanc)
 function getTransparentColor(color: [number, number, number], opacity: number): [number, number, number] {
@@ -1145,226 +1145,292 @@ function generateSimpleQuotePDF(
   designSettings: DesignSettings | undefined,
   colors: any
 ): jsPDF {
-  const { primaryColor, secondaryColor, accentColor, textColor, headerTextColor, tableHeaderColor, sectionColor } = colors
+  const { primaryColor, secondaryColor, accentColor, textColor } = colors
 
-  // === EN-TÊTE SIMPLE ===
-  const headerStyle = designSettings?.headerStyle || 'gradient'
+  const pageWidth = doc.internal.pageSize.width
+  const pageHeight = doc.internal.pageSize.height
+  const margin = 15
 
-  if (headerStyle === 'gradient') {
-    // Dégradé horizontal simple
-    const steps = 20
-    const stepWidth = 210 / steps
+  // === EN-TÊTE ===
+  let yPos = 20
 
-    for (let i = 0; i < steps; i++) {
-      const ratio = i / (steps - 1)
-      const r = Math.round(primaryColor[0] + (secondaryColor[0] - primaryColor[0]) * ratio)
-      const g = Math.round(primaryColor[1] + (secondaryColor[1] - primaryColor[1]) * ratio)
-      const b = Math.round(primaryColor[2] + (secondaryColor[2] - primaryColor[2]) * ratio)
-
-      doc.setFillColor(r, g, b)
-      doc.rect(i * stepWidth, 0, stepWidth + 1, 40, 'F')
+  // Logo (cercle bleu avec initiale)
+  if (company.logo) {
+    try {
+      doc.addImage(company.logo, 'PNG', margin, yPos - 5, 15, 15)
+    } catch (error) {
+      // Si pas de logo, dessiner un cercle avec initiale
+      doc.setFillColor(...primaryColor)
+      doc.circle(margin + 7.5, yPos + 2.5, 7.5, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      const initial = company.name ? company.name.charAt(0).toUpperCase() : 'D'
+      doc.text(initial, margin + 7.5, yPos + 4.5, { align: 'center' })
     }
-  } else if (headerStyle === 'solid') {
-    doc.setFillColor(...primaryColor)
-    doc.rect(0, 0, 210, 40, 'F')
   } else {
-    // Minimal - fond blanc
-    doc.setFillColor(255, 255, 255)
-    doc.rect(0, 0, 210, 40, 'F')
+    // Cercle bleu avec initiale
+    doc.setFillColor(...primaryColor)
+    doc.circle(margin + 7.5, yPos + 2.5, 7.5, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    const initial = company.name ? company.name.charAt(0).toUpperCase() : 'D'
+    doc.text(initial, margin + 7.5, yPos + 4.5, { align: 'center' })
   }
 
-  // Logo et nom de l'entreprise
-  doc.setTextColor(...(headerStyle === 'minimal' ? primaryColor : headerTextColor))
-  doc.setFontSize(20)
-  doc.setFont('helvetica', 'bold')
-  doc.text(cleanText(company.name), 20, 20)
-
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  if (company.address) doc.text(cleanText(company.address), 20, 27)
-  if (company.phone) doc.text(cleanText(`Tel: ${company.phone}`), 20, 32)
-  if (company.email) doc.text(cleanText(`Email: ${company.email}`), 20, 37)
-
-  // === INFORMATIONS DU DEVIS (2 colonnes) ===
-  const infoY = 55
-
-  // Colonne gauche - DEVIS
+  // Nom de l'entreprise en bleu
+  doc.setTextColor(...primaryColor)
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
-  doc.setTextColor(...sectionColor)
-  doc.text(cleanText('DEVIS'), 20, infoY)
+  doc.text(cleanText(company.name || 'Société de test'), margin + 20, yPos)
 
-  doc.setFontSize(9)
+  // Informations entreprise en gris
+  doc.setTextColor(100, 100, 100)
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
-  doc.setTextColor(...textColor)
-  doc.text(cleanText(`Numéro: ${data.documentNumber}`), 20, infoY + 8)
-  doc.text(cleanText(`Date: ${data.date.toLocaleDateString('fr-FR')}`), 20, infoY + 14)
+  yPos += 5
+  if (company.address) {
+    const addressLines = company.address.split('\n')
+    doc.text(cleanText(addressLines[0] || ''), margin + 20, yPos)
+    yPos += 3
+  }
+  if (company.ice) {
+    doc.text(cleanText(`ICE: ${company.ice}`), margin + 20, yPos)
+    yPos += 3
+  }
+  if (company.email) {
+    doc.text(cleanText(`Email: ${company.email}`), margin + 20, yPos)
+  }
 
-  // Colonne droite - CLIENT
-  doc.setFontSize(14)
+  // "DEVIS" en gros à droite
+  doc.setTextColor(...primaryColor)
+  doc.setFontSize(24)
   doc.setFont('helvetica', 'bold')
-  doc.setTextColor(...sectionColor)
-  doc.text(cleanText('Client'), 110, infoY)
+  doc.text('DEVIS', pageWidth - margin, 20, { align: 'right' })
 
+  // Numéro de devis encadré
+  const quoteNumber = data.invoiceNumber || 'DEV-20251007-0001'
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  const quoteNumWidth = doc.getTextWidth(quoteNumber) + 8
+  doc.setDrawColor(...primaryColor)
+  doc.setLineWidth(0.5)
+  doc.rect(pageWidth - margin - quoteNumWidth, 28, quoteNumWidth, 8)
+  doc.text(quoteNumber, pageWidth - margin - 4, 33, { align: 'right' })
+
+  // === LIGNE DE SÉPARATION BLEUE ===
+  yPos = 45
+  doc.setDrawColor(...primaryColor)
+  doc.setLineWidth(1)
+  doc.line(margin, yPos, pageWidth - margin, yPos)
+
+  // === DEUX COLONNES (Client et Informations) ===
+  yPos += 8
+  const colWidth = (pageWidth - 2 * margin - 5) / 2
+
+  // Fond bleu clair pour les deux colonnes
+  const lightBlue = getTransparentColor(primaryColor, 0.1)
+  doc.setFillColor(...lightBlue)
+  doc.rect(margin, yPos - 3, colWidth, 25, 'F')
+  doc.rect(margin + colWidth + 5, yPos - 3, colWidth, 25, 'F')
+
+  // Colonne Client
+  doc.setTextColor(...primaryColor)
   doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
+  doc.text('Client:', margin + 3, yPos)
+
   doc.setTextColor(...textColor)
-  doc.text(cleanText(data.customer.name), 110, infoY + 8)
-
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
-  let clientY = infoY + 14
-  if (data.customer.address) {
-    doc.text(cleanText(data.customer.address), 110, clientY)
-    clientY += 6
-  }
-  if (data.customer.phone) {
-    doc.text(cleanText(`Tel: ${data.customer.phone}`), 110, clientY)
-    clientY += 6
-  }
-  if (data.customer.email) {
-    doc.text(cleanText(`Email: ${data.customer.email}`), 110, clientY)
-  }
+  yPos += 5
+  doc.text(cleanText(data.customer.name || 'Ahmed'), margin + 3, yPos)
 
-  // === TABLEAU DES ARTICLES (simple, 4 colonnes) ===
-  const tableStartY = 95
+  // Colonne Informations
+  let infoY = yPos - 5
+  doc.setTextColor(...primaryColor)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Informations:', margin + colWidth + 8, infoY)
 
+  doc.setTextColor(...textColor)
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  infoY += 5
+
+  const quoteDate = data.date ? new Date(data.date).toLocaleDateString('fr-FR') : '07/10/2025'
+  doc.text(`Date: ${quoteDate}`, margin + colWidth + 8, infoY)
+  infoY += 4
+
+  const validityDate = data.dueDate ? new Date(data.dueDate).toLocaleDateString('fr-FR') : '06/11/2025'
+  doc.text(cleanText(`Validité: ${validityDate}`), margin + colWidth + 8, infoY)
+  infoY += 4
+
+  doc.text(cleanText(`Statut: ${data.status || 'En cours'}`), margin + colWidth + 8, infoY)
+
+  // === TABLEAU DES ARTICLES ===
+  yPos = 85
+
+  // Tableau avec 6 colonnes comme l'image
   autoTable(doc, {
-    startY: tableStartY,
+    startY: yPos,
     head: [[
-      cleanText('Description'),
+      cleanText('Désignation'),
       cleanText('Qté'),
-      cleanText('Prix unit.'),
-      cleanText('Total')
+      cleanText('Prix Unit.'),
+      cleanText('Total'),
+      cleanText('TVA (20%)'),
+      cleanText('Montant TTC')
     ]],
-    body: data.items.map((item) => [
-      cleanText(item.name),
-      item.quantity.toString(),
-      `${item.unitPrice.toFixed(2)} DH`,
-      `${item.total.toFixed(2)} DH`
-    ]),
+    body: data.items.map((item) => {
+      const total = item.total || (item.quantity * item.unitPrice)
+      const tva = total * 0.20
+      const ttc = total + tva
+      return [
+        cleanText(item.name || item.productName || ''),
+        item.quantity.toString(),
+        `${item.unitPrice.toFixed(2)} MAD`,
+        `${total.toFixed(2)} MAD`,
+        '-',
+        `${total.toFixed(2)} MAD`
+      ]
+    }),
     theme: 'grid',
     headStyles: {
-      fillColor: tableHeaderColor,
-      textColor: [255, 255, 255],
+      fillColor: [255, 255, 255],
+      textColor: textColor,
       fontStyle: 'bold',
-      fontSize: 10,
+      fontSize: 8,
       halign: 'center',
+      lineWidth: 0.5,
+      lineColor: [200, 200, 200]
     },
     bodyStyles: {
-      fontSize: 9,
+      fontSize: 8,
       textColor: textColor,
+      lineWidth: 0.5,
+      lineColor: [200, 200, 200]
     },
     columnStyles: {
-      0: { cellWidth: 100, halign: 'left' },
-      1: { cellWidth: 20, halign: 'center' },
-      2: { cellWidth: 35, halign: 'right' },
-      3: { cellWidth: 35, halign: 'right', fontStyle: 'bold' },
+      0: { cellWidth: 60, halign: 'left' },
+      1: { cellWidth: 15, halign: 'center' },
+      2: { cellWidth: 30, halign: 'right' },
+      3: { cellWidth: 30, halign: 'right' },
+      4: { cellWidth: 25, halign: 'center' },
+      5: { cellWidth: 30, halign: 'right', fontStyle: 'bold' }
     },
-    margin: { left: 20, right: 20 }
+    margin: { left: margin, right: margin }
   })
 
-  // === TOTAUX (alignés à droite) ===
-  const finalY = (doc as any).lastAutoTable.finalY || tableStartY
-  const totalsY = finalY + 10
-  const totalsX = 155
+  // === TOTAUX (encadré vert à droite) ===
+  const finalY = (doc as any).lastAutoTable.finalY || yPos
+  yPos = finalY + 10
 
+  // Encadré vert pour les totaux
+  const totalBoxX = pageWidth - margin - 60
+  const totalBoxY = yPos
+  const totalBoxWidth = 60
+  const totalBoxHeight = 20
+
+  // Fond vert clair
+  const lightGreen = getTransparentColor(secondaryColor, 0.15)
+  doc.setFillColor(...lightGreen)
+  doc.setDrawColor(...secondaryColor)
+  doc.setLineWidth(1)
+  doc.rect(totalBoxX, totalBoxY, totalBoxWidth, totalBoxHeight, 'FD')
+
+  // Sous-total
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...textColor)
+  doc.text('Sous-total', totalBoxX + 3, totalBoxY + 6)
+  doc.text(`${data.totalAmount.toFixed(2)} MAD`, totalBoxX + totalBoxWidth - 3, totalBoxY + 6, { align: 'right' })
 
-  // Sous-total
-  doc.text(cleanText('Sous-total:'), totalsX, totalsY)
-  doc.text(`${data.totalAmount.toFixed(2)} DH`, 190, totalsY, { align: 'right' })
-
-  // TVA (20%)
-  const taxAmount = data.totalAmount * 0.20
-  doc.text(cleanText('TVA (20%):'), totalsX, totalsY + 6)
-  doc.text(`${taxAmount.toFixed(2)} DH`, 190, totalsY + 6, { align: 'right' })
-
-  // Total (en gras avec fond coloré transparent)
-  const transparentAccent = getTransparentColor(accentColor, 0.1)
-  doc.setFillColor(...transparentAccent)
-  doc.rect(totalsX - 5, totalsY + 10, 40, 10, 'F')
-
+  // TOTAL en gras
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(...accentColor)
-  doc.text(cleanText('Total:'), totalsX, totalsY + 17)
-  doc.text(`${(data.totalAmount * 1.20).toFixed(2)} DH`, 190, totalsY + 17, { align: 'right' })
+  doc.setFontSize(10)
+  doc.setTextColor(...secondaryColor)
+  doc.text('TOTAL', totalBoxX + 3, totalBoxY + 14)
+  doc.text(`${data.totalAmount.toFixed(2)} MAD`, totalBoxX + totalBoxWidth - 3, totalBoxY + 14, { align: 'right' })
 
-  // === VALIDITÉ DU DEVIS ===
-  let currentY = totalsY + 30
-
-  if (designSettings?.showValidityPeriod && designSettings?.validityPeriodText) {
-    // Encadré avec bordure gauche colorée (comme l'aperçu)
-    const transparentPrimary = getTransparentColor(primaryColor, 0.05)
-    doc.setFillColor(...transparentPrimary)
-    doc.rect(20, currentY - 3, 170, 15, 'F')
-
-    // Bordure gauche
-    doc.setFillColor(...primaryColor)
-    doc.rect(20, currentY - 3, 4, 15, 'F')
-
-    // Titre
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...primaryColor)
-    doc.text(cleanText('Validité du devis'), 28, currentY + 2)
-
-    // Texte
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.setTextColor(...textColor)
-    const validityLines = doc.splitTextToSize(cleanText(designSettings.validityPeriodText), 155)
-    doc.text(validityLines, 28, currentY + 7)
-
-    currentY += 20
-  }
-
-  // === CONDITIONS GÉNÉRALES ===
-  if (designSettings?.showTermsAndConditions && designSettings?.termsAndConditionsText) {
-    // Encadré avec bordure gauche colorée
-    const transparentSecondary = getTransparentColor(secondaryColor, 0.05)
-    doc.setFillColor(...transparentSecondary)
-    doc.rect(20, currentY - 3, 170, 15, 'F')
-
-    // Bordure gauche
-    doc.setFillColor(...secondaryColor)
-    doc.rect(20, currentY - 3, 4, 15, 'F')
-
-    // Titre
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...secondaryColor)
-    doc.text(cleanText('Conditions générales'), 28, currentY + 2)
-
-    // Texte
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.setTextColor(...textColor)
-    const termsLines = doc.splitTextToSize(cleanText(designSettings.termsAndConditionsText), 155)
-    doc.text(termsLines, 28, currentY + 7)
-
-    currentY += 20
-  }
-
-  // === PIED DE PAGE ===
-  const pageHeight = doc.internal.pageSize.height
-  const footerY = pageHeight - 15
+  // === CONDITIONS DE VENTE ===
+  yPos = totalBoxY + totalBoxHeight + 10
 
   doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...primaryColor)
+  doc.text('Conditions de vente:', margin, yPos)
+
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...textColor)
+  yPos += 5
+
+  const conditions = designSettings?.termsAndConditionsText ||
+    '• Devis valable 30 jours • Prix exprimés en MAD TTC • Règlement à la commande • Livraison sous réserve de disponibilité'
+  const conditionsLines = doc.splitTextToSize(cleanText(conditions), pageWidth - 2 * margin)
+  doc.text(conditionsLines, margin, yPos)
+
+  yPos += conditionsLines.length * 4 + 5
+
+  // === LIGNE DE SÉPARATION ===
+  doc.setDrawColor(...primaryColor)
+  doc.setLineWidth(1)
+  doc.line(margin, yPos, pageWidth - margin, yPos)
+
+  // === BANDEAU JAUNE - VALIDITÉ ===
+  yPos += 8
+
+  const validityDate = data.dueDate ? new Date(data.dueDate).toLocaleDateString('fr-FR') : '06/11/2025'
+  const validityText = `Ce devis est valable jusqu'au ${validityDate}`
+
+  // Fond jaune
+  doc.setFillColor(255, 243, 205) // Jaune clair
+  doc.setDrawColor(255, 193, 7) // Bordure jaune
+  doc.setLineWidth(0.5)
+  doc.rect(margin, yPos - 3, pageWidth - 2 * margin, 10, 'FD')
+
+  // Icône warning
+  doc.setTextColor(255, 152, 0) // Orange
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'bold')
+  doc.text('⚠', margin + 3, yPos + 3)
+
+  // Texte de validité
   doc.setTextColor(100, 100, 100)
-  doc.text(cleanText('Merci pour votre confiance !'), 105, footerY, { align: 'center' })
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.text(cleanText(validityText), margin + 10, yPos + 3)
+
+  // === SIGNATURES ===
+  yPos += 18
+
+  const signatureY = yPos
+  const signatureWidth = (pageWidth - 2 * margin - 10) / 2
+
+  // Signature du client
+  doc.setFontSize(8)
+  doc.setTextColor(100, 100, 100)
+  doc.text('Signature du client:', margin, signatureY)
+
+  // Ligne pour signature
+  doc.setDrawColor(200, 200, 200)
+  doc.setLineWidth(0.3)
+  doc.line(margin, signatureY + 15, margin + signatureWidth, signatureY + 15)
 
   doc.setFontSize(7)
-  const footerParts = []
-  if (company.name) footerParts.push(company.name)
-  if (company.phone) footerParts.push(`Tel: ${company.phone}`)
-  if (company.email) footerParts.push(`Email: ${company.email}`)
+  doc.text('Date: ___________', margin, signatureY + 20)
 
-  const footerInfo = footerParts.join(' • ')
-  doc.text(cleanText(footerInfo), 105, footerY + 5, { align: 'center' })
+  // Pour l'entreprise
+  doc.setFontSize(8)
+  doc.text('Pour l\'entreprise:', margin + signatureWidth + 10, signatureY)
+
+  // Ligne pour signature
+  doc.line(margin + signatureWidth + 10, signatureY + 15, pageWidth - margin, signatureY + 15)
+
+  doc.setFontSize(7)
+  doc.text('(signature et cachet)', margin + signatureWidth + 10, signatureY + 20)
 
   return doc
 }
