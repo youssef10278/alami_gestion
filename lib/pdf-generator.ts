@@ -1129,6 +1129,15 @@ export function openPDFInNewTab(doc: jsPDF) {
 }
 
 // === FONCTION POUR GÉNÉRER UN DEVIS SIMPLE (comme l'aperçu HTML) ===
+
+// Helper pour créer une couleur transparente (mélange avec du blanc)
+function getTransparentColor(color: [number, number, number], opacity: number): [number, number, number] {
+  const r = Math.round(color[0] + (255 - color[0]) * (1 - opacity))
+  const g = Math.round(color[1] + (255 - color[1]) * (1 - opacity))
+  const b = Math.round(color[2] + (255 - color[2]) * (1 - opacity))
+  return [r, g, b]
+}
+
 function generateSimpleQuotePDF(
   doc: jsPDF,
   data: InvoiceData,
@@ -1272,11 +1281,10 @@ function generateSimpleQuotePDF(
   doc.text(cleanText('TVA (20%):'), totalsX, totalsY + 6)
   doc.text(`${taxAmount.toFixed(2)} DH`, 190, totalsY + 6, { align: 'right' })
 
-  // Total (en gras avec fond coloré)
-  doc.setFillColor(...accentColor)
-  doc.setGlobalAlpha(0.1)
+  // Total (en gras avec fond coloré transparent)
+  const transparentAccent = getTransparentColor(accentColor, 0.1)
+  doc.setFillColor(...transparentAccent)
   doc.rect(totalsX - 5, totalsY + 10, 40, 10, 'F')
-  doc.setGlobalAlpha(1)
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
@@ -1289,10 +1297,9 @@ function generateSimpleQuotePDF(
 
   if (designSettings?.showValidityPeriod && designSettings?.validityPeriodText) {
     // Encadré avec bordure gauche colorée (comme l'aperçu)
-    doc.setFillColor(...primaryColor)
-    doc.setGlobalAlpha(0.05)
+    const transparentPrimary = getTransparentColor(primaryColor, 0.05)
+    doc.setFillColor(...transparentPrimary)
     doc.rect(20, currentY - 3, 170, 15, 'F')
-    doc.setGlobalAlpha(1)
 
     // Bordure gauche
     doc.setFillColor(...primaryColor)
@@ -1317,10 +1324,9 @@ function generateSimpleQuotePDF(
   // === CONDITIONS GÉNÉRALES ===
   if (designSettings?.showTermsAndConditions && designSettings?.termsAndConditionsText) {
     // Encadré avec bordure gauche colorée
-    doc.setFillColor(...secondaryColor)
-    doc.setGlobalAlpha(0.05)
+    const transparentSecondary = getTransparentColor(secondaryColor, 0.05)
+    doc.setFillColor(...transparentSecondary)
     doc.rect(20, currentY - 3, 170, 15, 'F')
-    doc.setGlobalAlpha(1)
 
     // Bordure gauche
     doc.setFillColor(...secondaryColor)
