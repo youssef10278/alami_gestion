@@ -141,12 +141,13 @@ export function CategoryCombobox({
                 {filteredCategories.map((category) => (
                   <CommandItem
                     key={category.id}
-                    value={category.id}
+                    value={category.name}
                     onSelect={() => {
-                      onValueChange(category.id === value ? '' : category.id)
+                      onValueChange(category.id)
                       setOpen(false)
                       setSearchValue('')
                     }}
+                    className="cursor-pointer"
                   >
                     <Check
                       className={cn(
