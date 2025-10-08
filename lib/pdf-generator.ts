@@ -638,6 +638,22 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   const darkGray = textColor
   const lightGray: [number, number, number] = [245, 245, 245]
 
+  // === DESIGN SIMPLIFIÉ POUR LES DEVIS (comme l'aperçu) ===
+  if (type === 'quote') {
+    return generateSimpleQuotePDF(doc, data, company, designSettings, {
+      primaryColor,
+      secondaryColor,
+      accentColor,
+      textColor,
+      headerTextColor,
+      sectionTextColor,
+      tableHeaderColor,
+      sectionColor,
+      darkGray,
+      lightGray
+    })
+  }
+
   // Nettoyer les données de l'entreprise
   company = {
     name: cleanText(company.name),
@@ -1110,5 +1126,240 @@ export function openPDFInNewTab(doc: jsPDF) {
   const pdfBlob = doc.output('blob')
   const pdfUrl = URL.createObjectURL(pdfBlob)
   window.open(pdfUrl, '_blank')
+}
+
+// === FONCTION POUR GÉNÉRER UN DEVIS SIMPLE (comme l'aperçu HTML) ===
+function generateSimpleQuotePDF(
+  doc: jsPDF,
+  data: InvoiceData,
+  company: CompanyInfo,
+  designSettings: DesignSettings | undefined,
+  colors: any
+): jsPDF {
+  const { primaryColor, secondaryColor, accentColor, textColor, headerTextColor, tableHeaderColor, sectionColor } = colors
+
+  // === EN-TÊTE SIMPLE ===
+  const headerStyle = designSettings?.headerStyle || 'gradient'
+
+  if (headerStyle === 'gradient') {
+    // Dégradé horizontal simple
+    const steps = 20
+    const stepWidth = 210 / steps
+
+    for (let i = 0; i < steps; i++) {
+      const ratio = i / (steps - 1)
+      const r = Math.round(primaryColor[0] + (secondaryColor[0] - primaryColor[0]) * ratio)
+      const g = Math.round(primaryColor[1] + (secondaryColor[1] - primaryColor[1]) * ratio)
+      const b = Math.round(primaryColor[2] + (secondaryColor[2] - primaryColor[2]) * ratio)
+
+      doc.setFillColor(r, g, b)
+      doc.rect(i * stepWidth, 0, stepWidth + 1, 40, 'F')
+    }
+  } else if (headerStyle === 'solid') {
+    doc.setFillColor(...primaryColor)
+    doc.rect(0, 0, 210, 40, 'F')
+  } else {
+    // Minimal - fond blanc
+    doc.setFillColor(255, 255, 255)
+    doc.rect(0, 0, 210, 40, 'F')
+  }
+
+  // Logo et nom de l'entreprise
+  doc.setTextColor(...(headerStyle === 'minimal' ? primaryColor : headerTextColor))
+  doc.setFontSize(20)
+  doc.setFont('helvetica', 'bold')
+  doc.text(cleanText(company.name), 20, 20)
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  if (company.address) doc.text(cleanText(company.address), 20, 27)
+  if (company.phone) doc.text(cleanText(`Tel: ${company.phone}`), 20, 32)
+  if (company.email) doc.text(cleanText(`Email: ${company.email}`), 20, 37)
+
+  // === INFORMATIONS DU DEVIS (2 colonnes) ===
+  const infoY = 55
+
+  // Colonne gauche - DEVIS
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...sectionColor)
+  doc.text(cleanText('DEVIS'), 20, infoY)
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...textColor)
+  doc.text(cleanText(`Numéro: ${data.documentNumber}`), 20, infoY + 8)
+  doc.text(cleanText(`Date: ${data.date.toLocaleDateString('fr-FR')}`), 20, infoY + 14)
+
+  // Colonne droite - CLIENT
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...sectionColor)
+  doc.text(cleanText('Client'), 110, infoY)
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...textColor)
+  doc.text(cleanText(data.customer.name), 110, infoY + 8)
+
+  doc.setFont('helvetica', 'normal')
+  let clientY = infoY + 14
+  if (data.customer.address) {
+    doc.text(cleanText(data.customer.address), 110, clientY)
+    clientY += 6
+  }
+  if (data.customer.phone) {
+    doc.text(cleanText(`Tel: ${data.customer.phone}`), 110, clientY)
+    clientY += 6
+  }
+  if (data.customer.email) {
+    doc.text(cleanText(`Email: ${data.customer.email}`), 110, clientY)
+  }
+
+  // === TABLEAU DES ARTICLES (simple, 4 colonnes) ===
+  const tableStartY = 95
+
+  autoTable(doc, {
+    startY: tableStartY,
+    head: [[
+      cleanText('Description'),
+      cleanText('Qté'),
+      cleanText('Prix unit.'),
+      cleanText('Total')
+    ]],
+    body: data.items.map((item) => [
+      cleanText(item.name),
+      item.quantity.toString(),
+      `${item.unitPrice.toFixed(2)} DH`,
+      `${item.total.toFixed(2)} DH`
+    ]),
+    theme: 'grid',
+    headStyles: {
+      fillColor: tableHeaderColor,
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 10,
+      halign: 'center',
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: textColor,
+    },
+    columnStyles: {
+      0: { cellWidth: 100, halign: 'left' },
+      1: { cellWidth: 20, halign: 'center' },
+      2: { cellWidth: 35, halign: 'right' },
+      3: { cellWidth: 35, halign: 'right', fontStyle: 'bold' },
+    },
+    margin: { left: 20, right: 20 }
+  })
+
+  // === TOTAUX (alignés à droite) ===
+  const finalY = (doc as any).lastAutoTable.finalY || tableStartY
+  const totalsY = finalY + 10
+  const totalsX = 155
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...textColor)
+
+  // Sous-total
+  doc.text(cleanText('Sous-total:'), totalsX, totalsY)
+  doc.text(`${data.totalAmount.toFixed(2)} DH`, 190, totalsY, { align: 'right' })
+
+  // TVA (20%)
+  const taxAmount = data.totalAmount * 0.20
+  doc.text(cleanText('TVA (20%):'), totalsX, totalsY + 6)
+  doc.text(`${taxAmount.toFixed(2)} DH`, 190, totalsY + 6, { align: 'right' })
+
+  // Total (en gras avec fond coloré)
+  doc.setFillColor(...accentColor)
+  doc.setGlobalAlpha(0.1)
+  doc.rect(totalsX - 5, totalsY + 10, 40, 10, 'F')
+  doc.setGlobalAlpha(1)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(11)
+  doc.setTextColor(...accentColor)
+  doc.text(cleanText('Total:'), totalsX, totalsY + 17)
+  doc.text(`${(data.totalAmount * 1.20).toFixed(2)} DH`, 190, totalsY + 17, { align: 'right' })
+
+  // === VALIDITÉ DU DEVIS ===
+  let currentY = totalsY + 30
+
+  if (designSettings?.showValidityPeriod && designSettings?.validityPeriodText) {
+    // Encadré avec bordure gauche colorée (comme l'aperçu)
+    doc.setFillColor(...primaryColor)
+    doc.setGlobalAlpha(0.05)
+    doc.rect(20, currentY - 3, 170, 15, 'F')
+    doc.setGlobalAlpha(1)
+
+    // Bordure gauche
+    doc.setFillColor(...primaryColor)
+    doc.rect(20, currentY - 3, 4, 15, 'F')
+
+    // Titre
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...primaryColor)
+    doc.text(cleanText('Validité du devis'), 28, currentY + 2)
+
+    // Texte
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(...textColor)
+    const validityLines = doc.splitTextToSize(cleanText(designSettings.validityPeriodText), 155)
+    doc.text(validityLines, 28, currentY + 7)
+
+    currentY += 20
+  }
+
+  // === CONDITIONS GÉNÉRALES ===
+  if (designSettings?.showTermsAndConditions && designSettings?.termsAndConditionsText) {
+    // Encadré avec bordure gauche colorée
+    doc.setFillColor(...secondaryColor)
+    doc.setGlobalAlpha(0.05)
+    doc.rect(20, currentY - 3, 170, 15, 'F')
+    doc.setGlobalAlpha(1)
+
+    // Bordure gauche
+    doc.setFillColor(...secondaryColor)
+    doc.rect(20, currentY - 3, 4, 15, 'F')
+
+    // Titre
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...secondaryColor)
+    doc.text(cleanText('Conditions générales'), 28, currentY + 2)
+
+    // Texte
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(...textColor)
+    const termsLines = doc.splitTextToSize(cleanText(designSettings.termsAndConditionsText), 155)
+    doc.text(termsLines, 28, currentY + 7)
+
+    currentY += 20
+  }
+
+  // === PIED DE PAGE ===
+  const pageHeight = doc.internal.pageSize.height
+  const footerY = pageHeight - 15
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(100, 100, 100)
+  doc.text(cleanText('Merci pour votre confiance !'), 105, footerY, { align: 'center' })
+
+  doc.setFontSize(7)
+  const footerParts = []
+  if (company.name) footerParts.push(company.name)
+  if (company.phone) footerParts.push(`Tel: ${company.phone}`)
+  if (company.email) footerParts.push(`Email: ${company.email}`)
+
+  const footerInfo = footerParts.join(' • ')
+  doc.text(cleanText(footerInfo), 105, footerY + 5, { align: 'center' })
+
+  return doc
 }
 
