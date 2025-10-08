@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { Upload, Camera, X, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { Button } from './button'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { processUploadedImage, formatFileSize } from '@/lib/image-optimizer'
 import { toast } from 'sonner'
-import { useCameraManager } from '@/lib/camera-manager'
 
 interface ImageUploadProps {
   value?: string
@@ -24,33 +23,10 @@ export function ImageUpload({
   disabled = false,
   className,
 }: ImageUploadProps) {
-  const [showCamera, setShowCamera] = useState(false)
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const { requestCamera, releaseCamera } = useCameraManager()
 
-  // Écouter les demandes de fermeture de caméra depuis d'autres composants
-  useEffect(() => {
-    const handleCameraRequest = () => {
-      if (showCamera && cameraStream) {
-        handleCloseCamera()
-        toast.info('Caméra fermée', {
-          description: 'La caméra a été libérée pour le scanner de code-barres'
-        })
-      }
-    }
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('request-camera-close', handleCameraRequest)
-
-      return () => {
-        window.removeEventListener('request-camera-close', handleCameraRequest)
-      }
-    }
-  }, [showCamera, cameraStream])
 
   // Ouvrir le sélecteur de fichiers
   const handleFileSelect = () => {
@@ -106,106 +82,7 @@ export function ImageUpload({
     }
   }
 
-  // Ouvrir la caméra
-  const handleOpenCamera = async () => {
-    try {
-      // Demander l'accès via le gestionnaire de caméra
-      const result = await requestCamera('image-upload')
 
-      if (!result.success) {
-        toast.error('Caméra non disponible', {
-          description: result.error
-        })
-        return
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      })
-      setCameraStream(stream)
-      setShowCamera(true)
-
-      // Attendre que la vidéo soit prête
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-        }
-      }, 100)
-    } catch (error) {
-      console.error('Erreur d\'accès à la caméra:', error)
-      toast.error('Erreur caméra', {
-        description: 'Impossible d\'accéder à la caméra. Veuillez vérifier les permissions.'
-      })
-    }
-  }
-
-  // Fermer la caméra
-  const handleCloseCamera = () => {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop())
-      setCameraStream(null)
-    }
-    setShowCamera(false)
-
-    // Libérer la caméra via le gestionnaire
-    releaseCamera('image-upload')
-
-    // Émettre un événement global pour signaler que la caméra est libérée
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('camera-released'))
-    }
-  }
-
-  // Capturer la photo avec optimisation
-  const handleCapture = async () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current
-      const canvas = canvasRef.current
-
-      setIsProcessing(true)
-
-      try {
-        // Définir les dimensions du canvas (max 800px)
-        let width = video.videoWidth
-        let height = video.videoHeight
-
-        const maxSize = 800
-        if (width > maxSize || height > maxSize) {
-          const ratio = Math.min(maxSize / width, maxSize / height)
-          width = Math.round(width * ratio)
-          height = Math.round(height * ratio)
-        }
-
-        canvas.width = width
-        canvas.height = height
-
-        // Dessiner l'image de la vidéo sur le canvas
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          ctx.imageSmoothingEnabled = true
-          ctx.imageSmoothingQuality = 'high'
-          ctx.drawImage(video, 0, 0, width, height)
-
-          // Convertir en base64 avec compression
-          const imageData = canvas.toDataURL('image/jpeg', 0.85)
-          onChange(imageData)
-
-          toast.success('Photo capturée', {
-            description: 'Image optimisée automatiquement',
-          })
-
-          // Fermer la caméra
-          handleCloseCamera()
-        }
-      } catch (error) {
-        toast.error('Erreur', {
-          description: 'Impossible de capturer la photo',
-        })
-      } finally {
-        setIsProcessing(false)
-      }
-    }
-  }
 
   // Supprimer l'image
   const handleRemove = () => {
@@ -219,7 +96,7 @@ export function ImageUpload({
   return (
     <div className={cn('space-y-4', className)}>
       {/* Prévisualisation de l'image */}
-      {value && !showCamera && !isProcessing && (
+      {value && !isProcessing && (
         <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden group">
           <Image
             src={value}
@@ -249,40 +126,10 @@ export function ImageUpload({
         </div>
       )}
 
-      {/* Caméra */}
-      {showCamera && (
-        <div className="relative w-full h-64 bg-black rounded-lg overflow-hidden">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="w-full h-full object-cover"
-          />
-          <canvas ref={canvasRef} className="hidden" />
 
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
-            <Button
-              type="button"
-              onClick={handleCapture}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Camera className="w-4 h-4 mr-2" />
-              Capturer
-            </Button>
-            <Button
-              type="button"
-              onClick={handleCloseCamera}
-              variant="outline"
-              className="bg-white"
-            >
-              Annuler
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Boutons d'upload */}
-      {!value && !showCamera && !isProcessing && (
+      {!value && !isProcessing && (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-blue-400 transition-colors">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="p-4 bg-blue-50 rounded-full">
@@ -298,27 +145,15 @@ export function ImageUpload({
               </p>
             </div>
 
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                onClick={handleFileSelect}
-                disabled={disabled}
-                variant="outline"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Choisir un fichier
-              </Button>
-
-              <Button
-                type="button"
-                onClick={handleOpenCamera}
-                disabled={disabled}
-                variant="outline"
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                Prendre une photo
-              </Button>
-            </div>
+            <Button
+              type="button"
+              onClick={handleFileSelect}
+              disabled={disabled}
+              variant="outline"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Choisir un fichier
+            </Button>
           </div>
 
           {/* Input file caché */}
@@ -334,30 +169,17 @@ export function ImageUpload({
       )}
 
       {/* Boutons de modification si image existe */}
-      {value && !showCamera && !disabled && !isProcessing && (
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            onClick={handleFileSelect}
-            variant="outline"
-            size="sm"
-            className="flex-1"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Changer l'image
-          </Button>
-
-          <Button
-            type="button"
-            onClick={handleOpenCamera}
-            variant="outline"
-            size="sm"
-            className="flex-1"
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            Nouvelle photo
-          </Button>
-        </div>
+      {value && !disabled && !isProcessing && (
+        <Button
+          type="button"
+          onClick={handleFileSelect}
+          variant="outline"
+          size="sm"
+          className="w-full"
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          Changer l'image
+        </Button>
       )}
     </div>
   )
