@@ -102,7 +102,7 @@ export function CategoryCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput
             placeholder="Rechercher ou créer une catégorie..."
             value={searchValue}
@@ -143,11 +143,12 @@ export function CategoryCombobox({
                     key={category.id}
                     value={category.name}
                     onSelect={() => {
+                      console.log('Category selected:', category.name, category.id)
                       onValueChange(category.id)
                       setOpen(false)
                       setSearchValue('')
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer hover:bg-accent"
                   >
                     <Check
                       className={cn(
