@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Camera, Keyboard } from 'lucide-react'
+import { Keyboard } from 'lucide-react'
 import { Input } from './input'
-import { Button } from './button'
-import { SimpleBarcodeButton } from './simple-barcode-scanner'
 import { cn } from '@/lib/utils'
 
 interface BarcodeInputProps {
@@ -14,14 +12,12 @@ interface BarcodeInputProps {
   placeholder?: string
   disabled?: boolean
   className?: string
-  showCameraButton?: boolean
 }
 
 /**
  * Composant intelligent qui supporte :
  * 1. Saisie manuelle au clavier
  * 2. Scanner physique (USB/Bluetooth) - détection automatique
- * 3. Scanner caméra (téléphone) - bouton manuel
  */
 export function BarcodeInput({
   value,
@@ -30,7 +26,6 @@ export function BarcodeInput({
   placeholder = 'Scanner ou saisir le code-barres',
   disabled = false,
   className,
-  showCameraButton = true,
 }: BarcodeInputProps) {
   const [scanBuffer, setScanBuffer] = useState('')
   const [lastKeyTime, setLastKeyTime] = useState(0)
@@ -105,12 +100,7 @@ export function BarcodeInput({
     onChange(e.target.value)
   }
 
-  const handleCameraScan = (barcode: string) => {
-    onChange(barcode)
-    if (onScan) {
-      onScan(barcode)
-    }
-  }
+
 
   return (
     <div className="relative">
@@ -139,12 +129,7 @@ export function BarcodeInput({
           </div>
         </div>
 
-        {/* Bouton scanner caméra */}
-        {showCameraButton && !disabled && (
-          <SimpleBarcodeButton onScan={handleCameraScan}>
-            <Camera className="w-4 h-4" />
-          </SimpleBarcodeButton>
-        )}
+
       </div>
 
       {/* Aide contextuelle */}
@@ -155,8 +140,7 @@ export function BarcodeInput({
           </span>
         ) : (
           <>
-            Scannez avec un scanner physique, utilisez la caméra{' '}
-            <Camera className="w-3 h-3 inline" /> ou saisissez manuellement
+            Scannez avec un scanner physique ou saisissez manuellement
           </>
         )}
       </p>

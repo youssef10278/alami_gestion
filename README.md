@@ -220,7 +220,7 @@ Après le seed, vous pouvez vous connecter avec :
 - **Auth:** JWT avec jose, bcryptjs
 - **Charts:** Recharts
 - **PDF:** jsPDF, jspdf-autotable
-- **Scanner:** html5-qrcode
+
 - **Notifications:** Sonner
 - **Icons:** Lucide React
 

@@ -96,7 +96,7 @@ import { BarcodeInput } from '@/components/ui/barcode-input'
   onChange={(value) => setSku(value)}
   onScan={(barcode) => console.log('Scanné:', barcode)}
   placeholder="Scanner ou saisir le code-barres"
-  showCameraButton={true}
+
 />
 ```
 
@@ -108,11 +108,10 @@ import { BarcodeInput } from '@/components/ui/barcode-input'
 | `onScan` | (barcode: string) => void | Callback de scan |
 | `placeholder` | string | Texte du placeholder |
 | `disabled` | boolean | Désactiver l'input |
-| `showCameraButton` | boolean | Afficher le bouton caméra |
+
 
 #### Fonctionnalités
 - ✅ Détection automatique du scanner physique
-- ✅ Bouton scanner caméra intégré
 - ✅ Indicateur visuel de scanner détecté
 - ✅ Aide contextuelle
 
@@ -350,7 +349,6 @@ useBarcodeScanner({
 |---------|-------|-----------|
 | Scanner USB | < 0.5s | 99.9% |
 | Scanner Bluetooth | < 1s | 99.5% |
-| Caméra | 1-2s | 95% |
 | Manuel | 5-10s | Variable |
 
 ### Impact sur les Performances
@@ -358,7 +356,6 @@ useBarcodeScanner({
 - 📊 **CPU** : < 1% en veille, < 5% pendant le scan
 - 💾 **Mémoire** : < 1 MB
 - 🔋 **Batterie** : Impact négligeable (scanner physique)
-- 🔋 **Batterie** : Impact modéré (caméra active)
 
 ---
 
@@ -366,11 +363,10 @@ useBarcodeScanner({
 
 ### 1. Combiner les Méthodes
 ```tsx
-// Offrir toutes les options
+// Scanner physique et saisie manuelle
 <BarcodeInput
   value={sku}
   onChange={setSku}
-  showCameraButton={true} // Caméra disponible
   // + Détection automatique du scanner physique
   // + Saisie manuelle toujours possible
 />

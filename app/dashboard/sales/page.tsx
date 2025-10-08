@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { BarcodeScannerButton } from '@/components/ui/barcode-scanner'
+
 import { toast } from 'sonner'
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
 import DeliveryNoteButton from '@/components/sales/DeliveryNoteButton'
@@ -610,18 +610,7 @@ export default function SalesPage() {
                     className="pl-11 h-12 text-base border-2 focus:border-[var(--color-business-blue)] transition-colors"
                   />
                 </div>
-                <BarcodeScannerButton
-                  onScan={(barcode) => {
-                    // Rechercher le produit par SKU
-                    const product = products.find((p) => p.sku === barcode)
-                    if (product) {
-                      addToCart(product)
-                      toast.success(`${product.name} ajouté au panier`)
-                    } else {
-                      toast.error('Produit non trouvé')
-                    }
-                  }}
-                />
+
               </div>
 
               {/* Liste des produits - Design amélioré */}

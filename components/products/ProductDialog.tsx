@@ -161,7 +161,6 @@ export default function ProductDialog({
                 onChange={(value) => setFormData({ ...formData, sku: value })}
                 placeholder="Scanner ou saisir le code-barres"
                 disabled={!!product} // SKU non modifiable
-                showCameraButton={!product}
               />
             </div>
 
