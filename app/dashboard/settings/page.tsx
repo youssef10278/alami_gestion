@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { Building2, User, Shield, Bell, Palette, Paintbrush, FileText, Users } from 'lucide-react'
+import { useUser } from '@/hooks/useUser'
+import { Building2, User, Shield, Bell, Palette, Paintbrush, FileText, Users, Database } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CompanySettings from '@/components/settings/CompanySettings'
@@ -10,9 +11,12 @@ import InvoiceDesigner from '@/components/settings/InvoiceDesigner'
 import QuoteDesigner from '@/components/settings/QuoteDesigner'
 import UserManagement from '@/components/settings/UserManagement'
 import ProfileSettings from '@/components/settings/ProfileSettings'
+import SystemReset from '@/components/settings/SystemReset'
 
 export default function SettingsPage() {
   usePageTitle('Paramètres')
+
+  const { user, isOwner } = useUser()
 
   return (
     <div className="space-y-6">
@@ -35,7 +39,7 @@ export default function SettingsPage() {
       <Card className="glass">
         <CardContent className="p-6">
           <Tabs defaultValue="company" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className={`grid w-full ${isOwner ? 'grid-cols-8' : 'grid-cols-7'}`}>
               <TabsTrigger value="company" className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 Entreprise
@@ -56,6 +60,12 @@ export default function SettingsPage() {
                 <User className="w-4 h-4" />
                 Profil
               </TabsTrigger>
+              {isOwner && (
+                <TabsTrigger value="system" className="flex items-center gap-2">
+                  <Database className="w-4 h-4" />
+                  Système
+                </TabsTrigger>
+              )}
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="w-4 h-4" />
                 Notifications
@@ -90,6 +100,13 @@ export default function SettingsPage() {
             <TabsContent value="profile">
               <ProfileSettings />
             </TabsContent>
+
+            {/* Onglet Système - Propriétaires seulement */}
+            {isOwner && (
+              <TabsContent value="system">
+                <SystemReset />
+              </TabsContent>
+            )}
 
             {/* Onglet Notifications */}
             <TabsContent value="notifications">
