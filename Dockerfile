@@ -45,9 +45,10 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma/
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma/
+COPY --from=builder /app/scripts/start.sh ./scripts/start.sh
 
-# Changer le propriétaire des fichiers
-RUN chown -R nextjs:nodejs /app
+# Rendre le script exécutable et changer le propriétaire des fichiers
+RUN chmod +x ./scripts/start.sh && chown -R nextjs:nodejs /app
 
 # Utiliser l'utilisateur non-root
 USER nextjs
@@ -59,5 +60,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Commande de démarrage
-CMD ["node", "server.js"]
+# Commande de démarrage avec migrations
+CMD ["./scripts/start.sh"]
