@@ -1,0 +1,205 @@
+/* Styles pour le scanner de code-barres Html5Qrcode */
+
+/* Conteneur principal du scanner */
+.scanner-container {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Styles pour le cadre de scan (qrbox) */
+.scanner-container :global(#qr-shaded-region) {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Cadre vert de scan */
+.scanner-container :global(#qr-shaded-region svg) {
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.8));
+}
+
+.scanner-container :global(#qr-shaded-region svg rect) {
+  stroke: #22c55e !important;
+  stroke-width: 4 !important;
+  fill: none !important;
+}
+
+/* Vidéo du scanner */
+.scanner-container :global(video) {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 300px;
+  object-fit: cover;
+}
+
+/* Canvas du scanner */
+.scanner-container :global(canvas) {
+  display: none !important;
+}
+
+/* Conteneur de la vidéo */
+.scanner-container :global(#qr-video) {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 300px;
+}
+
+/* Région ombrée autour du cadre */
+.scanner-container :global(.qr-shaded-region) {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Animation du cadre de scan */
+@keyframes scan-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+/* Cadre de scan avec animation */
+.scanner-container :global(#qr-shaded-region) {
+  animation: scan-pulse 2s infinite;
+}
+
+/* Styles pour les coins du cadre */
+.scanner-container :global(#qr-shaded-region svg path) {
+  stroke: #22c55e !important;
+  stroke-width: 3 !important;
+  fill: none !important;
+}
+
+/* Message de statut */
+.scanner-container :global(#qr-scanner-status) {
+  color: white !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+}
+
+/* Boutons de contrôle */
+.scanner-container :global(.qr-code-scanner-controls) {
+  background: rgba(0, 0, 0, 0.8) !important;
+  padding: 10px !important;
+  border-radius: 8px !important;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .scanner-container {
+    min-height: 250px;
+  }
+  
+  .scanner-container :global(video) {
+    min-height: 250px;
+  }
+  
+  .scanner-container :global(#qr-video) {
+    min-height: 250px;
+  }
+}
+
+/* Amélioration de la visibilité du cadre sur mobile */
+@media (max-width: 480px) {
+  .scanner-container :global(#qr-shaded-region svg rect) {
+    stroke-width: 3 !important;
+  }
+}
+
+/* Styles pour le mode sombre */
+@media (prefers-color-scheme: dark) {
+  .scanner-container :global(#qr-scanner-status) {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+/* Fallback pour navigateurs qui ne supportent pas les styles avancés */
+.scanner-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 250px;
+  border: 3px solid #22c55e;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.scanner-fallback::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 3px solid #22c55e;
+  border-radius: 8px;
+  animation: scan-pulse 2s infinite;
+}
+
+/* Coins du cadre de scan */
+.scanner-corners {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 250px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.scanner-corners::before,
+.scanner-corners::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #22c55e;
+}
+
+.scanner-corners::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.scanner-corners::after {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+}
+
+.scanner-corners .corner-bottom-left,
+.scanner-corners .corner-bottom-right {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #22c55e;
+}
+
+.scanner-corners .corner-bottom-left {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+}
+
+.scanner-corners .corner-bottom-right {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}

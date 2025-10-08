@@ -5,6 +5,7 @@ import { X, Camera, AlertCircle } from 'lucide-react'
 import { Button } from './button'
 import { Card } from './card'
 import { useCameraManager } from '@/lib/camera-manager'
+import styles from './barcode-scanner.module.css'
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void
@@ -15,6 +16,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [error, setError] = useState<string | null>(null)
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const [isScanning, setIsScanning] = useState(false)
+  const [showCustomOverlay, setShowCustomOverlay] = useState(false)
   const scannerRef = useRef<any>(null)
   const readerIdRef = useRef<string>('reader-' + Math.random().toString(36).substr(2, 9))
   const { requestCamera, releaseCamera } = useCameraManager()
@@ -128,9 +130,27 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           { facingMode: 'environment' },
           {
             fps: 10,
-            qrbox: { width: 250, height: 250 },
+            qrbox: function(viewfinderWidth, viewfinderHeight) {
+              // Calculer la taille du cadre en fonction de la taille de l'écran
+              const minEdgePercentage = 0.7; // 70% de la plus petite dimension
+              const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+              const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+
+              return {
+                width: Math.min(qrboxSize, 300),
+                height: Math.min(qrboxSize, 300)
+              };
+            },
             aspectRatio: 1.0,
             disableFlip: false,
+            // Styles pour le cadre vert
+            videoConstraints: {
+              facingMode: 'environment'
+            },
+            // Configuration pour améliorer la visibilité du cadre
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: true
+            },
             supportedScanTypes: [
               // Support for various barcode formats
               0, // QR_CODE
@@ -169,6 +189,13 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
         if (mounted) {
           setIsScanning(true)
+
+          // Afficher l'overlay personnalisé après un délai si Html5Qrcode ne charge pas
+          setTimeout(() => {
+            if (mounted) {
+              setShowCustomOverlay(true)
+            }
+          }, 2000)
         }
       } catch (err: any) {
         console.error('Scanner initialization error:', err)
@@ -263,11 +290,56 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           {hasPermission === true && (
             <div className="space-y-4">
               {/* Scanner container */}
-              <div
-                id={readerIdRef.current}
-                className="rounded-lg overflow-hidden"
-                style={{ width: '100%' }}
-              />
+              <div className={`${styles.scannerContainer} relative bg-black rounded-lg overflow-hidden`}>
+                <div
+                  id={readerIdRef.current}
+                  className="w-full"
+                  style={{
+                    width: '100%',
+                    minHeight: '300px',
+                    height: 'auto'
+                  }}
+                />
+
+                {/* Overlay de scan personnalisé */}
+                {isScanning && showCustomOverlay && (
+                  <div className="absolute inset-0 pointer-events-none z-10">
+                    {/* Zone ombrée */}
+                    <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+
+                    {/* Cadre de scan central */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="relative w-64 h-64 border-2 border-green-400 rounded-lg bg-transparent">
+                        {/* Coins animés */}
+                        <div className="absolute -top-1 -left-1 w-6 h-6 border-l-4 border-t-4 border-green-400 rounded-tl-lg"></div>
+                        <div className="absolute -top-1 -right-1 w-6 h-6 border-r-4 border-t-4 border-green-400 rounded-tr-lg"></div>
+                        <div className="absolute -bottom-1 -left-1 w-6 h-6 border-l-4 border-b-4 border-green-400 rounded-bl-lg"></div>
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 border-r-4 border-b-4 border-green-400 rounded-br-lg"></div>
+
+                        {/* Ligne de scan animée */}
+                        <div className="absolute inset-x-0 top-0 h-1 bg-green-400 opacity-75 animate-pulse"></div>
+                        <div className="absolute inset-x-0 top-8 h-0.5 bg-green-300 opacity-50 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                        <div className="absolute inset-x-0 top-16 h-0.5 bg-green-300 opacity-30 animate-pulse" style={{ animationDelay: '1s' }}></div>
+                      </div>
+
+                      {/* Label de zone de scan */}
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+                        <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+                          📱 Zone de scan
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Instructions en bas */}
+                    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+                      <div className="bg-black bg-opacity-80 text-white px-4 py-2 rounded-lg text-center">
+                        <p className="text-sm font-medium">Positionnez le code-barres dans le cadre vert</p>
+                        <p className="text-xs opacity-75 mt-1">Maintenez l'appareil stable</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="text-center space-y-3">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
