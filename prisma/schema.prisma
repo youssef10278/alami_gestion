@@ -384,6 +384,12 @@ model CompanySettings {
   showWatermark    Boolean  @default(false)
   watermarkText    String?
   customCSS        String?
+  // Paramètres spécifiques aux devis
+  quoteTheme       String   @default("modern")
+  showValidityPeriod Boolean @default(true)
+  validityPeriodText String  @default("Ce devis est valable 30 jours à compter de la date d'émission.")
+  showTermsAndConditions Boolean @default(true)
+  termsAndConditionsText String @default("Conditions générales de vente disponibles sur demande.")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
