@@ -842,15 +842,53 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   }
 
   // Notes
+  let currentY = amountInWordsY + 25
   if (data.notes) {
-    const notesY = amountInWordsY + 25
     doc.setFontSize(9)
     doc.setFont('helvetica', 'italic')
     doc.setTextColor(...textColor)
-    doc.text(cleanText('Notes:'), 15, notesY)
+    doc.text(cleanText('Notes:'), 15, currentY)
     doc.setFont('helvetica', 'normal')
     const splitNotes = doc.splitTextToSize(cleanText(data.notes), 180)
-    doc.text(splitNotes, 15, notesY + 5)
+    doc.text(splitNotes, 15, currentY + 5)
+    currentY += 5 + (splitNotes.length * 5)
+  }
+
+  // Paramètres spécifiques aux devis
+  if (type === 'quote') {
+    // Période de validité
+    if (designSettings?.showValidityPeriod && designSettings?.validityPeriodText) {
+      currentY += 5
+      doc.setFillColor(...sectionColor)
+      doc.rect(15, currentY - 3, 180, 12, 'F')
+
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...sectionTextColor)
+      doc.text(cleanText('Validite du devis'), 20, currentY + 3)
+
+      doc.setFont('helvetica', 'normal')
+      const splitValidity = doc.splitTextToSize(cleanText(designSettings.validityPeriodText), 170)
+      doc.text(splitValidity, 20, currentY + 8)
+      currentY += 12 + (splitValidity.length * 4)
+    }
+
+    // Conditions générales
+    if (designSettings?.showTermsAndConditions && designSettings?.termsAndConditionsText) {
+      currentY += 5
+      doc.setFillColor(...accentColor)
+      doc.rect(15, currentY - 3, 180, 12, 'F')
+
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(...headerTextColor)
+      doc.text(cleanText('Conditions generales'), 20, currentY + 3)
+
+      doc.setFont('helvetica', 'normal')
+      const splitTerms = doc.splitTextToSize(cleanText(designSettings.termsAndConditionsText), 170)
+      doc.text(splitTerms, 20, currentY + 8)
+      currentY += 12 + (splitTerms.length * 4)
+    }
   }
 
   // Pied de page

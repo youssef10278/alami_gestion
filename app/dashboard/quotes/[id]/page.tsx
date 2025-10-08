@@ -141,7 +141,41 @@ export default function QuoteDetailsPage({ params }: { params: { id: string } })
     }
   }
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
+    if (!quote) return
+
+    try {
+      toast.loading('Génération du PDF...')
+
+      // Appeler l'API pour générer le PDF avec les paramètres de design
+      const response = await fetch(`/api/quotes/${quote.id}/pdf`)
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la génération du PDF')
+      }
+
+      // Télécharger le PDF
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${quote.quoteNumber}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      toast.dismiss()
+      toast.success('PDF téléchargé avec succès')
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      toast.dismiss()
+      toast.error('Erreur lors du téléchargement du PDF')
+    }
+  }
+
+  // Fonction pour l'ancienne méthode d'impression (backup)
+  const printQuote = () => {
     if (!quote) return
 
     const printWindow = window.open('', '_blank')
