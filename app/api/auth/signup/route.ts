@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase(),
         password: hashedPassword,
         company: company || null,
-        role: 'SELLER', // Rôle par défaut
+        role: 'OWNER', // Rôle propriétaire par défaut
         isActive: true
       },
       select: {

@@ -92,10 +92,10 @@ export default function SignupPage() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
-            Créer un compte
+            Créer un compte propriétaire
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Rejoignez Alami Gestion pour gérer votre entreprise
+            Créez votre compte propriétaire pour gérer votre entreprise avec Alami Gestion
           </CardDescription>
         </CardHeader>
         
@@ -214,6 +214,21 @@ export default function SignupPage() {
               </div>
             </div>
 
+            {/* Note informative */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <div className="w-4 h-4 bg-blue-500 rounded-full flex-shrink-0 mt-0.5">
+                  <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1"></div>
+                </div>
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium">Compte propriétaire</p>
+                  <p className="text-blue-600">
+                    Vous créez un compte propriétaire avec accès complet à toutes les fonctionnalités de gestion.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Bouton de soumission */}
             <Button
               type="submit"
@@ -228,7 +243,7 @@ export default function SignupPage() {
               ) : (
                 <div className="flex items-center gap-2">
                   <UserPlus className="w-4 h-4" />
-                  Créer mon compte
+                  Créer mon compte propriétaire
                 </div>
               )}
             </Button>
