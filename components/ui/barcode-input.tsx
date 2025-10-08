@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Camera, Keyboard } from 'lucide-react'
 import { Input } from './input'
 import { Button } from './button'
-import { BarcodeScannerButton } from './barcode-scanner'
+import { SimpleBarcodeButton } from './simple-barcode-scanner'
 import { cn } from '@/lib/utils'
 
 interface BarcodeInputProps {
@@ -141,7 +141,9 @@ export function BarcodeInput({
 
         {/* Bouton scanner caméra */}
         {showCameraButton && !disabled && (
-          <BarcodeScannerButton onScan={handleCameraScan} />
+          <SimpleBarcodeButton onScan={handleCameraScan}>
+            <Camera className="w-4 h-4" />
+          </SimpleBarcodeButton>
         )}
       </div>
 

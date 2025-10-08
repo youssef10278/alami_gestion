@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BarcodeScannerButton } from '@/components/ui/barcode-scanner'
+import { SimpleBarcodeButton } from '@/components/ui/simple-barcode-scanner'
 import { BarcodeInput } from '@/components/ui/barcode-input'
-import { Camera, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
+import { Camera, CheckCircle, XCircle, AlertTriangle, Info, Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { cameraUtils } from '@/lib/camera-manager'
+import { cameraUtilsV2 } from '@/lib/camera-manager-v2'
 
 export default function TestScannerPage() {
   const [scannedCode, setScannedCode] = useState('')
@@ -23,7 +23,7 @@ export default function TestScannerPage() {
 
     try {
       // Utiliser le gestionnaire de caméra pour les diagnostics
-      const cameraInfo = await cameraUtils.getDiagnostics()
+      const cameraInfo = await cameraUtilsV2.getDiagnostics()
 
       // Test Html5Qrcode library
       let libraryLoaded = true
@@ -131,10 +131,13 @@ export default function TestScannerPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-center">
-            <BarcodeScannerButton 
+            <SimpleBarcodeButton
               onScan={handleScan}
-              className="px-8 py-4 text-lg"
-            />
+              className="px-8 py-4 text-lg bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Zap className="w-5 h-5 mr-2" />
+              Scanner V2 (Nouveau)
+            </SimpleBarcodeButton>
           </div>
           
           {scannedCode && (
