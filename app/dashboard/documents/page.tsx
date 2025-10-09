@@ -72,8 +72,10 @@ export default function DocumentsPage() {
           const quotesRes = await fetch('/api/quotes?limit=100')
           if (quotesRes.ok) {
             const quotesData = await quotesRes.json()
-            if (quotesData.quotes && Array.isArray(quotesData.quotes)) {
-              const quotes = quotesData.quotes.map((quote: any) => ({
+            // L'API /api/quotes retourne directement un tableau, pas un objet avec .quotes
+            const quotesArray = Array.isArray(quotesData) ? quotesData : (quotesData.quotes || [])
+            if (quotesArray.length > 0) {
+              const quotes = quotesArray.map((quote: any) => ({
                 id: quote.id,
                 documentNumber: quote.quoteNumber,
                 type: 'QUOTE' as const,
