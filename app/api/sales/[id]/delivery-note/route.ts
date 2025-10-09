@@ -93,6 +93,8 @@ export async function GET(
         productName: item.product?.name || 'Produit inconnu',
         productSku: item.product?.sku,
         quantity: item.quantity,
+        unitPrice: Number(item.unitPrice) || 0,
+        total: Number(item.total) || 0,
         description: item.product?.description
       })),
       notes: sale.notes,
