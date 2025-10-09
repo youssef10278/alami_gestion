@@ -157,3 +157,110 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+// POST - Créer un nouveau chèque
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const {
+      supplierId,
+      checkNumber,
+      amount,
+      bankName,
+      accountNumber,
+      issueDate,
+      dueDate,
+      notes,
+    } = body
+
+    // Validation
+    if (!supplierId || !checkNumber || !amount || !bankName || !dueDate) {
+      return NextResponse.json(
+        { error: 'Données manquantes (supplierId, checkNumber, amount, bankName, dueDate requis)' },
+        { status: 400 }
+      )
+    }
+
+    if (parseFloat(amount) <= 0) {
+      return NextResponse.json(
+        { error: 'Le montant doit être supérieur à 0' },
+        { status: 400 }
+      )
+    }
+
+    // Vérifier que le fournisseur existe
+    const supplier = await prisma.supplier.findUnique({
+      where: { id: supplierId },
+    })
+
+    if (!supplier) {
+      return NextResponse.json(
+        { error: 'Fournisseur non trouvé' },
+        { status: 404 }
+      )
+    }
+
+    // Vérifier que le numéro de chèque n'existe pas déjà
+    const existingCheck = await prisma.check.findFirst({
+      where: {
+        checkNumber,
+        supplierId,
+      },
+    })
+
+    if (existingCheck) {
+      return NextResponse.json(
+        { error: 'Un chèque avec ce numéro existe déjà pour ce fournisseur' },
+        { status: 400 }
+      )
+    }
+
+    // Créer le chèque et mettre à jour le fournisseur dans une transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Créer le chèque
+      const check = await tx.check.create({
+        data: {
+          supplierId,
+          checkNumber,
+          amount: parseFloat(amount),
+          bankName,
+          accountNumber: accountNumber || null,
+          issueDate: new Date(issueDate || new Date()),
+          dueDate: new Date(dueDate),
+          status: 'ISSUED', // Par défaut, le chèque est émis
+          notes: notes || null,
+        },
+        include: {
+          supplier: true,
+        },
+      })
+
+      // Mettre à jour le solde du fournisseur
+      // Quand on donne un chèque au fournisseur, on réduit notre dette envers lui
+      const newBalance = Number(supplier.balance) - parseFloat(amount)
+      const newTotalPaid = Number(supplier.totalPaid) + parseFloat(amount)
+
+      await tx.supplier.update({
+        where: { id: supplierId },
+        data: {
+          balance: newBalance,
+          totalPaid: newTotalPaid,
+        },
+      })
+
+      return check
+    })
+
+    return NextResponse.json(result, { status: 201 })
+  } catch (error) {
+    console.error('Create check error:', error)
+    return NextResponse.json(
+      { error: 'Erreur lors de la création du chèque' },
+      { status: 500 }
+    )
+  }
+}

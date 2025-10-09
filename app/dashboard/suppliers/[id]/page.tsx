@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import AddCheckDialog from '@/components/suppliers/AddCheckDialog'
 
 interface Supplier {
   id: string
@@ -66,6 +67,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'transactions' | 'checks' | 'info'>('transactions')
   const [editMode, setEditMode] = useState(false)
+  const [showAddCheckDialog, setShowAddCheckDialog] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -416,6 +418,16 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
 
         {activeTab === 'checks' && (
           <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Chèques ({supplier.checks.length})</CardTitle>
+              <Button
+                onClick={() => setShowAddCheckDialog(true)}
+                className="bg-violet-600 hover:bg-violet-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nouveau Chèque
+              </Button>
+            </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -757,6 +769,21 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
           </Card>
         )}
       </div>
+
+      {/* Dialogue pour ajouter un chèque */}
+      <AddCheckDialog
+        open={showAddCheckDialog}
+        onOpenChange={setShowAddCheckDialog}
+        supplier={supplier ? {
+          id: supplier.id,
+          name: supplier.name,
+          company: supplier.company
+        } : null}
+        onSuccess={() => {
+          fetchSupplier()
+          toast.success('Chèque créé avec succès')
+        }}
+      />
     </div>
   )
 }

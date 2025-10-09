@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import SupplierAnalyticsDashboard from '@/components/suppliers/SupplierAnalyticsDashboard'
+import AddCheckDialog from '@/components/suppliers/AddCheckDialog'
 
 interface Supplier {
   id: string
@@ -50,6 +51,8 @@ export default function SuppliersPage() {
   const [filterStatus, setFilterStatus] = useState('all')
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'suppliers' | 'analytics'>('suppliers')
+  const [showAddCheckDialog, setShowAddCheckDialog] = useState(false)
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
 
   useEffect(() => {
     fetchSuppliers()
@@ -351,8 +354,19 @@ export default function SuppliersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedSupplier(supplier)
+                              setShowAddCheckDialog(true)
+                            }}
+                            title="Ajouter un chèque"
+                          >
+                            <FileText className="w-4 h-4 text-violet-600" />
+                          </Button>
                           <Link href={`/dashboard/suppliers/${supplier.id}`}>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" title="Voir détails">
                               <Edit className="w-4 h-4" />
                             </Button>
                           </Link>
@@ -360,6 +374,7 @@ export default function SuppliersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(supplier.id)}
+                            title="Supprimer"
                           >
                             <Trash2 className="w-4 h-4 text-red-600" />
                           </Button>
@@ -384,6 +399,21 @@ export default function SuppliersPage() {
           <SupplierAnalyticsDashboard />
         )}
       </div>
+
+      {/* Dialogue pour ajouter un chèque */}
+      <AddCheckDialog
+        open={showAddCheckDialog}
+        onOpenChange={setShowAddCheckDialog}
+        supplier={selectedSupplier ? {
+          id: selectedSupplier.id,
+          name: selectedSupplier.name,
+          company: selectedSupplier.company
+        } : null}
+        onSuccess={() => {
+          fetchSuppliers()
+          fetchStats()
+        }}
+      />
     </div>
   )
 }
