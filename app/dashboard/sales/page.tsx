@@ -25,6 +25,7 @@ interface Product {
   name: string
   price: number
   stock: number
+  image?: string | null
 }
 
 interface Customer {
@@ -622,7 +623,7 @@ export default function SalesPage() {
                     onClick={() => addToCart(product)}
                   >
                     {/* Badge de stock */}
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-3 right-3 z-10">
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                         product.stock > 10
                           ? 'bg-green-100 text-green-700'
@@ -634,14 +635,50 @@ export default function SalesPage() {
                       </div>
                     </div>
 
-                    {/* Contenu principal */}
-                    <div className="pr-20">
-                      <h4 className="font-bold text-base text-[hsl(var(--foreground))] group-hover:text-[var(--color-business-blue)] transition-colors line-clamp-2">
-                        {product.name}
-                      </h4>
-                      <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1 font-mono">
-                        {product.sku}
-                      </p>
+                    {/* Image et Contenu */}
+                    <div className="flex gap-3">
+                      {/* Image du produit */}
+                      <div className="flex-shrink-0">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded-lg border border-[hsl(var(--border))]"
+                            onError={(e) => {
+                              e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect x="3" y="3" width="18" height="18" rx="2" ry="2"%3E%3C/rect%3E%3Ccircle cx="8.5" cy="8.5" r="1.5"%3E%3C/circle%3E%3Cpolyline points="21 15 16 10 5 21"%3E%3C/polyline%3E%3C/svg%3E'
+                            }}
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-[hsl(var(--muted))] rounded-lg flex items-center justify-center border border-[hsl(var(--border))]">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="32"
+                              height="32"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="text-[hsl(var(--muted-foreground))]"
+                            >
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                              <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Contenu principal */}
+                      <div className="flex-1 pr-16 min-w-0">
+                        <h4 className="font-bold text-base text-[hsl(var(--foreground))] group-hover:text-[var(--color-business-blue)] transition-colors line-clamp-2">
+                          {product.name}
+                        </h4>
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1 font-mono">
+                          {product.sku}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Prix et action */}
