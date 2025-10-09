@@ -168,8 +168,19 @@ export default function SalesPage() {
     }, 0)
   }
 
-  const printReceipt = () => {
+  const printReceipt = async () => {
     if (!lastSale) return
+
+    // Récupérer les informations de la société
+    let companySettings = null
+    try {
+      const response = await fetch('/api/settings/company')
+      if (response.ok) {
+        companySettings = await response.json()
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des paramètres:', error)
+    }
 
     const printWindow = window.open('', '_blank')
     if (!printWindow) {
@@ -205,13 +216,29 @@ export default function SalesPage() {
             padding-bottom: 10px;
             margin-bottom: 10px;
           }
+          .header .logo {
+            max-width: 80px;
+            max-height: 80px;
+            margin: 0 auto 10px;
+            display: block;
+          }
           .header h1 {
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 5px;
+            font-weight: bold;
           }
           .header p {
-            font-size: 12px;
+            font-size: 11px;
             margin: 2px 0;
+            color: #333;
+          }
+          .header .receipt-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0 5px;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 5px 0;
           }
           .info {
             margin: 10px 0;
@@ -284,9 +311,16 @@ export default function SalesPage() {
       <body>
         <div class="receipt">
           <div class="header">
-            <h1>🏪 ALAMI GESTION</h1>
-            <p>Reçu de Vente</p>
-            <p>N° ${lastSale.saleNumber}</p>
+            ${companySettings?.companyLogo ? `
+              <img src="${companySettings.companyLogo}" alt="Logo" class="logo" />
+            ` : ''}
+            <h1>${companySettings?.companyName || 'ALAMI GESTION'}</h1>
+            ${companySettings?.companyAddress ? `<p>📍 ${companySettings.companyAddress}</p>` : ''}
+            ${companySettings?.companyPhone ? `<p>📞 ${companySettings.companyPhone}</p>` : ''}
+            ${companySettings?.companyEmail ? `<p>📧 ${companySettings.companyEmail}</p>` : ''}
+            ${companySettings?.companyICE ? `<p>ICE: ${companySettings.companyICE}</p>` : ''}
+            <p class="receipt-title">REÇU DE VENTE</p>
+            <p><strong>N° ${lastSale.saleNumber}</strong></p>
           </div>
 
           <div class="info">
