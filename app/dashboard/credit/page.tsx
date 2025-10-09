@@ -130,7 +130,7 @@ export default function CreditPage() {
               {summary && (
                 <div className="flex items-center gap-2 mt-2">
                   <div className="text-xs text-white/80 bg-white/10 px-3 py-1 rounded-lg backdrop-blur-sm">
-                    💳 {summary.totalCreditUsed.toFixed(0)} DH utilisés
+                    💳 {safeToFixed(summary.totalCreditUsed, 0)} DH utilisés
                   </div>
                 </div>
               )}
@@ -155,10 +155,10 @@ export default function CreditPage() {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
-                {summary.totalCreditUsed.toFixed(0)} DH
+                {safeToFixed(summary.totalCreditUsed, 0)} DH
               </div>
               <p className="text-xs text-orange-600 mt-2 font-medium">
-                💳 sur {summary.totalCreditLimit.toFixed(0)} DH
+                💳 sur {safeToFixed(summary.totalCreditLimit, 0)} DH
               </p>
             </CardContent>
           </Card>
@@ -197,7 +197,7 @@ export default function CreditPage() {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-                {summary.totalCreditAvailable.toFixed(0)} DH
+                {safeToFixed(summary.totalCreditAvailable, 0)} DH
               </div>
               <p className="text-xs text-green-600 mt-2 font-medium">
                 ✅ Disponible
@@ -291,7 +291,7 @@ export default function CreditPage() {
                             Limite: {safeToFixed(customer.creditLimit, 2)} DH
                           </span>
                           <span className="text-xs font-medium text-gray-600">
-                            {creditPercentage.toFixed(0)}% utilisé
+                            {safeToFixed(creditPercentage, 0)}% utilisé
                           </span>
                         </div>
 

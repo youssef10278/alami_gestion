@@ -499,7 +499,7 @@ export default function SalesHistoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-              {filteredSales.reduce((sum, s) => sum + safeNumber(s.totalAmount), 0).toFixed(0)} DH
+              {safeToFixed(filteredSales.reduce((sum, s) => sum + safeNumber(s.totalAmount), 0), 0)} DH
             </div>
             <p className="text-xs text-green-600 mt-2 font-medium">
               💰 Total généré
@@ -520,7 +520,7 @@ export default function SalesHistoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-              {filteredSales.reduce((sum, s) => sum + safeNumber(s.paidAmount), 0).toFixed(0)} DH
+              {safeToFixed(filteredSales.reduce((sum, s) => sum + safeNumber(s.paidAmount), 0), 0)} DH
             </div>
             <p className="text-xs text-blue-600 mt-2 font-medium">
               ✅ Encaissé

@@ -150,9 +150,9 @@ export default function CheckAnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{summary.totalChecks}</div>
-              <p className="text-xs text-gray-500 mt-1">{summary.totalAmount.toFixed(2)} DH</p>
+              <p className="text-xs text-gray-500 mt-1">{safeToFixed(summary.totalAmount)} DH</p>
               <p className="text-xs text-violet-600 mt-2">
-                Moyenne: {summary.averageCheckAmount.toFixed(2)} DH
+                Moyenne: {safeToFixed(summary.averageCheckAmount)} DH
               </p>
             </CardContent>
           </Card>
@@ -166,7 +166,7 @@ export default function CheckAnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-orange-600">{summary.issuedCount}</div>
-              <p className="text-xs text-gray-500 mt-1">{summary.issuedAmount.toFixed(2)} DH</p>
+              <p className="text-xs text-gray-500 mt-1">{safeToFixed(summary.issuedAmount)} DH</p>
               <p className="text-xs text-orange-600 mt-2">En attente d'encaissement</p>
             </CardContent>
           </Card>
@@ -180,9 +180,9 @@ export default function CheckAnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">{summary.cashedCount}</div>
-              <p className="text-xs text-gray-500 mt-1">{summary.cashedAmount.toFixed(2)} DH</p>
+              <p className="text-xs text-gray-500 mt-1">{safeToFixed(summary.cashedAmount)} DH</p>
               <p className="text-xs text-green-600 mt-2">
-                Taux: {summary.cashingRate.toFixed(1)}%
+                Taux: {safeToFixed(summary.cashingRate, 1)}%
               </p>
             </CardContent>
           </Card>
@@ -196,7 +196,7 @@ export default function CheckAnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-red-600">{summary.overdueCount}</div>
-              <p className="text-xs text-gray-500 mt-1">{summary.overdueAmount.toFixed(2)} DH</p>
+              <p className="text-xs text-gray-500 mt-1">{safeToFixed(summary.overdueAmount)} DH</p>
               <p className="text-xs text-red-600 mt-2">Échéance dépassée</p>
             </CardContent>
           </Card>
@@ -230,7 +230,7 @@ export default function CheckAnalyticsPage() {
                         </div>
                         <div className="mt-2 flex justify-between items-center">
                           <span className="text-lg font-bold text-red-600">
-                            {check.amount.toFixed(2)} DH
+                            {safeToFixed(check.amount)} DH
                           </span>
                           <span className="text-xs text-gray-500">
                             Échéance: {format(new Date(check.dueDate), 'dd MMM yyyy', { locale: fr })}
@@ -268,7 +268,7 @@ export default function CheckAnalyticsPage() {
                         </div>
                         <div className="mt-2 flex justify-between items-center">
                           <span className="text-lg font-bold text-yellow-600">
-                            {check.amount.toFixed(2)} DH
+                            {safeToFixed(check.amount)} DH
                           </span>
                           <span className="text-xs text-gray-500">
                             Échéance: {format(new Date(check.dueDate), 'dd MMM yyyy', { locale: fr })}
@@ -297,7 +297,7 @@ export default function CheckAnalyticsPage() {
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-700">🟡 Émis</span>
                     <span className="text-sm font-bold text-orange-600">
-                      {summary.issuedCount} ({summary.issuedAmount.toFixed(2)} DH)
+                      {summary.issuedCount} ({safeToFixed(summary.issuedAmount)} DH)
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -313,7 +313,7 @@ export default function CheckAnalyticsPage() {
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-700">🟢 Encaissés</span>
                     <span className="text-sm font-bold text-green-600">
-                      {summary.cashedCount} ({summary.cashedAmount.toFixed(2)} DH)
+                      {summary.cashedCount} ({safeToFixed(summary.cashedAmount)} DH)
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
@@ -330,7 +330,7 @@ export default function CheckAnalyticsPage() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm font-medium text-gray-700">⚫ Annulés</span>
                       <span className="text-sm font-bold text-gray-600">
-                        {summary.cancelledCount} ({summary.cancelledAmount.toFixed(2)} DH)
+                        {summary.cancelledCount} ({safeToFixed(summary.cancelledAmount)} DH)
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
@@ -348,7 +348,7 @@ export default function CheckAnalyticsPage() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm font-medium text-gray-700">🔴 Rejetés</span>
                       <span className="text-sm font-bold text-red-600">
-                        {summary.bouncedCount} ({summary.bouncedAmount.toFixed(2)} DH)
+                        {summary.bouncedCount} ({safeToFixed(summary.bouncedAmount)} DH)
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
@@ -375,7 +375,7 @@ export default function CheckAnalyticsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Taux d'Encaissement</p>
-                      <p className="text-3xl font-bold text-green-600">{summary.cashingRate.toFixed(1)}%</p>
+                      <p className="text-3xl font-bold text-green-600">{safeToFixed(summary.cashingRate, 1)}%</p>
                     </div>
                     <TrendingUp className="w-12 h-12 text-green-500 opacity-50" />
                   </div>
@@ -386,7 +386,7 @@ export default function CheckAnalyticsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Montant Moyen par Chèque</p>
-                      <p className="text-3xl font-bold text-violet-600">{summary.averageCheckAmount.toFixed(2)} DH</p>
+                      <p className="text-3xl font-bold text-violet-600">{safeToFixed(summary.averageCheckAmount)} DH</p>
                     </div>
                     <DollarSign className="w-12 h-12 text-violet-500 opacity-50" />
                   </div>
@@ -398,7 +398,7 @@ export default function CheckAnalyticsPage() {
                     <div>
                       <p className="text-sm text-gray-600">À Venir (7 jours)</p>
                       <p className="text-3xl font-bold text-blue-600">{summary.upcomingCount}</p>
-                      <p className="text-xs text-gray-500 mt-1">{summary.upcomingAmount.toFixed(2)} DH</p>
+                      <p className="text-xs text-gray-500 mt-1">{safeToFixed(summary.upcomingAmount)} DH</p>
                     </div>
                     <Clock className="w-12 h-12 text-blue-500 opacity-50" />
                   </div>
@@ -465,17 +465,17 @@ export default function CheckAnalyticsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-bold text-gray-900">
-                            {supplier.totalAmount.toFixed(2)} DH
+                            {safeToFixed(supplier.totalAmount)} DH
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm text-orange-600">
-                            {supplier.issuedAmount.toFixed(2)} DH
+                            {safeToFixed(supplier.issuedAmount)} DH
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm text-green-600">
-                            {supplier.cashedAmount.toFixed(2)} DH
+                            {safeToFixed(supplier.cashedAmount)} DH
                           </span>
                         </td>
                       </tr>
@@ -504,7 +504,7 @@ export default function CheckAnalyticsPage() {
                           {month.count} chèques
                         </span>
                         <span className="text-xs text-gray-500 ml-2">
-                          ({month.amount.toFixed(2)} DH)
+                          ({safeToFixed(month.amount)} DH)
                         </span>
                       </div>
                     </div>
