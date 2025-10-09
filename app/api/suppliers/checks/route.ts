@@ -106,19 +106,20 @@ export async function PUT(request: NextRequest) {
           },
         })
 
-        let newBalance = Number(currentCheck.supplier.balance)
+        const totalDebt = Number(currentCheck.supplier.totalDebt)
         let newTotalPaid = Number(currentCheck.supplier.totalPaid)
 
-        // ISSUED → CANCELLED/BOUNCED : Remettre le montant au solde
+        // ISSUED → CANCELLED/BOUNCED : Annuler le paiement
         if (currentCheck.status === 'ISSUED' && (status === 'CANCELLED' || status === 'BOUNCED')) {
-          newBalance += Number(currentCheck.amount)
           newTotalPaid -= Number(currentCheck.amount)
         }
-        // CANCELLED/CASHED/BOUNCED → ISSUED : Retirer le montant du solde
+        // CANCELLED/CASHED/BOUNCED → ISSUED : Réactiver le paiement
         else if ((currentCheck.status === 'CANCELLED' || currentCheck.status === 'CASHED' || currentCheck.status === 'BOUNCED') && status === 'ISSUED') {
-          newBalance -= Number(currentCheck.amount)
           newTotalPaid += Number(currentCheck.amount)
         }
+
+        // Recalculer le balance : totalDebt - totalPaid
+        const newBalance = totalDebt - newTotalPaid
 
         await tx.supplier.update({
           where: { id: currentCheck.supplierId },
@@ -241,8 +242,13 @@ export async function POST(request: NextRequest) {
 
       // Mettre à jour le solde du fournisseur
       // Quand on donne un chèque au fournisseur, on réduit notre dette envers lui
-      const newBalance = Number(supplier.balance) - parseFloat(amount)
+      // balance = totalDebt - totalPaid
+      // Si balance > 0 : on doit de l'argent au fournisseur
+      // Si balance < 0 : le fournisseur nous doit de l'argent (paiement anticipé)
+      // Si balance = 0 : on est à jour
+
       const newTotalPaid = Number(supplier.totalPaid) + parseFloat(amount)
+      const newBalance = Number(supplier.totalDebt) - newTotalPaid
 
       await tx.supplier.update({
         where: { id: supplierId },

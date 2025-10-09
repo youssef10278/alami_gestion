@@ -15,19 +15,23 @@ export async function GET(request: NextRequest) {
       where: { isActive: true },
     })
 
-    // Calculer le total dû
-    const debtResult = await prisma.supplier.aggregate({
+    // Calculer le total dû (seulement les soldes positifs = ce qu'on doit)
+    const suppliers = await prisma.supplier.findMany({
       where: { isActive: true },
-      _sum: {
-        balance: true,
-      },
+      select: { balance: true },
     })
-    const totalDebt = Number(debtResult._sum.balance || 0)
 
-    // Calculer le total payé ce mois
+    // Somme des soldes positifs uniquement (ce qu'on doit aux fournisseurs)
+    const totalDebt = suppliers.reduce((sum, s) => {
+      const balance = Number(s.balance)
+      return sum + (balance > 0 ? balance : 0)
+    }, 0)
+
+    // Calculer le total payé ce mois (transactions + chèques)
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    
+
+    // Paiements via transactions
     const paymentsThisMonth = await prisma.supplierTransaction.aggregate({
       where: {
         type: 'PAYMENT',
@@ -40,7 +44,25 @@ export async function GET(request: NextRequest) {
         amount: true,
       },
     })
-    const totalPaidThisMonth = Number(paymentsThisMonth._sum.amount || 0)
+
+    // Chèques créés ce mois (ISSUED ou CASHED)
+    const checksThisMonth = await prisma.check.aggregate({
+      where: {
+        status: {
+          in: ['ISSUED', 'CASHED'],
+        },
+        issueDate: {
+          gte: startOfMonth,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    })
+
+    const totalPaidThisMonth =
+      Number(paymentsThisMonth._sum.amount || 0) +
+      Number(checksThisMonth._sum.amount || 0)
 
     // Compter les chèques en attente
     const pendingChecks = await prisma.check.count({
