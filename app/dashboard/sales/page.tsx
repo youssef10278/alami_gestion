@@ -26,6 +26,7 @@ import { toast } from 'sonner'
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
 import DeliveryNoteButton from '@/components/sales/DeliveryNoteButton'
 import { Scan } from 'lucide-react'
+import { safeToFixed, safeNumber } from '@/lib/utils'
 
 interface Product {
   id: string
@@ -215,7 +216,7 @@ export default function SalesPage() {
 
   const calculateTotal = () => {
     return cart.reduce((sum, item) => {
-      const price = item.customPrice !== undefined ? item.customPrice : Number(item.product.price)
+      const price = item.customPrice !== undefined ? item.customPrice : safeNumber(item.product.price)
       return sum + (price * item.quantity)
     }, 0)
   }
@@ -404,11 +405,11 @@ export default function SalesPage() {
               <div class="item">
                 <div class="item-name">${item.product.name}</div>
                 <div class="item-qty">${item.quantity}</div>
-                <div class="item-price">${Number(item.total).toFixed(2)} DH</div>
+                <div class="item-price">${safeToFixed(item.total)} DH</div>
               </div>
               <div class="item" style="font-size: 10px; color: #666; margin-top: -3px;">
                 <div class="item-name" style="padding-left: 10px;">
-                  ${item.quantity} × ${Number(item.unitPrice).toFixed(2)} DH
+                  ${item.quantity} × ${safeToFixed(item.unitPrice)} DH
                 </div>
                 <div class="item-qty"></div>
                 <div class="item-price"></div>
@@ -419,21 +420,21 @@ export default function SalesPage() {
           <div class="totals">
             <div class="total-row">
               <span>Sous-total:</span>
-              <span>${Number(lastSale.totalAmount).toFixed(2)} DH</span>
+              <span>${safeToFixed(lastSale.totalAmount)} DH</span>
             </div>
             <div class="total-row">
               <span>Montant payé:</span>
-              <span>${Number(lastSale.paidAmount).toFixed(2)} DH</span>
+              <span>${safeToFixed(lastSale.paidAmount)} DH</span>
             </div>
-            ${Number(lastSale.creditAmount) > 0 ? `
+            ${safeNumber(lastSale.creditAmount) > 0 ? `
               <div class="total-row" style="color: #d97706;">
                 <span>Reste à payer:</span>
-                <span>${Number(lastSale.creditAmount).toFixed(2)} DH</span>
+                <span>${safeToFixed(lastSale.creditAmount)} DH</span>
               </div>
             ` : ''}
             <div class="total-row grand">
               <span>TOTAL:</span>
-              <span>${Number(lastSale.totalAmount).toFixed(2)} DH</span>
+              <span>${safeToFixed(lastSale.totalAmount)} DH</span>
             </div>
           </div>
 
@@ -619,7 +620,7 @@ export default function SalesPage() {
 
   const remaining = total - paid
   const creditAvailable = selectedCustomer
-    ? Number(selectedCustomer.creditLimit) - Number(selectedCustomer.creditUsed)
+    ? safeNumber(selectedCustomer.creditLimit) - safeNumber(selectedCustomer.creditUsed)
     : 0
 
   // Log pour déboguer
@@ -771,7 +772,7 @@ export default function SalesPage() {
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex flex-col">
                         <span className="text-2xl font-bold text-[var(--color-business-blue)]">
-                          {Number(product.price).toFixed(2)} DH
+                          {safeToFixed(product.price)} DH
                         </span>
                         <span className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
                           Prix unitaire
@@ -883,7 +884,7 @@ export default function SalesPage() {
                   <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center gap-2 text-xs">
                       <span className="font-semibold text-blue-900">💳 Crédit disponible:</span>
-                      <span className="text-blue-600 font-bold">{creditAvailable.toFixed(2)} DH</span>
+                      <span className="text-blue-600 font-bold">{safeToFixed(creditAvailable)} DH</span>
                     </div>
                   </div>
                 ) : isWalkInCustomer ? (
@@ -910,8 +911,8 @@ export default function SalesPage() {
                 ) : (
                   <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
                     {cart.map((item) => {
-                      const currentPrice = item.customPrice !== undefined ? item.customPrice : Number(item.product.price)
-                      const originalPrice = Number(item.product.price)
+                      const currentPrice = item.customPrice !== undefined ? item.customPrice : safeNumber(item.product.price)
+                      const originalPrice = safeNumber(item.product.price)
                       const isDiscounted = item.customPrice !== undefined && item.customPrice < originalPrice
 
                       return (
@@ -924,7 +925,7 @@ export default function SalesPage() {
                               {isDiscounted && (
                                 <div className="flex items-center gap-2 mt-1">
                                   <span className="text-xs line-through text-[hsl(var(--muted-foreground))]">
-                                    {originalPrice.toFixed(2)} DH
+                                    {safeToFixed(originalPrice)} DH
                                   </span>
                                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
                                     Négocié
@@ -965,14 +966,14 @@ export default function SalesPage() {
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={currentPrice.toFixed(2)}
+                                value={safeToFixed(currentPrice)}
                                 onChange={(e) => {
                                   const newPrice = parseFloat(e.target.value)
                                   if (isNaN(newPrice) || newPrice < 0) return
                                   updateCustomPrice(item.product.id, newPrice === originalPrice ? undefined : newPrice)
                                 }}
                                 className="h-8 text-center text-sm"
-                                placeholder={originalPrice.toFixed(2)}
+                                placeholder={safeToFixed(originalPrice)}
                               />
                             </div>
 
@@ -981,7 +982,7 @@ export default function SalesPage() {
                               <Label className="text-xs text-[hsl(var(--muted-foreground))]">Total</Label>
                               <div className="h-8 flex items-center justify-center bg-[hsl(var(--muted))] rounded-md">
                                 <span className="text-sm font-bold text-[var(--color-business-blue)]">
-                                  {(currentPrice * item.quantity).toFixed(2)} DH
+                                  {safeToFixed(currentPrice * item.quantity)} DH
                                 </span>
                               </div>
                             </div>
@@ -1177,7 +1178,7 @@ export default function SalesPage() {
                     </div>
 
                     <div className="p-2 bg-blue-100 rounded text-xs text-blue-700">
-                      💡 Le montant du chèque sera automatiquement défini au total de la vente ({total.toFixed(2)} DH)
+                      💡 Le montant du chèque sera automatiquement défini au total de la vente ({safeToFixed(total)} DH)
                     </div>
                   </div>
                 )}
@@ -1188,7 +1189,7 @@ export default function SalesPage() {
                     <p className="text-xs text-green-700 flex items-center gap-2">
                       <span>✅</span>
                       <span className="font-medium">
-                        Paiement comptant : Le montant total ({total.toFixed(2)} DH) sera automatiquement considéré comme payé.
+                        Paiement comptant : Le montant total ({safeToFixed(total)} DH) sera automatiquement considéré comme payé.
                       </span>
                     </p>
                   </div>
@@ -1197,16 +1198,16 @@ export default function SalesPage() {
                 <div className="pt-2 border-t space-y-1">
                   <div className="flex justify-between text-sm">
                     <span>Total:</span>
-                    <span className="font-bold">{total.toFixed(2)} DH</span>
+                    <span className="font-bold">{safeToFixed(total)} DH</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Payé:</span>
-                    <span className="text-green-600">{paid.toFixed(2)} DH</span>
+                    <span className="text-green-600">{safeToFixed(paid)} DH</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold">
                     <span>Reste:</span>
                     <span className={remaining > 0 ? 'text-orange-600' : 'text-green-600'}>
-                      {remaining.toFixed(2)} DH
+                      {safeToFixed(remaining)} DH
                     </span>
                   </div>
                 </div>
@@ -1250,11 +1251,11 @@ export default function SalesPage() {
                   Vente N° {lastSale.saleNumber}
                 </p>
                 <p className="text-3xl font-bold">
-                  {Number(lastSale.totalAmount).toFixed(2)} DH
+                  {safeToFixed(lastSale.totalAmount)} DH
                 </p>
-                {Number(lastSale.creditAmount) > 0 && (
+                {safeNumber(lastSale.creditAmount) > 0 && (
                   <p className="text-sm text-orange-600">
-                    Reste à payer : {Number(lastSale.creditAmount).toFixed(2)} DH
+                    Reste à payer : {safeToFixed(lastSale.creditAmount)} DH
                   </p>
                 )}
               </div>

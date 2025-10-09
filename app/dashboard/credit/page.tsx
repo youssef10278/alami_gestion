@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import PaymentDialog from '@/components/credit/PaymentDialog'
 
+import { safeToFixed, safeNumber } from '@/lib/utils'
 interface CreditSummary {
   totalCustomers: number
   customersWithCredit: number
@@ -96,7 +97,7 @@ export default function CreditPage() {
     }
   }
 
-  const customersWithDebt = customers.filter((c) => Number(c.creditUsed) > 0)
+  const customersWithDebt = customers.filter((c) => safeNumber(c.creditUsed) > 0)
 
   if (loading) {
     return (
@@ -243,8 +244,8 @@ export default function CreditPage() {
               <div className="space-y-3 max-h-[500px] overflow-y-auto">
                 {customersWithDebt.map((customer) => {
                   const creditPercentage =
-                    Number(customer.creditLimit) > 0
-                      ? (Number(customer.creditUsed) / Number(customer.creditLimit)) * 100
+                    safeNumber(customer.creditLimit) > 0
+                      ? (safeNumber(customer.creditUsed) / safeNumber(customer.creditLimit)) * 100
                       : 0
 
                   return (
@@ -268,7 +269,7 @@ export default function CreditPage() {
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Crédit utilisé</span>
                           <span className="font-semibold text-orange-600">
-                            {Number(customer.creditUsed).toFixed(2)} DH
+                            {safeToFixed(customer.creditUsed, 2)} DH
                           </span>
                         </div>
 
@@ -287,7 +288,7 @@ export default function CreditPage() {
 
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-500">
-                            Limite: {Number(customer.creditLimit).toFixed(2)} DH
+                            Limite: {safeToFixed(customer.creditLimit, 2)} DH
                           </span>
                           <span className="text-xs font-medium text-gray-600">
                             {creditPercentage.toFixed(0)}% utilisé
@@ -338,7 +339,7 @@ export default function CreditPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-green-600">
-                        +{Number(payment.amount).toFixed(2)} DH
+                        +{safeToFixed(payment.amount, 2)} DH
                       </p>
                       <p className="text-xs text-gray-500">
                         {getPaymentMethodLabel(payment.paymentMethod)}

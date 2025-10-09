@@ -7,6 +7,7 @@ import { FileText, Download, Eye } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { safeToFixed, safeNumber } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -405,7 +406,7 @@ export default function DocumentsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
-                        {Number(doc.totalAmount).toFixed(2)} DH
+                        {safeToFixed(doc.totalAmount, 2)} DH
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {format(new Date(doc.createdAt), 'dd MMM yyyy', {

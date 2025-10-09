@@ -144,6 +144,45 @@ const safeCalculation = (items: any[]) => {
 
 ---
 
-**Date de correction** : 2025-01-09  
-**Statut** : ✅ Résolu et testé  
-**Impact** : Critique → Résolu
+## 🚨 CORRECTION CRITIQUE SUPPLÉMENTAIRE
+
+### Nouvelle erreur identifiée
+Après la première correction, une **erreur critique persistante** a été détectée :
+
+```
+Uncaught TypeError: Cannot read properties of undefined (reading 'toFixed')
+at Array.map in stats.map()
+```
+
+### Cause racine supplémentaire
+- **Problème** : `totalRevenue._sum.totalAmount` et `creditUsed._sum.creditUsed` peuvent être `null`
+- **Échec de l'opérateur `?.`** : L'opérateur de coalescence nulle ne protège pas complètement
+- **Code problématique** :
+```typescript
+value: `${totalRevenue._sum.totalAmount?.toFixed(2) || 0} DH`
+```
+
+### Solution finale appliquée
+```typescript
+// AVANT (problématique)
+value: `${totalRevenue._sum.totalAmount?.toFixed(2) || 0} DH`
+
+// APRÈS (sécurisé)
+value: `${(totalRevenue._sum.totalAmount ? Number(totalRevenue._sum.totalAmount).toFixed(2) : '0.00')} DH`
+```
+
+### Corrections supplémentaires
+1. **Chiffre d'affaires** : Vérification explicite avant `.toFixed()`
+2. **Crédit utilisé** : Même protection appliquée
+3. **Calcul de barre de progression** : Nettoyage des chaînes avec regex
+
+### Commit GitHub
+- **Hash** : `d5eedf1`
+- **Message** : "🔧 Fix critical .toFixed() error in dashboard stats"
+- **Statut** : ✅ Poussé vers GitHub avec succès
+
+---
+
+**Date de correction** : 2025-01-09
+**Statut** : ✅ Résolu définitivement et déployé
+**Impact** : Critique → Résolu et testé en production

@@ -5,6 +5,7 @@ import { Plus, Search, Package, AlertTriangle, Grid3x3, List } from 'lucide-reac
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { safeToFixed, safeNumber } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -115,13 +116,13 @@ export default function ProductsPage() {
       case 'name':
         return sorted.sort((a, b) => a.name.localeCompare(b.name))
       case 'price-asc':
-        return sorted.sort((a, b) => Number(a.price) - Number(b.price))
+        return sorted.sort((a, b) => safeNumber(a.price) - safeNumber(b.price))
       case 'price-desc':
-        return sorted.sort((a, b) => Number(b.price) - Number(a.price))
+        return sorted.sort((a, b) => safeNumber(b.price) - safeNumber(a.price))
       case 'margin-desc':
         return sorted.sort((a, b) => {
-          const marginA = ((Number(a.price) - Number(a.purchasePrice)) / Number(a.purchasePrice)) * 100
-          const marginB = ((Number(b.price) - Number(b.purchasePrice)) / Number(b.purchasePrice)) * 100
+          const marginA = ((safeNumber(a.price) - safeNumber(a.purchasePrice)) / safeNumber(a.purchasePrice)) * 100
+          const marginB = ((safeNumber(b.price) - safeNumber(b.purchasePrice)) / safeNumber(b.purchasePrice)) * 100
           return marginB - marginA
         })
       case 'stock-asc':
@@ -212,14 +213,14 @@ export default function ProductsPage() {
 
   const handleAddStock = async (product: Product) => {
     const quantity = prompt(`Ajouter du stock pour "${product.name}"\n\nQuantité à ajouter:`)
-    if (!quantity || isNaN(Number(quantity))) return
+    if (!quantity || isNaN(safeNumber(quantity))) return
 
     try {
       const response = await fetch(`/api/products/${product.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          stock: product.stock + Number(quantity)
+          stock: product.stock + safeNumber(quantity)
         })
       })
 
@@ -238,8 +239,8 @@ export default function ProductsPage() {
   const lowStockCount = products.filter(p => p.stock <= p.minStock).length
 
   // Calcul de la valeur du stock
-  const stockValue = products.reduce((sum, p) => sum + (Number(p.purchasePrice) * p.stock), 0)
-  const potentialValue = products.reduce((sum, p) => sum + (Number(p.price) * p.stock), 0)
+  const stockValue = products.reduce((sum, p) => sum + (safeNumber(p.purchasePrice) * p.stock), 0)
+  const potentialValue = products.reduce((sum, p) => sum + (safeNumber(p.price) * p.stock), 0)
   const potentialProfit = potentialValue - stockValue
 
   return (
@@ -505,7 +506,7 @@ export default function ProductsPage() {
                       <Select
                         value={itemsPerPage.toString()}
                         onValueChange={(value) => {
-                          setItemsPerPage(Number(value))
+                          setItemsPerPage(safeNumber(value))
                           setCurrentPage(1)
                         }}
                       >

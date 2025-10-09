@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
+import { safeToFixed, safeNumber } from '@/lib/utils'
 interface Check {
   id: string
   checkNumber: string
@@ -300,7 +301,7 @@ export default function ChecksPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                        {Number(check.amount).toFixed(2)} DH
+                        {safeToFixed(check.amount, 2)} DH
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {format(new Date(check.issueDate), 'dd MMM yyyy', { locale: fr })}
@@ -409,7 +410,7 @@ export default function ChecksPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Montant</p>
-                  <p className="font-bold text-lg">{Number(selectedCheck.amount).toFixed(2)} DH</p>
+                  <p className="font-bold text-lg">{safeToFixed(selectedCheck.amount, 2)} DH</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Banque</p>

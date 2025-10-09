@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 
+import { safeToFixed, safeNumber } from '@/lib/utils'
 interface Sale {
   id: string
   saleNumber: string
@@ -304,11 +305,11 @@ export default function SalesHistoryPage() {
               <div class="item">
                 <div class="item-name">${item.product.name}</div>
                 <div class="item-qty">${item.quantity}</div>
-                <div class="item-price">${Number(item.total).toFixed(2)} DH</div>
+                <div class="item-price">${safeToFixed(item.total, 2)} DH</div>
               </div>
               <div class="item" style="font-size: 10px; color: #666; margin-top: -3px;">
                 <div class="item-name" style="padding-left: 10px;">
-                  ${item.quantity} × ${Number(item.unitPrice).toFixed(2)} DH
+                  ${item.quantity} × ${safeToFixed(item.unitPrice, 2)} DH
                 </div>
                 <div class="item-qty"></div>
                 <div class="item-price"></div>
@@ -319,21 +320,21 @@ export default function SalesHistoryPage() {
           <div class="totals">
             <div class="total-row">
               <span>Sous-total:</span>
-              <span>${Number(sale.totalAmount).toFixed(2)} DH</span>
+              <span>${safeToFixed(sale.totalAmount, 2)} DH</span>
             </div>
             <div class="total-row">
               <span>Montant payé:</span>
-              <span>${Number(sale.paidAmount).toFixed(2)} DH</span>
+              <span>${safeToFixed(sale.paidAmount, 2)} DH</span>
             </div>
-            ${Number(sale.creditAmount) > 0 ? `
+            ${safeNumber(sale.creditAmount) > 0 ? `
               <div class="total-row" style="color: #d97706;">
                 <span>Reste à payer:</span>
-                <span>${Number(sale.creditAmount).toFixed(2)} DH</span>
+                <span>${safeToFixed(sale.creditAmount, 2)} DH</span>
               </div>
             ` : ''}
             <div class="total-row grand">
               <span>TOTAL:</span>
-              <span>${Number(sale.totalAmount).toFixed(2)} DH</span>
+              <span>${safeToFixed(sale.totalAmount, 2)} DH</span>
             </div>
           </div>
 
@@ -498,7 +499,7 @@ export default function SalesHistoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-              {filteredSales.reduce((sum, s) => sum + Number(s.totalAmount), 0).toFixed(0)} DH
+              {filteredSales.reduce((sum, s) => sum + safeNumber(s.totalAmount), 0).toFixed(0)} DH
             </div>
             <p className="text-xs text-green-600 mt-2 font-medium">
               💰 Total généré
@@ -519,7 +520,7 @@ export default function SalesHistoryPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-              {filteredSales.reduce((sum, s) => sum + Number(s.paidAmount), 0).toFixed(0)} DH
+              {filteredSales.reduce((sum, s) => sum + safeNumber(s.paidAmount), 0).toFixed(0)} DH
             </div>
             <p className="text-xs text-blue-600 mt-2 font-medium">
               ✅ Encaissé
@@ -595,10 +596,10 @@ export default function SalesHistoryPage() {
                         {sale.seller.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
-                        {Number(sale.totalAmount).toFixed(2)} DH
+                        {safeToFixed(sale.totalAmount, 2)} DH
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                        {Number(sale.paidAmount).toFixed(2)} DH
+                        {safeToFixed(sale.paidAmount, 2)} DH
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {getPaymentMethodLabel(sale.paymentMethod)}
@@ -688,10 +689,10 @@ export default function SalesHistoryPage() {
                       <div>
                         <p className="font-medium">{item.product.name}</p>
                         <p className="text-sm text-gray-500">
-                          {item.quantity} × {Number(item.unitPrice).toFixed(2)} DH
+                          {item.quantity} × {safeToFixed(item.unitPrice, 2)} DH
                         </p>
                       </div>
-                      <p className="font-semibold">{Number(item.total).toFixed(2)} DH</p>
+                      <p className="font-semibold">{safeToFixed(item.total, 2)} DH</p>
                     </div>
                   ))}
                 </div>
@@ -700,18 +701,18 @@ export default function SalesHistoryPage() {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Total:</span>
-                  <span className="font-bold">{Number(selectedSale.totalAmount).toFixed(2)} DH</span>
+                  <span className="font-bold">{safeToFixed(selectedSale.totalAmount, 2)} DH</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Payé:</span>
                   <span className="text-green-600 font-semibold">
-                    {Number(selectedSale.paidAmount).toFixed(2)} DH
+                    {safeToFixed(selectedSale.paidAmount, 2)} DH
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Reste:</span>
                   <span className="text-orange-600 font-semibold">
-                    {Number(selectedSale.creditAmount).toFixed(2)} DH
+                    {safeToFixed(selectedSale.creditAmount, 2)} DH
                   </span>
                 </div>
               </div>

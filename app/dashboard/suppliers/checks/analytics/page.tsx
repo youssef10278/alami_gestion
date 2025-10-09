@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
+import { safeToFixed, safeNumber } from '@/lib/utils'
 interface AnalyticsData {
   summary: {
     totalAmount: number

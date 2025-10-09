@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import AddCheckDialog from '@/components/suppliers/AddCheckDialog'
 
+import { safeToFixed, safeNumber } from '@/lib/utils'
 interface Supplier {
   id: string
   name: string
@@ -325,7 +326,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
                           <span className={transaction.type === 'PURCHASE' ? 'text-red-600' : 'text-green-600'}>
-                            {transaction.type === 'PURCHASE' ? '+' : '-'}{Number(transaction.amount).toFixed(2)} DH
+                            {transaction.type === 'PURCHASE' ? '+' : '-'}{safeToFixed(transaction.amount, 2)} DH
                           </span>
                         </td>
                       </tr>
@@ -390,7 +391,7 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
                           {check.bankName}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                          {Number(check.amount).toFixed(2)} DH
+                          {safeToFixed(check.amount, 2)} DH
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {format(new Date(check.dueDate), 'dd MMM yyyy', { locale: fr })}
