@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Users, DollarSign, CreditCard, FileText, Edit, Trash2 } from 'lucide-react'
+import { Plus, Search, Users, DollarSign, CreditCard, FileText, Edit, Trash2, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import SupplierAnalyticsDashboard from '@/components/suppliers/SupplierAnalyticsDashboard'
 
 interface Supplier {
   id: string
@@ -48,6 +49,7 @@ export default function SuppliersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'suppliers' | 'analytics'>('suppliers')
 
   useEffect(() => {
     fetchSuppliers()
@@ -173,8 +175,39 @@ export default function SuppliersPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Onglets */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('suppliers')}
+              className={`${
+                activeTab === 'suppliers'
+                  ? 'border-violet-600 text-violet-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+            >
+              <Users className="w-5 h-5" />
+              Liste des Fournisseurs
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`${
+                activeTab === 'analytics'
+                  ? 'border-violet-600 text-violet-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+            >
+              <BarChart3 className="w-5 h-5" />
+              Analytics des Chèques
+            </button>
+          </nav>
+        </div>
+
+        {/* Contenu selon l'onglet actif */}
+        {activeTab === 'suppliers' ? (
+          <>
+            {/* Statistiques */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -345,6 +378,11 @@ export default function SuppliersPage() {
             </div>
           </CardContent>
         </Card>
+          </>
+        ) : (
+          /* Onglet Analytics */
+          <SupplierAnalyticsDashboard />
+        )}
       </div>
     </div>
   )
