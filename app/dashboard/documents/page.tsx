@@ -18,7 +18,7 @@ import {
 interface Document {
   id: string
   documentNumber: string
-  type: 'INVOICE' | 'QUOTE' | 'CREDIT_NOTE'
+  type: 'INVOICE' | 'QUOTE' | 'CREDIT_NOTE' | 'DELIVERY_NOTE'
   createdAt: string
   totalAmount: number
   status: string
@@ -26,6 +26,7 @@ interface Document {
     name: string
     company?: string | null
   } | null
+  saleNumber?: string // Pour les bons de livraison
 }
 
 export default function DocumentsPage() {
@@ -92,6 +93,31 @@ export default function DocumentsPage() {
         }
       }
 
+      // Récupérer les bons de livraison
+      if (filter === 'all' || filter === 'DELIVERY_NOTE') {
+        try {
+          const deliveryNotesRes = await fetch('/api/delivery-notes?limit=100')
+          if (deliveryNotesRes.ok) {
+            const deliveryNotesData = await deliveryNotesRes.json()
+            if (deliveryNotesData.deliveryNotes && Array.isArray(deliveryNotesData.deliveryNotes)) {
+              const deliveryNotes = deliveryNotesData.deliveryNotes.map((dn: any) => ({
+                id: dn.id,
+                documentNumber: dn.documentNumber,
+                type: 'DELIVERY_NOTE' as const,
+                createdAt: dn.createdAt,
+                totalAmount: dn.totalAmount,
+                status: dn.status,
+                customer: dn.customer,
+                saleNumber: dn.saleNumber
+              }))
+              allDocuments.push(...deliveryNotes)
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching delivery notes:', error)
+        }
+      }
+
       // Trier par date décroissante
       allDocuments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
@@ -110,6 +136,8 @@ export default function DocumentsPage() {
       url = `/api/invoices/${doc.id}/pdf`
     } else if (doc.type === 'QUOTE') {
       url = `/api/quotes/${doc.id}/pdf`
+    } else if (doc.type === 'DELIVERY_NOTE') {
+      url = `/api/sales/${doc.id}/delivery-note`
     }
 
     if (url) {
@@ -124,6 +152,8 @@ export default function DocumentsPage() {
         url = `/api/invoices/${doc.id}/pdf`
       } else if (doc.type === 'QUOTE') {
         url = `/api/quotes/${doc.id}/pdf`
+      } else if (doc.type === 'DELIVERY_NOTE') {
+        url = `/api/sales/${doc.id}/delivery-note`
       }
 
       if (url) {
@@ -151,6 +181,8 @@ export default function DocumentsPage() {
         return <Badge className="bg-purple-500">Devis</Badge>
       case 'CREDIT_NOTE':
         return <Badge className="bg-orange-500">Facture d'avoir</Badge>
+      case 'DELIVERY_NOTE':
+        return <Badge className="bg-green-500">Bon de livraison</Badge>
       default:
         return <Badge>{type}</Badge>
     }
@@ -161,6 +193,7 @@ export default function DocumentsPage() {
     invoices: documents.filter((d) => d.type === 'INVOICE').length,
     quotes: documents.filter((d) => d.type === 'QUOTE').length,
     creditNotes: documents.filter((d) => d.type === 'CREDIT_NOTE').length,
+    deliveryNotes: documents.filter((d) => d.type === 'DELIVERY_NOTE').length,
   }
 
   if (loading) {
@@ -207,6 +240,7 @@ export default function DocumentsPage() {
               <SelectItem value="INVOICE">📄 Factures</SelectItem>
               <SelectItem value="QUOTE">📋 Devis</SelectItem>
               <SelectItem value="CREDIT_NOTE">📝 Factures d'avoir</SelectItem>
+              <SelectItem value="DELIVERY_NOTE">📦 Bons de livraison</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -277,23 +311,23 @@ export default function DocumentsPage() {
           </CardContent>
         </Card>
 
-        {/* Factures d'avoir */}
-        <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-orange-50 to-amber-100/50">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16"></div>
+        {/* Bons de livraison */}
+        <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 to-emerald-100/50">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16"></div>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-orange-900">
-              Factures d'avoir
+            <CardTitle className="text-sm font-semibold text-green-900">
+              Bons de livraison
             </CardTitle>
-            <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
               <FileText className="w-5 h-5 text-white" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
-              {stats.creditNotes}
+            <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+              {stats.deliveryNotes}
             </div>
-            <p className="text-xs text-orange-600 mt-2 font-medium">
-              📝 Avoirs émis
+            <p className="text-xs text-green-600 mt-2 font-medium">
+              📦 Bons émis
             </p>
           </CardContent>
         </Card>
