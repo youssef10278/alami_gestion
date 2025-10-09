@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Users, Edit, Trash2, FileText } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, FileText } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import AddCheckDialog from '@/components/suppliers/AddCheckDialog'
@@ -103,7 +102,6 @@ export default function SuppliersPage() {
       if (response.ok) {
         toast.success('Fournisseur supprimé avec succès')
         fetchSuppliers()
-        fetchStats()
       } else {
         const data = await response.json()
         toast.error(data.error || 'Erreur lors de la suppression')
@@ -114,11 +112,7 @@ export default function SuppliersPage() {
     }
   }
 
-  const getBalanceColor = (balance: number) => {
-    if (balance <= 0) return 'text-green-600'
-    if (balance < 10000) return 'text-orange-600'
-    return 'text-red-600'
-  }
+
 
   if (loading) {
     return (
@@ -195,15 +189,6 @@ export default function SuppliersPage() {
                       Contact
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Dû
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Payé
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Solde
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -224,17 +209,6 @@ export default function SuppliersPage() {
                         {supplier.email && (
                           <div className="text-sm text-gray-500">{supplier.email}</div>
                         )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {Number(supplier.totalDebt).toFixed(2)} DH
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                        {Number(supplier.totalPaid).toFixed(2)} DH
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm font-semibold ${getBalanceColor(Number(supplier.balance))}`}>
-                          {Number(supplier.balance).toFixed(2)} DH
-                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
