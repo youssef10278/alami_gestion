@@ -44,37 +44,49 @@ export default function DocumentsPage() {
 
       // Récupérer les factures
       if (filter === 'all' || filter === 'INVOICE') {
-        const invoicesRes = await fetch('/api/invoices?limit=100')
-        if (invoicesRes.ok) {
-          const invoicesData = await invoicesRes.json()
-          const invoices = invoicesData.invoices.map((inv: any) => ({
-            id: inv.id,
-            documentNumber: inv.invoiceNumber,
-            type: 'INVOICE' as const,
-            createdAt: inv.createdAt,
-            totalAmount: inv.totalAmount,
-            status: inv.status,
-            customer: inv.customer
-          }))
-          allDocuments.push(...invoices)
+        try {
+          const invoicesRes = await fetch('/api/invoices?limit=100')
+          if (invoicesRes.ok) {
+            const invoicesData = await invoicesRes.json()
+            if (invoicesData.invoices && Array.isArray(invoicesData.invoices)) {
+              const invoices = invoicesData.invoices.map((inv: any) => ({
+                id: inv.id,
+                documentNumber: inv.invoiceNumber,
+                type: 'INVOICE' as const,
+                createdAt: inv.createdAt,
+                totalAmount: inv.totalAmount,
+                status: inv.status,
+                customer: inv.customer
+              }))
+              allDocuments.push(...invoices)
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching invoices:', error)
         }
       }
 
       // Récupérer les devis
       if (filter === 'all' || filter === 'QUOTE') {
-        const quotesRes = await fetch('/api/quotes?limit=100')
-        if (quotesRes.ok) {
-          const quotesData = await quotesRes.json()
-          const quotes = quotesData.quotes.map((quote: any) => ({
-            id: quote.id,
-            documentNumber: quote.quoteNumber,
-            type: 'QUOTE' as const,
-            createdAt: quote.createdAt,
-            totalAmount: quote.totalAmount,
-            status: quote.status,
-            customer: quote.customer
-          }))
-          allDocuments.push(...quotes)
+        try {
+          const quotesRes = await fetch('/api/quotes?limit=100')
+          if (quotesRes.ok) {
+            const quotesData = await quotesRes.json()
+            if (quotesData.quotes && Array.isArray(quotesData.quotes)) {
+              const quotes = quotesData.quotes.map((quote: any) => ({
+                id: quote.id,
+                documentNumber: quote.quoteNumber,
+                type: 'QUOTE' as const,
+                createdAt: quote.createdAt,
+                totalAmount: quote.totalAmount,
+                status: quote.status,
+                customer: quote.customer
+              }))
+              allDocuments.push(...quotes)
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching quotes:', error)
         }
       }
 
@@ -84,6 +96,7 @@ export default function DocumentsPage() {
       setDocuments(allDocuments)
     } catch (error) {
       console.error('Error fetching documents:', error)
+      setDocuments([])
     } finally {
       setLoading(false)
     }
