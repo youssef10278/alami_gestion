@@ -183,46 +183,103 @@ export function CategoryCombobox({
             </CommandEmpty>
             
             {filteredCategories.length > 0 && (
-              <CommandGroup heading="📁 Catégories existantes" className="px-2 py-2">
-                {filteredCategories.map((category) => (
-                  <CommandItem
-                    key={category.id}
-                    value={category.name}
-                    onSelect={() => {
-                      console.log('Category selected:', category.name, category.id)
-                      onValueChange(category.id)
-                      setOpen(false)
-                      setSearchValue('')
-                    }}
-                    className={cn(
-                      "cursor-pointer rounded-lg px-3 py-2.5 my-0.5 transition-all duration-200",
-                      value === category.id
-                        ? "bg-gradient-to-r from-violet-100 to-purple-100 text-violet-900 font-medium shadow-sm"
-                        : "hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50"
-                    )}
-                  >
-                    <div className="flex items-center gap-3 w-full">
-                      <div className={cn(
-                        "flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200",
+              <CommandGroup className="p-0">
+                <div className="px-3 py-2 bg-gradient-to-r from-slate-50 to-gray-50">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gradient-to-b from-violet-500 to-purple-600 rounded-full"></div>
+                    Catégories disponibles
+                    <Badge variant="secondary" className="ml-auto bg-violet-100 text-violet-700 text-xs px-2 py-0.5">
+                      {filteredCategories.length}
+                    </Badge>
+                  </p>
+                </div>
+                <div className="px-2 py-2 space-y-1">
+                  {filteredCategories.map((category, index) => (
+                    <CommandItem
+                      key={category.id}
+                      value={category.name}
+                      onSelect={() => {
+                        console.log('Category selected:', category.name, category.id)
+                        onValueChange(category.id)
+                        setOpen(false)
+                        setSearchValue('')
+                      }}
+                      className={cn(
+                        "cursor-pointer rounded-xl px-3 py-3 transition-all duration-300 group relative overflow-hidden",
                         value === category.id
-                          ? "bg-gradient-to-br from-violet-500 to-purple-600 shadow-md"
-                          : "bg-gradient-to-br from-gray-100 to-gray-200"
-                      )}>
-                        {value === category.id ? (
-                          <Check className="h-4 w-4 text-white" />
-                        ) : (
-                          <FolderOpen className="h-3.5 w-3.5 text-gray-500" />
+                          ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white font-semibold shadow-lg shadow-violet-200 scale-[1.02]"
+                          : "hover:bg-white hover:shadow-md hover:scale-[1.01] border border-transparent hover:border-violet-100"
+                      )}
+                    >
+                      {/* Effet de brillance au hover */}
+                      {value !== category.id && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-violet-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -translate-x-full group-hover:translate-x-full"></div>
+                      )}
+
+                      <div className="flex items-center gap-3 w-full relative z-10">
+                        {/* Icône avec animation */}
+                        <div className={cn(
+                          "flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 flex-shrink-0",
+                          value === category.id
+                            ? "bg-white/20 backdrop-blur-sm shadow-lg scale-110"
+                            : "bg-gradient-to-br from-violet-100 to-purple-100 group-hover:scale-110 group-hover:rotate-6"
+                        )}>
+                          {value === category.id ? (
+                            <Check className="h-5 w-5 text-white animate-in zoom-in duration-300" />
+                          ) : (
+                            <FolderOpen className={cn(
+                              "h-4 w-4 transition-colors duration-300",
+                              "text-violet-600 group-hover:text-violet-700"
+                            )} />
+                          )}
+                        </div>
+
+                        {/* Nom de la catégorie */}
+                        <div className="flex-1 min-w-0">
+                          <span className={cn(
+                            "block truncate transition-all duration-300",
+                            value === category.id
+                              ? "text-white text-base"
+                              : "text-gray-700 group-hover:text-violet-900 text-sm font-medium"
+                          )}>
+                            {category.name}
+                          </span>
+                          {value === category.id && (
+                            <span className="text-xs text-white/80 animate-in fade-in slide-in-from-left-2 duration-300">
+                              Catégorie active
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Badge de sélection */}
+                        {value === category.id && (
+                          <div className="flex items-center gap-2 flex-shrink-0 animate-in zoom-in duration-300">
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                            <Badge className="bg-white/20 text-white border-white/30 text-xs px-2.5 py-0.5 font-semibold backdrop-blur-sm">
+                              ✓ Sélectionnée
+                            </Badge>
+                          </div>
+                        )}
+
+                        {/* Indicateur de hover */}
+                        {value !== category.id && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-shrink-0">
+                            <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
+                          </div>
                         )}
                       </div>
-                      <span className="flex-1 truncate">{category.name}</span>
-                      {value === category.id && (
-                        <Badge variant="secondary" className="bg-violet-200 text-violet-700 border-0 text-xs px-2 py-0">
-                          ✓
-                        </Badge>
+
+                      {/* Numéro d'index décoratif */}
+                      {value !== category.id && (
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                          <span className="text-4xl font-black text-violet-600">
+                            {String(index + 1).padStart(2, '0')}
+                          </span>
+                        </div>
                       )}
-                    </div>
-                  </CommandItem>
-                ))}
+                    </CommandItem>
+                  ))}
+                </div>
               </CommandGroup>
             )}
 
