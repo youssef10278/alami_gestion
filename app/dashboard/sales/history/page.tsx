@@ -339,7 +339,7 @@ export default function SalesHistoryPage() {
 
           <div class="footer">
             <p>Merci pour votre achat !</p>
-            <p>À bientôt chez Alami Gestion</p>
+            <p>À bientôt chez ${companySettings?.companyName || 'Alami Gestion'}</p>
             <p style="margin-top: 10px; font-size: 10px;">
               Réimprimé le ${new Date().toLocaleString('fr-FR')}
             </p>
