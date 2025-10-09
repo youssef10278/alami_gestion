@@ -330,10 +330,10 @@ export default function ProductsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-              {stockValue.toFixed(0)} DH
+              {safeToFixed(stockValue, 0)} DH
             </div>
             <p className="text-xs md:text-sm text-green-600 mt-2 font-medium">
-              💰 Potentiel: {potentialValue.toFixed(0)} DH
+              💰 Potentiel: {safeToFixed(potentialValue, 0)} DH
             </p>
           </CardContent>
         </Card>
@@ -354,7 +354,7 @@ export default function ProductsPage() {
               {lowStockCount}
             </div>
             <p className="text-xs md:text-sm text-orange-600 mt-2 font-medium">
-              📈 Bénéfice: {potentialProfit.toFixed(0)} DH
+              📈 Bénéfice: {safeToFixed(potentialProfit, 0)} DH
             </p>
           </CardContent>
         </Card>

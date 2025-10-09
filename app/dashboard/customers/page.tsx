@@ -5,6 +5,7 @@ import { Plus, Search, Users, CreditCard, Ban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { safeToFixed } from '@/lib/utils'
 import CustomerDialog from '@/components/customers/CustomerDialog'
 import CustomerCard from '@/components/customers/CustomerCard'
 
@@ -160,7 +161,7 @@ export default function CustomersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
-              {totalCredit.toFixed(0)} DH
+              {safeToFixed(totalCredit, 0)} DH
             </div>
             <p className="text-xs text-orange-600 mt-2 font-medium">
               💳 Crédit utilisé

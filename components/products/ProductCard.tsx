@@ -4,6 +4,7 @@ import { Edit, Trash2, Package, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { safeToFixed } from '@/lib/utils'
 
 interface Product {
   id: string
@@ -31,11 +32,11 @@ interface ProductCardProps {
 export default function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
   const isLowStock = product.stock <= product.minStock
   // Calcul amélioré du pourcentage de stock (basé sur le stock minimum)
-  const stockPercentage = Math.min((product.stock / product.minStock) * 100, 100)
+  const stockPercentage = product.minStock > 0 ? Math.min((product.stock / product.minStock) * 100, 100) : 0
 
   // Calcul de la marge
-  const purchasePrice = Number(product.purchasePrice)
-  const salePrice = Number(product.price)
+  const purchasePrice = Number(product.purchasePrice) || 0
+  const salePrice = Number(product.price) || 0
   const marginAmount = salePrice - purchasePrice
   const marginPercentage = purchasePrice > 0 ? (marginAmount / purchasePrice) * 100 : 0
 
@@ -107,7 +108,7 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
                 <span className="sm:hidden">Achat</span>
               </span>
               <span className="font-semibold text-gray-700 bg-white px-2 py-0.5 rounded-md shadow-sm text-xs">
-                {purchasePrice.toFixed(0)} DH
+                {safeToFixed(purchasePrice, 0)} DH
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -117,7 +118,7 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
                 <span className="sm:hidden">Vente</span>
               </span>
               <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {salePrice.toFixed(0)} DH
+                {safeToFixed(salePrice, 0)} DH
               </span>
             </div>
             <div className="pt-2 border-t-2 border-white/50">
@@ -135,10 +136,10 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
                       : 'bg-gradient-to-r from-red-500 to-rose-500 text-white'
                   }`}>
                     {marginPercentage >= 30 ? '🎉' : marginPercentage >= 15 ? '👍' : '⚠️'}
-                    {marginPercentage.toFixed(1)}%
+                    {safeToFixed(marginPercentage, 1)}%
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    +{marginAmount.toFixed(0)} DH
+                    +{safeToFixed(marginAmount, 0)} DH
                   </div>
                 </div>
               </div>
@@ -173,7 +174,7 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
             </div>
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>Min: {product.minStock}</span>
-              <span>{stockPercentage.toFixed(0)}%</span>
+              <span>{safeToFixed(stockPercentage, 0)}%</span>
             </div>
           </div>
         </div>

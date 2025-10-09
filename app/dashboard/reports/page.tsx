@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { safeToFixed } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -363,7 +364,7 @@ export default function ReportsPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-blue-600">
-                            {product.total.toFixed(2)} DH
+                            {safeToFixed(product.total)} DH
                           </p>
                           <p className="text-sm text-gray-500">{product.quantity} unités</p>
                         </div>
@@ -404,7 +405,7 @@ export default function ReportsPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-blue-600">
-                            {customer.total.toFixed(2)} DH
+                            {safeToFixed(customer.total)} DH
                           </p>
                           <p className="text-sm text-gray-500">{customer.orders} commandes</p>
                         </div>
