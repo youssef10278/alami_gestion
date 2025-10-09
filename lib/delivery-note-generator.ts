@@ -17,6 +17,14 @@ function cleanText(text: string): string {
     .replace(/[À-ÿ]/g, '') // Supprimer tout autre caractère accentué restant
 }
 
+// Fonction pour créer une couleur transparente (simulation)
+function getTransparentColor(color: [number, number, number], opacity: number): [number, number, number] {
+  const r = Math.round(color[0] + (255 - color[0]) * (1 - opacity))
+  const g = Math.round(color[1] + (255 - color[1]) * (1 - opacity))
+  const b = Math.round(color[2] + (255 - color[2]) * (1 - opacity))
+  return [r, g, b]
+}
+
 interface DeliveryNoteData {
   saleNumber: string
   customerName: string
@@ -92,42 +100,89 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
   currentY = 50
 
   // === INFORMATIONS CLIENT ===
+  // En-tête DESTINATAIRE avec fond coloré
+  doc.setFillColor(...primaryColorRGB)
+  doc.rect(15, currentY - 3, 90, 8, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(11)
+  doc.text('DESTINATAIRE', 18, currentY + 2)
+
+  currentY += 10
+
+  // Cadre client avec fond léger
+  const lightBg = getTransparentColor(primaryColorRGB, 0.05)
+  doc.setFillColor(...lightBg)
+  doc.setDrawColor(...primaryColorRGB)
+  doc.setLineWidth(0.5)
+  doc.rect(15, currentY - 3, 90, 30, 'FD')
+
+  // Contenu client
   doc.setTextColor(...darkGray)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(12)
-  doc.text('DESTINATAIRE', 15, currentY)
-  
-  currentY += 10
-  doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
-  
-  // Cadre client
-  doc.setDrawColor(...primaryColorRGB)
-  doc.setLineWidth(1)
-  doc.rect(15, currentY - 5, 90, 25)
-  
-  doc.text(cleanText(data.customerName), 20, currentY + 3)
+  doc.text(cleanText(data.customerName), 18, currentY + 3)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  let clientY = currentY + 9
+
   if (data.customerAddress) {
-    doc.text(cleanText(data.customerAddress), 20, currentY + 10)
+    doc.text(`📍 ${cleanText(data.customerAddress)}`, 18, clientY)
+    clientY += 6
   }
   if (data.customerPhone) {
-    doc.text(`Tél: ${data.customerPhone}`, 20, currentY + 17)
+    doc.text(`📞 ${data.customerPhone}`, 18, clientY)
   }
 
   // === INFORMATIONS LIVRAISON ===
+  // En-tête INFORMATIONS LIVRAISON avec fond coloré
+  doc.setFillColor(...primaryColorRGB)
+  doc.rect(110, currentY - 13, 85, 8, 'F')
+  doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(12)
-  doc.text('INFORMATIONS LIVRAISON', 120, currentY - 5)
-  
+  doc.setFontSize(11)
+  doc.text('INFORMATIONS LIVRAISON', 113, currentY - 8)
+
+  // Cadre livraison avec fond léger
+  doc.setFillColor(...lightBg)
+  doc.setDrawColor(...primaryColorRGB)
+  doc.setLineWidth(0.5)
+  doc.rect(110, currentY - 3, 85, 30, 'FD')
+
+  // Contenu livraison
+  doc.setTextColor(...darkGray)
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10)
-  
-  // Cadre livraison
-  doc.rect(120, currentY - 5, 75, 25)
-  
-  doc.text(`Date: ${data.createdAt.toLocaleDateString('fr-FR')}`, 125, currentY + 3)
-  doc.text(`Vendeur: ${cleanText(data.sellerName)}`, 125, currentY + 10)
-  doc.text(`Statut: A livrer`, 125, currentY + 17)
+  doc.setFontSize(9)
+
+  let infoY = currentY + 3
+
+  // Date
+  doc.setFont('helvetica', 'bold')
+  doc.text('Date:', 113, infoY)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.createdAt.toLocaleDateString('fr-FR'), 145, infoY)
+  infoY += 6
+
+  // Vendeur
+  doc.setFont('helvetica', 'bold')
+  doc.text('Vendeur:', 113, infoY)
+  doc.setFont('helvetica', 'normal')
+  doc.text(cleanText(data.sellerName), 145, infoY)
+  infoY += 6
+
+  // Statut avec badge
+  doc.setFont('helvetica', 'bold')
+  doc.text('Statut:', 113, infoY)
+
+  // Badge "À livrer" avec fond orange
+  const orangeColor: [number, number, number] = [249, 115, 22]
+  doc.setFillColor(...orangeColor)
+  doc.roundedRect(143, infoY - 3, 25, 5, 1, 1, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8)
+  doc.text('À LIVRER', 145, infoY + 0.5)
 
   currentY += 35
 
