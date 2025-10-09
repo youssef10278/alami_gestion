@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { FileText, Download, Eye, Plus } from 'lucide-react'
+import { FileText, Download, Eye } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,36 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { generateInvoicePDF, downloadPDF, openPDFInNewTab } from '@/lib/pdf-generator'
 
 interface Document {
   id: string
   documentNumber: string
-  type: string
+  type: 'INVOICE' | 'QUOTE' | 'CREDIT_NOTE'
   createdAt: string
-  sale: {
-    id: string
-    saleNumber: string
-    totalAmount: number
-    paidAmount: number
-    creditAmount: number
-    paymentMethod: string
-    notes: string | null
-    customer: {
-      name: string
-      company: string | null
-    }
-    items: {
-      id: string
-      quantity: number
-      unitPrice: number
-      total: number
-      product: {
-        name: string
-        sku: string
-      }
-    }[]
-  }
+  totalAmount: number
+  status: string
+  customer: {
+    name: string
+    company?: string | null
+  } | null
 }
 
 export default function DocumentsPage() {
@@ -58,13 +40,48 @@ export default function DocumentsPage() {
   const fetchDocuments = async () => {
     setLoading(true)
     try {
-      const url =
-        filter === 'all'
-          ? '/api/documents'
-          : `/api/documents?type=${filter}`
-      const response = await fetch(url)
-      const data = await response.json()
-      setDocuments(data.documents || [])
+      const allDocuments: Document[] = []
+
+      // Récupérer les factures
+      if (filter === 'all' || filter === 'INVOICE') {
+        const invoicesRes = await fetch('/api/invoices?limit=100')
+        if (invoicesRes.ok) {
+          const invoicesData = await invoicesRes.json()
+          const invoices = invoicesData.invoices.map((inv: any) => ({
+            id: inv.id,
+            documentNumber: inv.invoiceNumber,
+            type: 'INVOICE' as const,
+            createdAt: inv.createdAt,
+            totalAmount: inv.totalAmount,
+            status: inv.status,
+            customer: inv.customer
+          }))
+          allDocuments.push(...invoices)
+        }
+      }
+
+      // Récupérer les devis
+      if (filter === 'all' || filter === 'QUOTE') {
+        const quotesRes = await fetch('/api/quotes?limit=100')
+        if (quotesRes.ok) {
+          const quotesData = await quotesRes.json()
+          const quotes = quotesData.quotes.map((quote: any) => ({
+            id: quote.id,
+            documentNumber: quote.quoteNumber,
+            type: 'QUOTE' as const,
+            createdAt: quote.createdAt,
+            totalAmount: quote.totalAmount,
+            status: quote.status,
+            customer: quote.customer
+          }))
+          allDocuments.push(...quotes)
+        }
+      }
+
+      // Trier par date décroissante
+      allDocuments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+      setDocuments(allDocuments)
     } catch (error) {
       console.error('Error fetching documents:', error)
     } finally {
@@ -72,41 +89,42 @@ export default function DocumentsPage() {
     }
   }
 
-  const handleGeneratePDF = (doc: Document, action: 'download' | 'view') => {
-    const pdfType =
-      doc.type === 'INVOICE'
-        ? 'invoice'
-        : doc.type === 'QUOTE'
-        ? 'quote'
-        : 'delivery'
-
-    const pdfData = {
-      documentNumber: doc.documentNumber,
-      date: new Date(doc.createdAt),
-      customer: {
-        name: doc.sale.customer.name,
-        company: doc.sale.customer.company || undefined,
-      },
-      items: doc.sale.items.map((item) => ({
-        name: item.product.name,
-        sku: item.product.sku,
-        quantity: item.quantity,
-        unitPrice: Number(item.unitPrice),
-        total: Number(item.total),
-      })),
-      totalAmount: Number(doc.sale.totalAmount),
-      paidAmount: Number(doc.sale.paidAmount),
-      creditAmount: Number(doc.sale.creditAmount),
-      paymentMethod: doc.sale.paymentMethod,
-      notes: doc.sale.notes || undefined,
+  const handleViewPDF = (doc: Document) => {
+    let url = ''
+    if (doc.type === 'INVOICE') {
+      url = `/api/invoices/${doc.id}/pdf`
+    } else if (doc.type === 'QUOTE') {
+      url = `/api/quotes/${doc.id}/pdf`
     }
 
-    const pdf = generateInvoicePDF(pdfData, pdfType)
+    if (url) {
+      window.open(url, '_blank')
+    }
+  }
 
-    if (action === 'download') {
-      downloadPDF(pdf, `${doc.documentNumber}.pdf`)
-    } else {
-      openPDFInNewTab(pdf)
+  const handleDownloadPDF = async (doc: Document) => {
+    try {
+      let url = ''
+      if (doc.type === 'INVOICE') {
+        url = `/api/invoices/${doc.id}/pdf`
+      } else if (doc.type === 'QUOTE') {
+        url = `/api/quotes/${doc.id}/pdf`
+      }
+
+      if (url) {
+        const response = await fetch(url)
+        const blob = await response.blob()
+        const downloadUrl = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = downloadUrl
+        a.download = `${doc.documentNumber}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(downloadUrl)
+        document.body.removeChild(a)
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
     }
   }
 
@@ -116,8 +134,8 @@ export default function DocumentsPage() {
         return <Badge className="bg-blue-500">Facture</Badge>
       case 'QUOTE':
         return <Badge className="bg-purple-500">Devis</Badge>
-      case 'DELIVERY_NOTE':
-        return <Badge className="bg-green-500">Bon de livraison</Badge>
+      case 'CREDIT_NOTE':
+        return <Badge className="bg-orange-500">Facture d'avoir</Badge>
       default:
         return <Badge>{type}</Badge>
     }
@@ -127,7 +145,7 @@ export default function DocumentsPage() {
     total: documents.length,
     invoices: documents.filter((d) => d.type === 'INVOICE').length,
     quotes: documents.filter((d) => d.type === 'QUOTE').length,
-    deliveryNotes: documents.filter((d) => d.type === 'DELIVERY_NOTE').length,
+    creditNotes: documents.filter((d) => d.type === 'CREDIT_NOTE').length,
   }
 
   if (loading) {
@@ -173,7 +191,7 @@ export default function DocumentsPage() {
               <SelectItem value="all">📁 Tous les documents</SelectItem>
               <SelectItem value="INVOICE">📄 Factures</SelectItem>
               <SelectItem value="QUOTE">📋 Devis</SelectItem>
-              <SelectItem value="DELIVERY_NOTE">📦 Bons de livraison</SelectItem>
+              <SelectItem value="CREDIT_NOTE">📝 Factures d'avoir</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -244,23 +262,23 @@ export default function DocumentsPage() {
           </CardContent>
         </Card>
 
-        {/* Bons de livraison */}
-        <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 to-emerald-100/50">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16"></div>
+        {/* Factures d'avoir */}
+        <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-orange-50 to-amber-100/50">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16"></div>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-green-900">
-              Bons de livraison
+            <CardTitle className="text-sm font-semibold text-orange-900">
+              Factures d'avoir
             </CardTitle>
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg">
               <FileText className="w-5 h-5 text-white" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-              {stats.deliveryNotes}
+            <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
+              {stats.creditNotes}
             </div>
-            <p className="text-xs text-green-600 mt-2 font-medium">
-              📦 Bons émis
+            <p className="text-xs text-orange-600 mt-2 font-medium">
+              📝 Avoirs émis
             </p>
           </CardContent>
         </Card>
@@ -310,16 +328,16 @@ export default function DocumentsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div>
-                          <p className="font-medium">{doc.sale.customer.name}</p>
-                          {doc.sale.customer.company && (
+                          <p className="font-medium">{doc.customer?.name || 'Client de passage'}</p>
+                          {doc.customer?.company && (
                             <p className="text-gray-500 text-xs">
-                              {doc.sale.customer.company}
+                              {doc.customer.company}
                             </p>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
-                        {Number(doc.sale.totalAmount).toFixed(2)} DH
+                        {Number(doc.totalAmount).toFixed(2)} DH
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {format(new Date(doc.createdAt), 'dd MMM yyyy', {
@@ -331,13 +349,15 @@ export default function DocumentsPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleGeneratePDF(doc, 'view')}
+                            onClick={() => handleViewPDF(doc)}
+                            title="Voir le PDF"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleGeneratePDF(doc, 'download')}
+                            onClick={() => handleDownloadPDF(doc)}
+                            title="Télécharger le PDF"
                           >
                             <Download className="w-4 h-4" />
                           </Button>
