@@ -146,15 +146,16 @@ model StockMovement {
 }
 
 model CreditPayment {
-  id            String   @id @default(cuid())
-  saleId        String?
-  customerId    String
-  amount        Decimal  @db.Decimal(10, 2)
-  paymentMethod String   @default("CASH")
-  notes         String?
-  createdAt     DateTime @default(now())
-  customer      Customer @relation(fields: [customerId], references: [id])
-  sale          Sale?    @relation(fields: [saleId], references: [id])
+  id                   String                @id @default(cuid())
+  saleId               String?
+  customerId           String
+  amount               Decimal               @db.Decimal(10, 2)
+  paymentMethod        String                @default("CASH")
+  notes                String?
+  createdAt            DateTime              @default(now())
+  customer             Customer              @relation(fields: [customerId], references: [id])
+  sale                 Sale?                 @relation(fields: [saleId], references: [id])
+  creditPaymentCheck   CreditPaymentCheck?
 
   @@index([saleId])
   @@index([customerId])
@@ -419,6 +420,28 @@ model SaleCheck {
   @@map("sale_checks")
 }
 
+model CreditPaymentCheck {
+  id               String                   @id @default(cuid())
+  creditPaymentId  String                   @unique
+  checkNumber      String
+  issuer           String
+  beneficiary      String
+  checkDate        DateTime
+  amount           Decimal                  @db.Decimal(10, 2)
+  status           CreditPaymentCheckStatus @default(PENDING)
+  cashedDate       DateTime?
+  notes            String?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  creditPayment    CreditPayment            @relation(fields: [creditPaymentId], references: [id], onDelete: Cascade)
+
+  @@index([checkNumber])
+  @@index([status])
+  @@index([checkDate])
+  @@index([creditPaymentId])
+  @@map("credit_payment_checks")
+}
+
 enum UserRole {
   OWNER
   SELLER
@@ -465,6 +488,13 @@ enum CheckStatus {
 }
 
 enum SaleCheckStatus {
+  PENDING
+  CASHED
+  BOUNCED
+  CANCELLED
+}
+
+enum CreditPaymentCheckStatus {
   PENDING
   CASHED
   BOUNCED

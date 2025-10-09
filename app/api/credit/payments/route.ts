@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { customerId, amount, paymentMethod, notes, saleIds, mode } = body
+    const { customerId, amount, paymentMethod, notes, saleIds, mode, checkData } = body
 
     if (!customerId || !amount) {
       return NextResponse.json(
@@ -135,6 +135,23 @@ export async function POST(request: NextRequest) {
               amount: paymentForThisSale,
               paymentMethod: paymentMethod || 'CASH',
               notes: notes || null,
+              ...(paymentMethod === 'CHECK' && checkData
+                ? {
+                    creditPaymentCheck: {
+                      create: {
+                        checkNumber: checkData.checkNumber,
+                        issuer: checkData.issuer,
+                        beneficiary: checkData.beneficiary,
+                        checkDate: new Date(checkData.checkDate),
+                        amount: paymentForThisSale,
+                        notes: checkData.notes || null,
+                      },
+                    },
+                  }
+                : {}),
+            },
+            include: {
+              creditPaymentCheck: true,
             },
           })
 
@@ -186,6 +203,23 @@ export async function POST(request: NextRequest) {
               amount: paymentForThisSale,
               paymentMethod: paymentMethod || 'CASH',
               notes: notes || null,
+              ...(paymentMethod === 'CHECK' && checkData
+                ? {
+                    creditPaymentCheck: {
+                      create: {
+                        checkNumber: checkData.checkNumber,
+                        issuer: checkData.issuer,
+                        beneficiary: checkData.beneficiary,
+                        checkDate: new Date(checkData.checkDate),
+                        amount: paymentForThisSale,
+                        notes: checkData.notes || null,
+                      },
+                    },
+                  }
+                : {}),
+            },
+            include: {
+              creditPaymentCheck: true,
             },
           })
 

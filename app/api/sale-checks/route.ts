@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-// GET - Récupérer tous les chèques
+// GET - Récupérer tous les chèques (ventes + paiements de crédit)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    const checks = await prisma.saleCheck.findMany({
+    // Récupérer les chèques de vente
+    const saleChecks = await prisma.saleCheck.findMany({
       where,
       include: {
         sale: {
@@ -41,7 +42,45 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(checks)
+    // Récupérer les chèques de paiement de crédit
+    const creditPaymentChecks = await prisma.creditPaymentCheck.findMany({
+      where,
+      include: {
+        creditPayment: {
+          include: {
+            customer: true,
+            sale: {
+              include: {
+                seller: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    // Combiner et formater les deux types de chèques
+    const allChecks = [
+      ...saleChecks.map(check => ({
+        ...check,
+        type: 'SALE' as const,
+        customer: check.sale.customer,
+        seller: check.sale.seller,
+        saleNumber: check.sale.saleNumber
+      })),
+      ...creditPaymentChecks.map(check => ({
+        ...check,
+        type: 'CREDIT_PAYMENT' as const,
+        customer: check.creditPayment.customer,
+        seller: check.creditPayment.sale?.seller,
+        saleNumber: check.creditPayment.sale?.saleNumber
+      }))
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    return NextResponse.json(allChecks)
   } catch (error) {
     console.error('Erreur lors de la récupération des chèques:', error)
     return NextResponse.json(

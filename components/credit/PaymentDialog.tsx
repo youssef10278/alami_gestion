@@ -66,6 +66,13 @@ export default function PaymentDialog({
     paymentMethod: 'CASH',
     notes: '',
   })
+  const [checkData, setCheckData] = useState({
+    checkNumber: '',
+    issuer: '',
+    beneficiary: '',
+    checkDate: '',
+    notes: '',
+  })
 
   // Charger les ventes impayées
   useEffect(() => {
@@ -73,6 +80,13 @@ export default function PaymentDialog({
       setFormData({
         amount: Number(customer.creditUsed).toFixed(2),
         paymentMethod: 'CASH',
+        notes: '',
+      })
+      setCheckData({
+        checkNumber: '',
+        issuer: customer.name,
+        beneficiary: '',
+        checkDate: new Date().toISOString().split('T')[0],
         notes: '',
       })
       setError('')
@@ -135,6 +149,14 @@ export default function PaymentDialog({
 
     if (!customer) return
 
+    // Validation pour le chèque
+    if (formData.paymentMethod === 'CHECK') {
+      if (!checkData.checkNumber || !checkData.issuer || !checkData.beneficiary || !checkData.checkDate) {
+        setError('Veuillez remplir tous les champs du chèque')
+        return
+      }
+    }
+
     setError('')
     setLoading(true)
 
@@ -151,6 +173,7 @@ export default function PaymentDialog({
           notes: formData.notes,
           saleIds: mode === 'manual' ? selectedSaleIds : undefined,
           mode,
+          checkData: formData.paymentMethod === 'CHECK' ? checkData : undefined,
         }),
       })
 
@@ -376,10 +399,94 @@ export default function PaymentDialog({
               <SelectContent>
                 <SelectItem value="CASH">Espèces</SelectItem>
                 <SelectItem value="CARD">Carte</SelectItem>
+                <SelectItem value="CHECK">Chèque</SelectItem>
                 <SelectItem value="TRANSFER">Virement</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {/* Informations du chèque (si méthode = CHECK) */}
+          {formData.paymentMethod === 'CHECK' && (
+            <div className="space-y-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <h4 className="font-semibold text-sm text-yellow-900 flex items-center gap-2">
+                📝 Informations du chèque
+              </h4>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="checkNumber">
+                    N° Chèque <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="checkNumber"
+                    value={checkData.checkNumber}
+                    onChange={(e) =>
+                      setCheckData({ ...checkData, checkNumber: e.target.value })
+                    }
+                    placeholder="123456"
+                    required={formData.paymentMethod === 'CHECK'}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="checkDate">
+                    Date du chèque <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="checkDate"
+                    type="date"
+                    value={checkData.checkDate}
+                    onChange={(e) =>
+                      setCheckData({ ...checkData, checkDate: e.target.value })
+                    }
+                    required={formData.paymentMethod === 'CHECK'}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="issuer">
+                  Émetteur <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="issuer"
+                  value={checkData.issuer}
+                  onChange={(e) =>
+                    setCheckData({ ...checkData, issuer: e.target.value })
+                  }
+                  placeholder="Nom de l'émetteur"
+                  required={formData.paymentMethod === 'CHECK'}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="beneficiary">
+                  Bénéficiaire <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="beneficiary"
+                  value={checkData.beneficiary}
+                  onChange={(e) =>
+                    setCheckData({ ...checkData, beneficiary: e.target.value })
+                  }
+                  placeholder="Nom du bénéficiaire"
+                  required={formData.paymentMethod === 'CHECK'}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="checkNotes">Notes sur le chèque</Label>
+                <Input
+                  id="checkNotes"
+                  value={checkData.notes}
+                  onChange={(e) =>
+                    setCheckData({ ...checkData, notes: e.target.value })
+                  }
+                  placeholder="Notes optionnelles"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Notes */}
           <div className="space-y-2">
