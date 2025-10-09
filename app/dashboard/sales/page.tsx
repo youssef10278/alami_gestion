@@ -13,6 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 import { toast } from 'sonner'
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
@@ -56,6 +64,14 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [lastSale, setLastSale] = useState<any>(null)
+  const [showNewCustomerDialog, setShowNewCustomerDialog] = useState(false)
+  const [newCustomerData, setNewCustomerData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    company: '',
+  })
+  const [creatingCustomer, setCreatingCustomer] = useState(false)
   const [showReceiptDialog, setShowReceiptDialog] = useState(false)
 
   // États pour les informations du chèque
@@ -106,6 +122,42 @@ export default function SalesPage() {
       setCustomers(data.customers || [])
     } catch (error) {
       console.error('Error fetching customers:', error)
+    }
+  }
+
+  const handleCreateCustomer = async () => {
+    if (!newCustomerData.name.trim()) {
+      toast.error('Le nom du client est requis')
+      return
+    }
+
+    setCreatingCustomer(true)
+    try {
+      const response = await fetch('/api/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newCustomerData),
+      })
+
+      if (response.ok) {
+        const newCustomer = await response.json()
+        setCustomers([...customers, newCustomer])
+        setSelectedCustomer(newCustomer)
+        setIsWalkInCustomer(false)
+        setShowNewCustomerDialog(false)
+        setNewCustomerData({ name: '', phone: '', email: '', company: '' })
+        toast.success('Client créé avec succès')
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Erreur lors de la création du client')
+      }
+    } catch (error) {
+      console.error('Error creating customer:', error)
+      toast.error('Erreur lors de la création du client')
+    } finally {
+      setCreatingCustomer(false)
     }
   }
 
@@ -766,7 +818,7 @@ export default function SalesPage() {
               <CardHeader>
                 <CardTitle className="text-sm">Client</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <Select
                   value={selectedCustomer?.id || 'walk-in'}
                   onValueChange={(value) => {
@@ -814,6 +866,19 @@ export default function SalesPage() {
                     ))}
                   </SelectContent>
                 </Select>
+
+                {/* Bouton Nouveau Client */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-dashed border-2 border-green-300 hover:border-green-400 hover:bg-green-50 text-green-700 font-medium"
+                  onClick={() => setShowNewCustomerDialog(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nouveau client
+                </Button>
+
                 {selectedCustomer ? (
                   <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center gap-2 text-xs">
@@ -1252,6 +1317,92 @@ export default function SalesPage() {
           </Card>
         </div>
       )}
+
+      {/* Modal Nouveau Client */}
+      <Dialog open={showNewCustomerDialog} onOpenChange={setShowNewCustomerDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Plus className="w-5 h-5 text-green-600" />
+              </div>
+              Nouveau client
+            </DialogTitle>
+            <DialogDescription>
+              Créez rapidement un nouveau client pour cette vente
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="customer-name">
+                Nom <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="customer-name"
+                placeholder="Nom du client"
+                value={newCustomerData.name}
+                onChange={(e) => setNewCustomerData({ ...newCustomerData, name: e.target.value })}
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="customer-phone">Téléphone</Label>
+              <Input
+                id="customer-phone"
+                type="tel"
+                placeholder="+212 6XX XXX XXX"
+                value={newCustomerData.phone}
+                onChange={(e) => setNewCustomerData({ ...newCustomerData, phone: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="customer-email">Email</Label>
+              <Input
+                id="customer-email"
+                type="email"
+                placeholder="client@example.com"
+                value={newCustomerData.email}
+                onChange={(e) => setNewCustomerData({ ...newCustomerData, email: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="customer-company">Entreprise</Label>
+              <Input
+                id="customer-company"
+                placeholder="Nom de l'entreprise (optionnel)"
+                value={newCustomerData.company}
+                onChange={(e) => setNewCustomerData({ ...newCustomerData, company: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowNewCustomerDialog(false)
+                setNewCustomerData({ name: '', phone: '', email: '', company: '' })
+              }}
+              disabled={creatingCustomer}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCreateCustomer}
+              disabled={creatingCustomer || !newCustomerData.name.trim()}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {creatingCustomer ? 'Création...' : 'Créer le client'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
