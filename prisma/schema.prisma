@@ -146,14 +146,15 @@ model StockMovement {
 }
 
 model CreditPayment {
-  id         String   @id @default(cuid())
-  saleId     String
-  customerId String
-  amount     Decimal  @db.Decimal(10, 2)
-  notes      String?
-  createdAt  DateTime @default(now())
-  customer   Customer @relation(fields: [customerId], references: [id])
-  sale       Sale     @relation(fields: [saleId], references: [id])
+  id            String   @id @default(cuid())
+  saleId        String?
+  customerId    String
+  amount        Decimal  @db.Decimal(10, 2)
+  paymentMethod String   @default("CASH")
+  notes         String?
+  createdAt     DateTime @default(now())
+  customer      Customer @relation(fields: [customerId], references: [id])
+  sale          Sale?    @relation(fields: [saleId], references: [id])
 
   @@index([saleId])
   @@index([customerId])
