@@ -106,24 +106,36 @@ export async function PUT(request: NextRequest) {
           },
         })
 
-        const totalDebt = Number(currentCheck.supplier.totalDebt)
+        let newTotalDebt = Number(currentCheck.supplier.totalDebt)
         let newTotalPaid = Number(currentCheck.supplier.totalPaid)
+        const checkAmount = Number(currentCheck.amount)
 
         // ISSUED → CANCELLED/BOUNCED : Annuler le paiement
         if (currentCheck.status === 'ISSUED' && (status === 'CANCELLED' || status === 'BOUNCED')) {
-          newTotalPaid -= Number(currentCheck.amount)
+          newTotalPaid -= checkAmount
+          // Si le chèque avait créé une dette (totalDebt = totalPaid avant annulation)
+          // On annule aussi la dette
+          if (newTotalDebt === Number(currentCheck.supplier.totalPaid)) {
+            newTotalDebt -= checkAmount
+          }
         }
         // CANCELLED/CASHED/BOUNCED → ISSUED : Réactiver le paiement
         else if ((currentCheck.status === 'CANCELLED' || currentCheck.status === 'CASHED' || currentCheck.status === 'BOUNCED') && status === 'ISSUED') {
-          newTotalPaid += Number(currentCheck.amount)
+          newTotalPaid += checkAmount
+          // Si on réactive un chèque qui avait créé une dette
+          // On recrée la dette si balance était 0
+          if (Number(currentCheck.supplier.balance) === 0) {
+            newTotalDebt += checkAmount
+          }
         }
 
         // Recalculer le balance : totalDebt - totalPaid
-        const newBalance = totalDebt - newTotalPaid
+        const newBalance = newTotalDebt - newTotalPaid
 
         await tx.supplier.update({
           where: { id: currentCheck.supplierId },
           data: {
+            totalDebt: newTotalDebt,
             balance: newBalance,
             totalPaid: newTotalPaid,
           },
@@ -241,18 +253,38 @@ export async function POST(request: NextRequest) {
       })
 
       // Mettre à jour le solde du fournisseur
-      // Quand on donne un chèque au fournisseur, on réduit notre dette envers lui
-      // balance = totalDebt - totalPaid
-      // Si balance > 0 : on doit de l'argent au fournisseur
-      // Si balance < 0 : le fournisseur nous doit de l'argent (paiement anticipé)
-      // Si balance = 0 : on est à jour
+      // Logique : Un chèque représente un paiement pour un achat/service
+      //
+      // CAS 1 : Fournisseur a une dette (balance > 0)
+      //   → On réduit la dette existante
+      //   → totalPaid +100, balance -100
+      //
+      // CAS 2 : Fournisseur n'a pas de dette (balance <= 0)
+      //   → On crée une dette et on la paie immédiatement
+      //   → totalDebt +100, totalPaid +100, balance = 0
 
-      const newTotalPaid = Number(supplier.totalPaid) + parseFloat(amount)
-      const newBalance = Number(supplier.totalDebt) - newTotalPaid
+      const currentBalance = Number(supplier.balance)
+      const checkAmount = parseFloat(amount)
+
+      let newTotalDebt = Number(supplier.totalDebt)
+      let newTotalPaid = Number(supplier.totalPaid)
+      let newBalance = currentBalance
+
+      if (currentBalance > 0) {
+        // CAS 1 : Réduire la dette existante
+        newTotalPaid += checkAmount
+        newBalance = newTotalDebt - newTotalPaid
+      } else {
+        // CAS 2 : Créer une dette et la payer immédiatement
+        newTotalDebt += checkAmount
+        newTotalPaid += checkAmount
+        newBalance = newTotalDebt - newTotalPaid // = 0
+      }
 
       await tx.supplier.update({
         where: { id: supplierId },
         data: {
+          totalDebt: newTotalDebt,
           balance: newBalance,
           totalPaid: newTotalPaid,
         },
