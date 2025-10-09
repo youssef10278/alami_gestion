@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { ArrowLeft, Edit, Trash2, Plus, DollarSign, CreditCard, FileText } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -245,79 +245,6 @@ export default function SupplierDetailsPage({ params }: { params: { id: string }
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total Achats
-              </CardTitle>
-              <DollarSign className="w-5 h-5 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {Number(supplier.totalDebt).toFixed(2)} DH
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total Payé
-              </CardTitle>
-              <CreditCard className="w-5 h-5 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {Number(supplier.totalPaid).toFixed(2)} DH
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Solde Actuel
-              </CardTitle>
-              <DollarSign className="w-5 h-5 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${Number(supplier.balance) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                {Number(supplier.balance).toFixed(2)} DH
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Chèques
-              </CardTitle>
-              <FileText className="w-5 h-5 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {supplier._count.checks}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Actions Rapides */}
-        <div className="flex gap-4 mb-8">
-          <Link href="/dashboard/suppliers/transactions/new" className="flex-1">
-            <Button className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Nouvelle Transaction
-            </Button>
-          </Link>
-        </div>
-
         {/* Onglets */}
         <div className="mb-6">
           <div className="border-b border-gray-200">
