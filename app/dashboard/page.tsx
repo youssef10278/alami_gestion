@@ -79,14 +79,14 @@ export default async function DashboardPage() {
     },
     {
       title: 'Chiffre d\'affaires',
-      value: `${totalRevenue._sum.totalAmount?.toFixed(2) || 0} DH`,
+      value: `${(totalRevenue._sum.totalAmount ? Number(totalRevenue._sum.totalAmount).toFixed(2) : '0.00')} DH`,
       icon: DollarSign,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100',
     },
     {
       title: 'Crédit utilisé',
-      value: `${creditUsed._sum.creditUsed?.toFixed(2) || 0} DH`,
+      value: `${(creditUsed._sum.creditUsed ? Number(creditUsed._sum.creditUsed).toFixed(2) : '0.00')} DH`,
       icon: TrendingUp,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
@@ -239,7 +239,7 @@ export default async function DashboardPage() {
                     className="h-full rounded-full transition-all duration-1000 ease-out"
                     style={{
                       backgroundColor: colorScheme.accent,
-                      width: `${Math.min(100, (parseInt(stat.value.toString()) / 100) * 100)}%`
+                      width: `${Math.min(100, Math.max(0, (parseFloat(stat.value.toString().replace(/[^\d.-]/g, '')) || 0) / 100) * 100)}%`
                     }}
                   ></div>
                 </div>
