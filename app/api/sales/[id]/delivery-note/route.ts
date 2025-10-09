@@ -49,11 +49,12 @@ export async function GET(
       )
     }
 
-    // Vérifier que la vente est finalisée
-    if (sale.status !== 'COMPLETED') {
-      console.log('❌ Vente non finalisée, statut:', sale.status)
+    // Vérifier que la vente n'est pas annulée
+    // Note: On peut générer un bon de livraison même pour les ventes à crédit (PENDING/PARTIAL)
+    if (sale.status === 'CANCELLED') {
+      console.log('❌ Vente annulée, statut:', sale.status)
       return NextResponse.json(
-        { error: 'La vente doit être finalisée pour générer un bon de livraison' },
+        { error: 'Impossible de générer un bon de livraison pour une vente annulée' },
         { status: 400 }
       )
     }
