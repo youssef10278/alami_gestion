@@ -102,7 +102,7 @@ export async function PUT(request: NextRequest) {
           where: { id },
           data: {
             status,
-            cashDate: cashDate ? new Date(cashDate) : null,
+            cashDate: cashDate ? new Date(cashDate) : (status === 'CASHED' ? new Date() : null),
           },
         })
 

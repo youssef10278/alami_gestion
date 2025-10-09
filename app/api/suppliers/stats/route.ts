@@ -45,13 +45,11 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Chèques créés ce mois (ISSUED ou CASHED)
+    // Chèques ENCAISSÉS ce mois (seulement CASHED, pas ISSUED)
     const checksThisMonth = await prisma.check.aggregate({
       where: {
-        status: {
-          in: ['ISSUED', 'CASHED'],
-        },
-        issueDate: {
+        status: 'CASHED',
+        cashDate: {
           gte: startOfMonth,
         },
       },
