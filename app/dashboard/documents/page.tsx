@@ -33,6 +33,8 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string>('')
 
   useEffect(() => {
     fetchDocuments()
@@ -130,18 +132,27 @@ export default function DocumentsPage() {
     }
   }
 
-  const handleViewPDF = (doc: Document) => {
-    let url = ''
-    if (doc.type === 'INVOICE') {
-      url = `/api/invoices/${doc.id}/pdf`
-    } else if (doc.type === 'QUOTE') {
-      url = `/api/quotes/${doc.id}/pdf`
-    } else if (doc.type === 'DELIVERY_NOTE') {
-      url = `/api/sales/${doc.id}/delivery-note`
-    }
+  const handleViewPDF = async (doc: Document) => {
+    try {
+      let url = ''
+      if (doc.type === 'INVOICE') {
+        url = `/api/invoices/${doc.id}/pdf`
+      } else if (doc.type === 'QUOTE') {
+        url = `/api/quotes/${doc.id}/pdf`
+      } else if (doc.type === 'DELIVERY_NOTE') {
+        url = `/api/sales/${doc.id}/delivery-note`
+      }
 
-    if (url) {
-      window.open(url, '_blank')
+      if (url) {
+        // Récupérer le PDF et créer un blob URL pour l'aperçu
+        const response = await fetch(url)
+        const blob = await response.blob()
+        const blobUrl = window.URL.createObjectURL(blob)
+        setPreviewUrl(blobUrl)
+        setPreviewDoc(doc)
+      }
+    } catch (error) {
+      console.error('Error viewing PDF:', error)
     }
   }
 
@@ -171,6 +182,14 @@ export default function DocumentsPage() {
     } catch (error) {
       console.error('Error downloading PDF:', error)
     }
+  }
+
+  const closePreview = () => {
+    if (previewUrl) {
+      window.URL.revokeObjectURL(previewUrl)
+    }
+    setPreviewUrl('')
+    setPreviewDoc(null)
   }
 
   const getDocumentTypeBadge = (type: string) => {
@@ -420,6 +439,58 @@ export default function DocumentsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal d'aperçu PDF */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={closePreview}
+        >
+          <div
+            className="relative w-full h-full max-w-6xl max-h-[90vh] bg-white rounded-lg shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header du modal */}
+            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-violet-600 to-purple-600 text-white p-4 flex items-center justify-between z-10 shadow-lg">
+              <div className="flex items-center gap-3">
+                <FileText className="w-6 h-6" />
+                <div>
+                  <h3 className="font-bold text-lg">{previewDoc?.documentNumber}</h3>
+                  <p className="text-sm text-violet-100">
+                    {previewDoc?.customer?.name || 'Client de passage'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => previewDoc && handleDownloadPDF(previewDoc)}
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Télécharger
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={closePreview}
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+
+            {/* Viewer PDF */}
+            <iframe
+              src={previewUrl}
+              className="w-full h-full pt-20"
+              title="Aperçu du document"
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
