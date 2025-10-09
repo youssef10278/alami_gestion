@@ -295,7 +295,9 @@ export default async function DashboardPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-xl md:text-2xl font-bold text-[var(--color-business-blue)]">
-                    {(recentSales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0) / recentSales.length).toFixed(0)} DH
+                    {recentSales.length > 0
+                      ? (recentSales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0) / recentSales.length).toFixed(0)
+                      : '0'} DH
                   </div>
                   <div className="text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
                     Panier moyen
