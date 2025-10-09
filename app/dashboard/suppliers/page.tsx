@@ -1,14 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Users, DollarSign, CreditCard, FileText, Edit, Trash2, BarChart3 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Plus, Search, Users, Edit, Trash2, FileText } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import SupplierAnalyticsDashboard from '@/components/suppliers/SupplierAnalyticsDashboard'
 import AddCheckDialog from '@/components/suppliers/AddCheckDialog'
 
 interface Supplier {
@@ -31,32 +30,17 @@ interface Supplier {
   }
 }
 
-interface Stats {
-  totalSuppliers: number
-  totalDebt: number
-  totalPaidThisMonth: number
-  pendingChecks: number
-}
-
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([])
-  const [stats, setStats] = useState<Stats>({
-    totalSuppliers: 0,
-    totalDebt: 0,
-    totalPaidThisMonth: 0,
-    pendingChecks: 0,
-  })
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'suppliers' | 'analytics'>('suppliers')
   const [showAddCheckDialog, setShowAddCheckDialog] = useState(false)
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
 
   useEffect(() => {
     fetchSuppliers()
-    fetchStats()
   }, [])
 
   useEffect(() => {
@@ -78,17 +62,7 @@ export default function SuppliersPage() {
     }
   }
 
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('/api/suppliers/stats')
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data)
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error)
-    }
-  }
+
 
   const applyFilters = () => {
     let filtered = [...suppliers]
@@ -178,96 +152,6 @@ export default function SuppliersPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Onglets */}
-        <div className="mb-6 border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('suppliers')}
-              className={`${
-                activeTab === 'suppliers'
-                  ? 'border-violet-600 text-violet-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
-            >
-              <Users className="w-5 h-5" />
-              Liste des Fournisseurs
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`${
-                activeTab === 'analytics'
-                  ? 'border-violet-600 text-violet-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
-            >
-              <BarChart3 className="w-5 h-5" />
-              Analytics des Chèques
-            </button>
-          </nav>
-        </div>
-
-        {/* Contenu selon l'onglet actif */}
-        {activeTab === 'suppliers' ? (
-          <>
-            {/* Statistiques */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total Fournisseurs
-              </CardTitle>
-              <Users className="w-5 h-5 text-violet-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stats.totalSuppliers}</div>
-              <p className="text-xs text-gray-500 mt-1">Fournisseurs actifs</p>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total Dû
-              </CardTitle>
-              <DollarSign className="w-5 h-5 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-red-600">{stats.totalDebt.toFixed(2)} DH</div>
-              <p className="text-xs text-gray-500 mt-1">Montant total à payer</p>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Payé ce Mois
-              </CardTitle>
-              <CreditCard className="w-5 h-5 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">{stats.totalPaidThisMonth.toFixed(2)} DH</div>
-              <p className="text-xs text-gray-500 mt-1">Paiements du mois</p>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full -mr-16 -mt-16"></div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Chèques en Attente
-              </CardTitle>
-              <FileText className="w-5 h-5 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">{stats.pendingChecks}</div>
-              <p className="text-xs text-gray-500 mt-1">Chèques émis</p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Filtres */}
         <Card className="mb-6">
           <CardContent className="pt-6">
@@ -393,11 +277,6 @@ export default function SuppliersPage() {
             </div>
           </CardContent>
         </Card>
-          </>
-        ) : (
-          /* Onglet Analytics */
-          <SupplierAnalyticsDashboard />
-        )}
       </div>
 
       {/* Dialogue pour ajouter un chèque */}
@@ -411,7 +290,6 @@ export default function SuppliersPage() {
         } : null}
         onSuccess={() => {
           fetchSuppliers()
-          fetchStats()
         }}
       />
     </div>
