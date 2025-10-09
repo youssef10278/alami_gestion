@@ -201,6 +201,9 @@ export default function QuoteDetailsPage({ params }: { params: { id: string } })
             padding: 40px;
             max-width: 210mm;
             margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
           }
           .header {
             text-align: center;
@@ -294,13 +297,17 @@ export default function QuoteDetailsPage({ params }: { params: { id: string } })
             line-height: 1.6;
             color: #666;
           }
+          .content {
+            flex: 1;
+          }
           .footer {
-            margin-top: 50px;
+            margin-top: auto;
             text-align: center;
             font-size: 12px;
             color: #999;
             border-top: 1px solid #e5e7eb;
             padding-top: 20px;
+            padding-bottom: 20px;
           }
           @media print {
             body {
@@ -310,10 +317,11 @@ export default function QuoteDetailsPage({ params }: { params: { id: string } })
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>📋 DEVIS</h1>
-          <div class="quote-number">${quote.quoteNumber}</div>
-        </div>
+        <div class="content">
+          <div class="header">
+            <h1>📋 DEVIS</h1>
+            <div class="quote-number">${quote.quoteNumber}</div>
+          </div>
 
         <div class="info-section">
           <div class="info-box">
@@ -395,6 +403,7 @@ export default function QuoteDetailsPage({ params }: { params: { id: string } })
             <p>${quote.notes}</p>
           </div>
         ` : ''}
+        </div>
 
         <div class="footer">
           <p>Alami Gestion - Système de Gestion d'Entreprise</p>

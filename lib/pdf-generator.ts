@@ -1432,6 +1432,27 @@ function generateSimpleQuotePDF(
   doc.setFontSize(7)
   doc.text('(signature et cachet)', margin + signatureWidth + 10, signatureY + 20)
 
+  // === FOOTER FIXÉ EN BAS DE PAGE ===
+  const footerY = pageHeight - 20 // Position fixe en bas de page
+
+  // Ligne de séparation du footer
+  doc.setDrawColor(200, 200, 200)
+  doc.setLineWidth(0.3)
+  doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5)
+
+  // Texte du footer
+  doc.setFontSize(7)
+  doc.setTextColor(150, 150, 150)
+  doc.setFont('helvetica', 'normal')
+
+  // Nom de l'entreprise à gauche
+  doc.text(cleanText(company.name || 'Alami Gestion'), margin, footerY)
+
+  // Date de génération à droite
+  const currentDate = new Date().toLocaleDateString('fr-FR')
+  const footerText = `Document généré le ${currentDate}`
+  doc.text(cleanText(footerText), pageWidth - margin, footerY, { align: 'right' })
+
   return doc
 }
 
