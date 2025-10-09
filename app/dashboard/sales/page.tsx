@@ -487,9 +487,9 @@ export default function SalesPage() {
       return
     }
 
-    // Validation : Montant payé requis pour crédit
-    if (paymentMethod === 'CREDIT' && !amountPaid) {
-      toast.error('Veuillez saisir le montant payé pour un paiement à crédit')
+    // Validation : Montant payé requis pour crédit (peut être 0)
+    if (paymentMethod === 'CREDIT' && amountPaid === '') {
+      toast.error('Veuillez saisir le montant payé pour un paiement à crédit (0 si aucun paiement)')
       return
     }
 
@@ -1104,13 +1104,13 @@ export default function SalesPage() {
                     <Input
                       type="number"
                       step="0.01"
+                      min="0"
                       value={amountPaid}
                       onChange={(e) => setAmountPaid(e.target.value)}
-                      placeholder="0.00"
-                      required
+                      placeholder="0.00 (0 = tout à crédit)"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      💡 Saisissez le montant payé maintenant. Le reste sera en crédit.
+                      💡 Saisissez le montant payé maintenant. Le reste sera en crédit. (0 = tout à crédit)
                     </p>
                   </div>
                 )}

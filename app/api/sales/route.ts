@@ -93,10 +93,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validation : montant payé requis pour crédit
-    if (paymentMethod === 'CREDIT' && (!amountPaid || parseFloat(amountPaid) <= 0)) {
+    // Validation : montant payé requis pour crédit (peut être 0)
+    if (paymentMethod === 'CREDIT' && (amountPaid === undefined || amountPaid === null || amountPaid === '')) {
       return NextResponse.json(
-        { error: 'Le montant payé est requis pour un paiement à crédit' },
+        { error: 'Le montant payé est requis pour un paiement à crédit (0 si aucun paiement)' },
+        { status: 400 }
+      )
+    }
+
+    // Validation : montant payé ne peut pas être négatif
+    if (paymentMethod === 'CREDIT' && parseFloat(amountPaid) < 0) {
+      return NextResponse.json(
+        { error: 'Le montant payé ne peut pas être négatif' },
         { status: 400 }
       )
     }
