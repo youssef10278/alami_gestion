@@ -140,10 +140,13 @@ export function CategoryCombobox({
                     key={category.id}
                     value={category.name}
                     onSelect={() => {
+                      console.log('Catégorie sélectionnée:', category.name, category.id)
                       onValueChange(category.id)
                       setOpen(false)
                       setSearchValue('')
                     }}
+                    className="cursor-pointer hover:bg-accent"
+                    style={{ pointerEvents: 'auto' }}
                   >
                     <Check
                       className={cn(
