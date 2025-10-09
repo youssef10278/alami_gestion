@@ -69,14 +69,21 @@ export async function GET(request: NextRequest) {
         type: 'SALE' as const,
         customer: check.sale.customer,
         seller: check.sale.seller,
-        saleNumber: check.sale.saleNumber
+        saleNumber: check.sale.saleNumber,
+        sale: check.sale
       })),
       ...creditPaymentChecks.map(check => ({
         ...check,
         type: 'CREDIT_PAYMENT' as const,
         customer: check.creditPayment.customer,
-        seller: check.creditPayment.sale?.seller,
-        saleNumber: check.creditPayment.sale?.saleNumber
+        seller: check.creditPayment.sale?.seller || null,
+        saleNumber: check.creditPayment.sale?.saleNumber || null,
+        sale: check.creditPayment.sale || {
+          id: check.creditPayment.id,
+          saleNumber: 'Paiement direct',
+          customer: check.creditPayment.customer,
+          seller: null
+        }
       }))
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
