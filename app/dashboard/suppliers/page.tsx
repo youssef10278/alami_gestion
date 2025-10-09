@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit, Trash2, FileText } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, FileText, BarChart3 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -135,12 +135,20 @@ export default function SuppliersPage() {
               <h1 className="text-4xl font-bold mb-2">👥 Fournisseurs</h1>
               <p className="text-violet-100">Gestion des fournisseurs et paiements</p>
             </div>
-            <Link href="/dashboard/suppliers/new">
-              <Button className="bg-white text-violet-600 hover:bg-violet-50">
-                <Plus className="w-4 h-4 mr-2" />
-                Nouveau Fournisseur
-              </Button>
-            </Link>
+            <div className="flex gap-3">
+              <Link href="/dashboard/suppliers/checks/analytics">
+                <Button variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Analytics Chèques
+                </Button>
+              </Link>
+              <Link href="/dashboard/suppliers/new">
+                <Button className="bg-white text-violet-600 hover:bg-violet-50">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nouveau Fournisseur
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

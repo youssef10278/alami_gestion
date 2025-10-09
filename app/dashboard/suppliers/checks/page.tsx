@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Search, FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Search, FileText, CheckCircle, XCircle, AlertCircle, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 interface Check {
   id: string
@@ -151,8 +152,18 @@ export default function ChecksPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/20"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold mb-2">📝 Gestion des Chèques</h1>
-          <p className="text-violet-100">Suivi des chèques donnés aux fournisseurs</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">📝 Gestion des Chèques</h1>
+              <p className="text-violet-100">Suivi des chèques donnés aux fournisseurs</p>
+            </div>
+            <Link href="/dashboard/suppliers/checks/analytics">
+              <Button className="bg-white text-violet-600 hover:bg-violet-50">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
