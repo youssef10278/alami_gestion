@@ -15,17 +15,16 @@ export async function GET(request: NextRequest) {
       where: { isActive: true },
     })
 
-    // Calculer le total dû (seulement les soldes positifs = ce qu'on doit)
-    const suppliers = await prisma.supplier.findMany({
-      where: { isActive: true },
-      select: { balance: true },
+    // Calculer le total dû = Total des chèques ISSUED (non encaissés)
+    const issuedChecks = await prisma.check.aggregate({
+      where: {
+        status: 'ISSUED',
+      },
+      _sum: {
+        amount: true,
+      },
     })
-
-    // Somme des soldes positifs uniquement (ce qu'on doit aux fournisseurs)
-    const totalDebt = suppliers.reduce((sum, s) => {
-      const balance = Number(s.balance)
-      return sum + (balance > 0 ? balance : 0)
-    }, 0)
+    const totalDebt = Number(issuedChecks._sum.amount || 0)
 
     // Calculer le total payé ce mois (transactions + chèques)
     const now = new Date()
