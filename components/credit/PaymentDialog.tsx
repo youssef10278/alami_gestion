@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { DollarSign } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Customer {
   id: string
@@ -87,6 +89,9 @@ export default function PaymentDialog({
         return
       }
 
+      toast.success('Paiement enregistré avec succès', {
+        description: `${parseFloat(formData.amount).toFixed(2)} DH encaissé pour ${customer.name}`,
+      })
       onSuccess()
     } catch (err) {
       setError('Erreur lors de l\'enregistrement du paiement')
@@ -100,11 +105,16 @@ export default function PaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Enregistrer un paiement</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <DollarSign className="w-5 h-5 text-green-600" />
+            </div>
+            Encaisser le crédit
+          </DialogTitle>
           <DialogDescription>
-            Enregistrez un paiement de crédit pour {customer.name}
+            Enregistrez un paiement de crédit pour <span className="font-semibold text-gray-900">{customer.name}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -201,8 +211,13 @@ export default function PaymentDialog({
             >
               Annuler
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Enregistrement...' : 'Enregistrer le paiement'}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              <DollarSign className="w-4 h-4 mr-2" />
+              {loading ? 'Encaissement...' : 'Encaisser le paiement'}
             </Button>
           </DialogFooter>
         </form>

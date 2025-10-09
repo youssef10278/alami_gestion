@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { CreditCard, Users, AlertTriangle, TrendingUp, Plus } from 'lucide-react'
+import { CreditCard, Users, AlertTriangle, TrendingUp, Plus, DollarSign } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -264,7 +264,7 @@ export default function CreditPage() {
                         )}
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Crédit utilisé</span>
                           <span className="font-semibold text-orange-600">
@@ -289,15 +289,19 @@ export default function CreditPage() {
                           <span className="text-xs text-gray-500">
                             Limite: {Number(customer.creditLimit).toFixed(2)} DH
                           </span>
-                          <Button
-                            size="sm"
-                            onClick={() => handleAddPayment(customer)}
-                            className="gap-1"
-                          >
-                            <Plus className="w-3 h-3" />
-                            Paiement
-                          </Button>
+                          <span className="text-xs font-medium text-gray-600">
+                            {creditPercentage.toFixed(0)}% utilisé
+                          </span>
                         </div>
+
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddPayment(customer)}
+                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+                        >
+                          <DollarSign className="w-4 h-4 mr-1" />
+                          Encaisser le crédit
+                        </Button>
                       </div>
                     </div>
                   )
