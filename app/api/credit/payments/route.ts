@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Créer un nouveau paiement de crédit
+// POST - Créer un nouveau paiement de crédit (Solution Hybride)
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { customerId, amount, paymentMethod, notes } = body
+    const { customerId, amount, paymentMethod, notes, saleIds, mode } = body
 
     if (!customerId || !amount) {
       return NextResponse.json(
@@ -106,20 +106,111 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Créer le paiement et mettre à jour le crédit
-    const payment = await prisma.$transaction(async (tx) => {
-      // Créer le paiement
-      const newPayment = await tx.creditPayment.create({
-        data: {
-          customerId,
-          amount: paymentAmount,
-          paymentMethod: paymentMethod || 'CASH',
-          notes: notes || null,
-        },
-        include: {
-          customer: true,
-        },
-      })
+    // Créer le paiement et mettre à jour les ventes
+    const result = await prisma.$transaction(async (tx) => {
+      let remainingAmount = paymentAmount
+      const createdPayments = []
+
+      // MODE 1 : Paiement pour des ventes spécifiques (Manuel)
+      if (saleIds && saleIds.length > 0) {
+        for (const saleId of saleIds) {
+          if (remainingAmount <= 0) break
+
+          const sale = await tx.sale.findUnique({
+            where: { id: saleId },
+          })
+
+          if (!sale || sale.customerId !== customerId) continue
+
+          const saleBalance = Number(sale.totalAmount) - Number(sale.paidAmount)
+          if (saleBalance <= 0) continue
+
+          const paymentForThisSale = Math.min(remainingAmount, saleBalance)
+
+          // Créer le paiement
+          const payment = await tx.creditPayment.create({
+            data: {
+              customerId,
+              saleId: sale.id,
+              amount: paymentForThisSale,
+              paymentMethod: paymentMethod || 'CASH',
+              notes: notes || null,
+            },
+          })
+
+          createdPayments.push(payment)
+
+          // Mettre à jour la vente
+          const newPaidAmount = Number(sale.paidAmount) + paymentForThisSale
+          const newStatus =
+            newPaidAmount >= Number(sale.totalAmount)
+              ? 'COMPLETED'
+              : newPaidAmount > 0
+              ? 'PARTIAL'
+              : 'PENDING'
+
+          await tx.sale.update({
+            where: { id: sale.id },
+            data: {
+              paidAmount: newPaidAmount,
+              status: newStatus,
+            },
+          })
+
+          remainingAmount -= paymentForThisSale
+        }
+      }
+      // MODE 2 : Paiement automatique FIFO
+      else {
+        const unpaidSales = await tx.sale.findMany({
+          where: {
+            customerId,
+            status: { in: ['PENDING', 'PARTIAL'] },
+          },
+          orderBy: { createdAt: 'asc' },
+        })
+
+        for (const sale of unpaidSales) {
+          if (remainingAmount <= 0) break
+
+          const saleBalance = Number(sale.totalAmount) - Number(sale.paidAmount)
+          if (saleBalance <= 0) continue
+
+          const paymentForThisSale = Math.min(remainingAmount, saleBalance)
+
+          // Créer le paiement
+          const payment = await tx.creditPayment.create({
+            data: {
+              customerId,
+              saleId: sale.id,
+              amount: paymentForThisSale,
+              paymentMethod: paymentMethod || 'CASH',
+              notes: notes || null,
+            },
+          })
+
+          createdPayments.push(payment)
+
+          // Mettre à jour la vente
+          const newPaidAmount = Number(sale.paidAmount) + paymentForThisSale
+          const newStatus =
+            newPaidAmount >= Number(sale.totalAmount)
+              ? 'COMPLETED'
+              : newPaidAmount > 0
+              ? 'PARTIAL'
+              : 'PENDING'
+
+          await tx.sale.update({
+            where: { id: sale.id },
+            data: {
+              paidAmount: newPaidAmount,
+              status: newStatus,
+            },
+          })
+
+          remainingAmount -= paymentForThisSale
+        }
+      }
 
       // Mettre à jour le crédit du client
       await tx.customer.update({
@@ -146,10 +237,13 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return newPayment
+      return {
+        payments: createdPayments,
+        customer: updatedCustomer,
+      }
     })
 
-    return NextResponse.json(payment, { status: 201 })
+    return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('Create credit payment error:', error)
     return NextResponse.json(

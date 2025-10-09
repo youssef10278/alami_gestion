@@ -440,6 +440,7 @@ enum DocumentType {
 
 enum SaleStatus {
   PENDING
+  PARTIAL
   COMPLETED
   CANCELLED
 }

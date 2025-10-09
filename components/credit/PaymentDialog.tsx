@@ -19,14 +19,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DollarSign } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { DollarSign, Zap, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 interface Customer {
   id: string
   name: string
   company: string | null
   creditUsed: number
+}
+
+interface Sale {
+  id: string
+  saleNumber: string
+  totalAmount: number
+  paidAmount: number
+  balance: number
+  createdAt: string
+  status: string
 }
 
 interface PaymentDialogProps {
@@ -43,13 +56,18 @@ export default function PaymentDialog({
   onSuccess,
 }: PaymentDialogProps) {
   const [loading, setLoading] = useState(false)
+  const [loadingSales, setLoadingSales] = useState(false)
   const [error, setError] = useState('')
+  const [unpaidSales, setUnpaidSales] = useState<Sale[]>([])
+  const [selectedSaleIds, setSelectedSaleIds] = useState<string[]>([])
+  const [mode, setMode] = useState<'auto' | 'manual'>('auto')
   const [formData, setFormData] = useState({
     amount: '',
     paymentMethod: 'CASH',
     notes: '',
   })
 
+  // Charger les ventes impayées
   useEffect(() => {
     if (customer && open) {
       setFormData({
@@ -57,13 +75,64 @@ export default function PaymentDialog({
         paymentMethod: 'CASH',
         notes: '',
       })
+      setError('')
+      setSelectedSaleIds([])
+      setMode('auto')
+      fetchUnpaidSales()
     }
-    setError('')
   }, [customer, open])
+
+  const fetchUnpaidSales = async () => {
+    if (!customer) return
+
+    setLoadingSales(true)
+    try {
+      const response = await fetch(`/api/sales/unpaid?customerId=${customer.id}`)
+      const data = await response.json()
+
+      if (response.ok) {
+        setUnpaidSales(data.sales || [])
+      }
+    } catch (error) {
+      console.error('Error fetching unpaid sales:', error)
+    } finally {
+      setLoadingSales(false)
+    }
+  }
+
+  const toggleSale = (saleId: string) => {
+    setMode('manual')
+    setSelectedSaleIds((prev) =>
+      prev.includes(saleId)
+        ? prev.filter((id) => id !== saleId)
+        : [...prev, saleId]
+    )
+  }
+
+  const selectAllSales = () => {
+    setMode('manual')
+    setSelectedSaleIds(unpaidSales.map((sale) => sale.id))
+  }
+
+  const useAutoMode = () => {
+    setMode('auto')
+    setSelectedSaleIds([])
+  }
+
+  const calculateSelectedAmount = () => {
+    if (mode === 'auto') {
+      return Number(customer?.creditUsed || 0)
+    }
+
+    const selectedSales = unpaidSales.filter((sale) =>
+      selectedSaleIds.includes(sale.id)
+    )
+    return selectedSales.reduce((sum, sale) => sum + sale.balance, 0)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!customer) return
 
     setError('')
@@ -77,7 +146,11 @@ export default function PaymentDialog({
         },
         body: JSON.stringify({
           customerId: customer.id,
-          ...formData,
+          amount: formData.amount,
+          paymentMethod: formData.paymentMethod,
+          notes: formData.notes,
+          saleIds: mode === 'manual' ? selectedSaleIds : undefined,
+          mode,
         }),
       })
 
@@ -89,12 +162,17 @@ export default function PaymentDialog({
         return
       }
 
+      const paymentsCount = data.payments?.length || 0
       toast.success('Paiement enregistré avec succès', {
-        description: `${parseFloat(formData.amount).toFixed(2)} DH encaissé pour ${customer.name}`,
+        description: `${parseFloat(formData.amount).toFixed(2)} DH encaissé pour ${
+          customer.name
+        } (${paymentsCount} vente${paymentsCount > 1 ? 's' : ''} mise${
+          paymentsCount > 1 ? 's' : ''
+        } à jour)`,
       })
       onSuccess()
     } catch (err) {
-      setError('Erreur lors de l\'enregistrement du paiement')
+      setError("Erreur lors de l'enregistrement du paiement")
       setLoading(false)
     }
   }
@@ -105,7 +183,7 @@ export default function PaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -114,7 +192,8 @@ export default function PaymentDialog({
             Encaisser le crédit
           </DialogTitle>
           <DialogDescription>
-            Enregistrez un paiement de crédit pour <span className="font-semibold text-gray-900">{customer.name}</span>
+            Enregistrez un paiement de crédit pour{' '}
+            <span className="font-semibold text-gray-900">{customer.name}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -132,12 +211,127 @@ export default function PaymentDialog({
               </div>
             )}
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Crédit actuel</span>
+              <span className="text-sm font-medium">Crédit total</span>
               <span className="font-bold text-orange-600">
                 {maxAmount.toFixed(2)} DH
               </span>
             </div>
           </div>
+
+          {/* Mode de paiement */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Mode de paiement</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                variant={mode === 'auto' ? 'default' : 'outline'}
+                className={`h-auto py-4 ${
+                  mode === 'auto'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                    : ''
+                }`}
+                onClick={useAutoMode}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Zap className="w-5 h-5" />
+                  <div className="text-center">
+                    <div className="font-semibold">Automatique (FIFO)</div>
+                    <div className="text-xs opacity-80">
+                      Ventes les plus anciennes
+                    </div>
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                type="button"
+                variant={mode === 'manual' ? 'default' : 'outline'}
+                className={`h-auto py-4 ${
+                  mode === 'manual'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600'
+                    : ''
+                }`}
+                onClick={() => setMode('manual')}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <div className="text-center">
+                    <div className="font-semibold">Manuel</div>
+                    <div className="text-xs opacity-80">Sélectionner les ventes</div>
+                  </div>
+                </div>
+              </Button>
+            </div>
+          </div>
+
+          {/* Liste des ventes impayées (mode manuel) */}
+          {mode === 'manual' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">
+                  Ventes en attente ({unpaidSales.length})
+                </Label>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  onClick={selectAllSales}
+                  className="h-auto p-0"
+                >
+                  Tout sélectionner
+                </Button>
+              </div>
+
+              {loadingSales ? (
+                <div className="text-center py-4 text-gray-500">
+                  Chargement des ventes...
+                </div>
+              ) : unpaidSales.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">
+                  Aucune vente en attente
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto border rounded-lg p-3">
+                  {unpaidSales.map((sale) => (
+                    <div
+                      key={sale.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                        selectedSaleIds.includes(sale.id)
+                          ? 'bg-purple-50 border-purple-300'
+                          : 'bg-white hover:bg-gray-50'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={selectedSaleIds.includes(sale.id)}
+                        onCheckedChange={() => toggleSale(sale.id)}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-sm">
+                            Vente #{sale.saleNumber}
+                          </span>
+                          <span className="font-bold text-orange-600">
+                            {sale.balance.toFixed(2)} DH
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>
+                            {format(new Date(sale.createdAt), 'dd MMM yyyy', {
+                              locale: fr,
+                            })}
+                          </span>
+                          <span>
+                            Payé: {Number(sale.paidAmount).toFixed(2)} /{' '}
+                            {Number(sale.totalAmount).toFixed(2)} DH
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Montant */}
           <div className="space-y-2">
@@ -157,9 +351,14 @@ export default function PaymentDialog({
               placeholder="0.00"
               required
             />
-            <p className="text-xs text-gray-500">
-              Maximum: {maxAmount.toFixed(2)} DH
-            </p>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-500">Maximum: {maxAmount.toFixed(2)} DH</span>
+              {mode === 'manual' && selectedSaleIds.length > 0 && (
+                <span className="text-purple-600 font-medium">
+                  Sélection: {calculateSelectedAmount().toFixed(2)} DH
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Méthode de paiement */}
