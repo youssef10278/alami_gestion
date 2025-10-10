@@ -321,7 +321,7 @@ export async function POST(request: NextRequest) {
         console.log(`✅ ${importResult.stats.customers_imported} clients importés`)
       }
 
-      // 4. Import des fournisseurs (sans les achats pour l'instant)
+      // 4. Import des fournisseurs avec leurs transactions
       if (backupData.data.suppliers?.length > 0) {
         console.log(`🏭 Import ${backupData.data.suppliers.length} fournisseurs...`)
         for (const supplier of backupData.data.suppliers) {
@@ -334,6 +334,11 @@ export async function POST(request: NextRequest) {
                 phone: supplier.phone,
                 address: supplier.address,
                 company: supplier.company,
+                taxId: supplier.taxId,
+                totalDebt: supplier.totalDebt || 0,
+                totalPaid: supplier.totalPaid || 0,
+                balance: supplier.balance || 0,
+                notes: supplier.notes,
                 isActive: supplier.isActive
               },
               create: {
@@ -343,11 +348,56 @@ export async function POST(request: NextRequest) {
                 phone: supplier.phone,
                 address: supplier.address,
                 company: supplier.company,
+                taxId: supplier.taxId,
+                totalDebt: supplier.totalDebt || 0,
+                totalPaid: supplier.totalPaid || 0,
+                balance: supplier.balance || 0,
+                notes: supplier.notes,
                 isActive: supplier.isActive,
                 createdAt: new Date(supplier.createdAt),
                 updatedAt: new Date(supplier.updatedAt)
               }
             })
+
+            // Import des transactions du fournisseur
+            if (supplier.transactions?.length > 0) {
+              for (const transaction of supplier.transactions) {
+                try {
+                  await tx.supplierTransaction.upsert({
+                    where: { id: transaction.id },
+                    update: {
+                      transactionNumber: transaction.transactionNumber,
+                      type: transaction.type as any,
+                      amount: transaction.amount,
+                      description: transaction.description,
+                      date: new Date(transaction.date),
+                      status: transaction.status as any,
+                      paymentMethod: transaction.paymentMethod,
+                      notes: transaction.notes
+                    },
+                    create: {
+                      id: transaction.id,
+                      transactionNumber: transaction.transactionNumber,
+                      supplierId: supplier.id,
+                      type: transaction.type as any,
+                      amount: transaction.amount,
+                      description: transaction.description,
+                      date: new Date(transaction.date),
+                      status: transaction.status as any,
+                      paymentMethod: transaction.paymentMethod,
+                      notes: transaction.notes,
+                      createdAt: new Date(transaction.createdAt),
+                      updatedAt: new Date(transaction.updatedAt)
+                    }
+                  })
+                } catch (transactionError) {
+                  console.error(`❌ Erreur import transaction ${transaction.transactionNumber}:`, transactionError)
+                  importResult.errors.push(`Transaction ${transaction.transactionNumber}: ${transactionError}`)
+                  importResult.stats.errors++
+                }
+              }
+            }
+
             importResult.stats.suppliers_imported++
           } catch (error) {
             console.error(`❌ Erreur import fournisseur ${supplier.name}:`, error)

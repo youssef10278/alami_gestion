@@ -99,18 +99,12 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'asc' }
       }),
 
-      // 5. Fournisseurs avec leurs achats
+      // 5. Fournisseurs avec leurs transactions
       prisma.supplier.findMany({
         include: {
-          purchases: {
+          transactions: {
             include: {
-              items: {
-                include: {
-                  product: {
-                    select: { name: true, sku: true }
-                  }
-                }
-              }
+              checks: true
             },
             orderBy: { createdAt: 'asc' }
           }

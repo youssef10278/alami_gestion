@@ -97,26 +97,35 @@ export interface BackupSupplierData {
   phone?: string
   address?: string
   company?: string
+  taxId?: string
+  totalDebt: number
+  totalPaid: number
+  balance: number
+  notes?: string
   isActive: boolean
   createdAt: string
   updatedAt: string
   // Relations imbriquées
-  purchases: Array<{
+  transactions: Array<{
     id: string
-    purchaseNumber: string
-    totalAmount: number
-    paidAmount: number
+    transactionNumber: string
+    type: string
+    amount: number
+    description: string
+    date: string
     status: string
+    paymentMethod?: string
     notes?: string
     createdAt: string
-    items: Array<{
+    updatedAt: string
+    checks: Array<{
       id: string
-      productId: string
-      productName: string
-      productSku?: string
-      quantity: number
-      unitPrice: number
-      total: number
+      checkNumber: string
+      amount: number
+      date: string
+      status: string
+      bankName?: string
+      notes?: string
     }>
   }>
 }
