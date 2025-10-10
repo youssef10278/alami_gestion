@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Edit3, Trash2, Plus, Minus, AlertTriangle, Clock, User } from 'lucide-react'
 import { safeToFixed, safeNumber } from '@/lib/utils'
+import { notifyDashboardUpdate } from '@/hooks/useDashboardStats'
 
 interface Product {
   id: string
@@ -244,6 +245,10 @@ export default function SaleEditDialog({
       }
 
       toast.success('Vente modifiée avec succès')
+
+      // Notifier la mise à jour du dashboard
+      notifyDashboardUpdate()
+
       onSaleUpdated()
       onClose()
     } catch (error) {
@@ -281,6 +286,10 @@ export default function SaleEditDialog({
       }
 
       toast.success('Vente supprimée avec succès')
+
+      // Notifier la mise à jour du dashboard
+      notifyDashboardUpdate()
+
       onSaleUpdated()
       onClose()
     } catch (error) {

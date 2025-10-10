@@ -27,6 +27,7 @@ import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
 import DeliveryNoteButton from '@/components/sales/DeliveryNoteButton'
 import { Scan } from 'lucide-react'
 import { safeToFixed, safeNumber } from '@/lib/utils'
+import { notifyDashboardUpdate } from '@/hooks/useDashboardStats'
 
 interface Product {
   id: string
@@ -585,6 +586,9 @@ export default function SalesPage() {
       setShowReceiptDialog(true)
 
       toast.success('Vente créée avec succès !')
+
+      // Notifier la mise à jour du dashboard
+      notifyDashboardUpdate()
 
       // Réinitialiser le formulaire
       setCart([])

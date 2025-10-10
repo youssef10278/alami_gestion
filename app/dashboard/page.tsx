@@ -13,6 +13,8 @@ import {
 } from 'lucide-react'
 import ProfitStats from '@/components/dashboard/ProfitStats'
 import DashboardPageClient from '@/components/dashboard/DashboardPageClient'
+import DashboardStatsCards from '@/components/dashboard/DashboardStatsCards'
+import AutoUpdateNotice from '@/components/dashboard/AutoUpdateNotice'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -158,8 +160,11 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats Grid Business Moderne - Responsive */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      {/* Stats Grid Business Moderne - Responsive avec mise à jour automatique */}
+      <DashboardStatsCards />
+
+      {/* Ancien système de stats (commenté pour référence) */}
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon
 
@@ -247,7 +252,7 @@ export default async function DashboardPage() {
             </Card>
           )
         })}
-      </div>
+      </div> */
 
       {/* Ventes récentes Business Moderne */}
       <Card className="border border-[hsl(var(--border))] shadow-lg bg-[hsl(var(--card))] backdrop-blur-sm">
@@ -429,6 +434,9 @@ export default async function DashboardPage() {
         </div>
       </div>
       </div>
+
+      {/* Notification de mise à jour automatique */}
+      <AutoUpdateNotice />
     </DashboardPageClient>
   )
 }
