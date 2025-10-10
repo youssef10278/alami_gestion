@@ -432,11 +432,15 @@ export async function POST(request: NextRequest) {
                 customerPhone: quote.customerPhone,
                 customerEmail: quote.customerEmail,
                 customerAddress: quote.customerAddress,
-                totalAmount: quote.totalAmount,
                 status: quote.status,
-                validUntil: quote.validUntil ? new Date(quote.validUntil) : null,
+                validUntil: quote.validUntil ? new Date(quote.validUntil) : new Date(),
+                subtotal: quote.subtotal,
+                discount: quote.discount || 0,
+                tax: quote.tax || 0,
+                total: quote.total,
                 notes: quote.notes,
-                terms: quote.terms
+                terms: quote.terms,
+                convertedToSaleId: quote.convertedToSaleId
               },
               create: {
                 id: quote.id,
@@ -446,12 +450,17 @@ export async function POST(request: NextRequest) {
                 customerPhone: quote.customerPhone,
                 customerEmail: quote.customerEmail,
                 customerAddress: quote.customerAddress,
-                totalAmount: quote.totalAmount,
                 status: quote.status,
-                validUntil: quote.validUntil ? new Date(quote.validUntil) : null,
+                validUntil: quote.validUntil ? new Date(quote.validUntil) : new Date(),
+                subtotal: quote.subtotal,
+                discount: quote.discount || 0,
+                tax: quote.tax || 0,
+                total: quote.total,
                 notes: quote.notes,
                 terms: quote.terms,
-                createdAt: new Date(quote.createdAt)
+                convertedToSaleId: quote.convertedToSaleId,
+                createdAt: new Date(quote.createdAt),
+                updatedAt: new Date(quote.updatedAt || quote.createdAt)
               }
             })
 

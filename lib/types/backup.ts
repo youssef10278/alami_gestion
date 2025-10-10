@@ -186,12 +186,17 @@ export interface BackupQuoteData {
   customerPhone?: string
   customerEmail?: string
   customerAddress?: string
-  totalAmount: number
   status: string
   validUntil?: string
+  subtotal: number
+  discount: number
+  tax: number
+  total: number
   notes?: string
   terms?: string
+  convertedToSaleId?: string
   createdAt: string
+  updatedAt: string
   items: Array<{
     id: string
     productId: string
