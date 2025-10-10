@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import ProfitStats from '@/components/dashboard/ProfitStats'
 import DashboardPageClient from '@/components/dashboard/DashboardPageClient'
-import { safeToFixed, safeNumber } from '@/lib/utils'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -80,14 +79,14 @@ export default async function DashboardPage() {
     },
     {
       title: 'Chiffre d\'affaires',
-      value: `${safeToFixed(totalRevenue._sum.totalAmount)} DH`,
+      value: `${(totalRevenue._sum.totalAmount ? Number(totalRevenue._sum.totalAmount).toFixed(2) : '0.00')} DH`,
       icon: DollarSign,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100',
     },
     {
       title: 'Crédit utilisé',
-      value: `${safeToFixed(creditUsed._sum.creditUsed)} DH`,
+      value: `${(creditUsed._sum.creditUsed ? Number(creditUsed._sum.creditUsed).toFixed(2) : '0.00')} DH`,
       icon: TrendingUp,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
@@ -288,7 +287,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-xl md:text-2xl font-bold text-[var(--color-success-green)]">
-                    {safeToFixed(recentSales.reduce((sum, sale) => sum + safeNumber(sale.totalAmount), 0), 0)} DH
+                    {recentSales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0).toFixed(0)} DH
                   </div>
                   <div className="text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
                     Chiffre d'affaires
@@ -297,7 +296,7 @@ export default async function DashboardPage() {
                 <div className="text-center">
                   <div className="text-xl md:text-2xl font-bold text-[var(--color-business-blue)]">
                     {recentSales.length > 0
-                      ? safeToFixed(recentSales.reduce((sum, sale) => sum + safeNumber(sale.totalAmount), 0) / recentSales.length, 0)
+                      ? (recentSales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0) / recentSales.length).toFixed(0)
                       : '0'} DH
                   </div>
                   <div className="text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
@@ -379,7 +378,7 @@ export default async function DashboardPage() {
                   {/* Montant et date */}
                   <div className="relative text-right sm:text-right">
                     <p className="text-xl md:text-2xl font-bold text-[var(--color-sales)] group-hover:scale-105 transition-transform duration-300">
-                      {safeToFixed(sale.totalAmount)} DH
+                      {Number(sale.totalAmount).toFixed(2)} DH
                     </p>
                     <div className="flex items-center gap-2 mt-1 justify-end">
                       <div className="w-2 h-2 bg-[var(--color-success-green)] rounded-full animate-pulse"></div>

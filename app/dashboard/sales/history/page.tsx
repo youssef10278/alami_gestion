@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import DeliveryNoteButton from '@/components/sales/DeliveryNoteButton'
-import { Eye, Calendar, DollarSign, Printer } from 'lucide-react'
+import SaleEditDialog from '@/components/sales/SaleEditDialog'
+import { Eye, Calendar, DollarSign, Printer, Edit3, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -46,12 +47,16 @@ export default function SalesHistoryPage() {
   const [filteredSales, setFilteredSales] = useState<Sale[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
+  const [editingSale, setEditingSale] = useState<Sale | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>('ALL')
   const [filterPayment, setFilterPayment] = useState<string>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
+  const [userRole, setUserRole] = useState<string>('')
+  const [userId, setUserId] = useState<string>('')
 
   useEffect(() => {
     fetchSales()
+    fetchUserInfo()
   }, [])
 
   useEffect(() => {
@@ -68,6 +73,58 @@ export default function SalesHistoryPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchUserInfo = async () => {
+    try {
+      const response = await fetch('/api/auth/me')
+      if (response.ok) {
+        const userData = await response.json()
+        console.log('User data fetched:', userData) // Debug
+        setUserRole(userData.role)
+        setUserId(userData.id)
+      } else {
+        console.error('Failed to fetch user info:', response.status)
+      }
+    } catch (error) {
+      console.error('Error fetching user info:', error)
+    }
+  }
+
+  // Vérifier si l'utilisateur peut modifier une vente
+  const canEditSale = (sale: Sale) => {
+    console.log('Checking edit permissions:', { userRole, userId, sale: sale.id, seller: sale.seller }) // Debug
+
+    if (userRole === 'OWNER') {
+      console.log('Owner can edit') // Debug
+      return true
+    }
+
+    // Pour les vendeurs, vérifier que c'est leur vente et dans les délais
+    if (userRole === 'SELLER') {
+      const timeSinceCreation = Date.now() - new Date(sale.createdAt).getTime()
+      const maxEditTime = 24 * 60 * 60 * 1000 // 24 heures
+      const canEdit = timeSinceCreation <= maxEditTime
+      console.log('Seller edit check:', { timeSinceCreation, maxEditTime, canEdit }) // Debug
+      return canEdit
+    }
+
+    console.log('No edit permission') // Debug
+    return false
+  }
+
+  // Vérifier si l'utilisateur peut supprimer une vente
+  const canDeleteSale = (sale: Sale) => {
+    if (userRole === 'OWNER') return true
+
+    // Pour les vendeurs, vérifier que c'est leur vente et dans les délais
+    if (userRole === 'SELLER') {
+      const timeSinceCreation = Date.now() - new Date(sale.createdAt).getTime()
+      const maxDeleteTime = 2 * 60 * 60 * 1000 // 2 heures
+      return timeSinceCreation <= maxDeleteTime
+    }
+
+    return false
   }
 
   const applyFilters = () => {
@@ -365,6 +422,11 @@ export default function SalesHistoryPage() {
 
   return (
     <div className="space-y-6">
+      {/* Debug Info */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
+        <strong>Debug Info:</strong> Role: {userRole || 'Non défini'} | User ID: {userId || 'Non défini'}
+      </div>
+
       {/* Header Premium */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-600 via-rose-600 to-red-600 p-8 shadow-2xl">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]"></div>
@@ -617,6 +679,34 @@ export default function SalesHistoryPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
+
+                          {/* Debug: Afficher toujours le bouton pour tester */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              console.log('Edit button clicked, userRole:', userRole, 'userId:', userId)
+                              setEditingSale(sale)
+                            }}
+                            title="Modifier la vente (DEBUG)"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </Button>
+
+                          {/* Version conditionnelle (commentée pour debug) */}
+                          {/* {canEditSale(sale) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingSale(sale)}
+                              title="Modifier la vente"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </Button>
+                          )} */}
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -750,6 +840,19 @@ export default function SalesHistoryPage() {
           </Card>
         </div>
       )}
+
+      {/* Dialog de modification */}
+      <SaleEditDialog
+        sale={editingSale}
+        isOpen={!!editingSale}
+        onClose={() => setEditingSale(null)}
+        onSaleUpdated={() => {
+          fetchSales()
+          setEditingSale(null)
+        }}
+        userRole={userRole}
+        userId={userId}
+      />
     </div>
   )
 }
