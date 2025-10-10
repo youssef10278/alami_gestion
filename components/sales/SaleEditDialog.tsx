@@ -124,7 +124,7 @@ export default function SaleEditDialog({
       console.log('Initializing edit dialog with sale:', sale) // Debug
 
       // Initialiser le formulaire avec les données de la vente
-      setSelectedCustomer(sale.customerId || '')
+      setSelectedCustomer(sale.customerId || 'WALK_IN_CUSTOMER')
       setItems(sale.items.map(item => ({
         productId: item.productId,
         quantity: item.quantity,
@@ -225,7 +225,7 @@ export default function SaleEditDialog({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          customerId: selectedCustomer || null,
+          customerId: selectedCustomer === 'WALK_IN_CUSTOMER' ? null : selectedCustomer,
           items: items.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
@@ -365,7 +365,7 @@ export default function SaleEditDialog({
                     <SelectValue placeholder="Client de passage" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Client de passage</SelectItem>
+                    <SelectItem value="WALK_IN_CUSTOMER">Client de passage</SelectItem>
                     {customers.map((customer) => (
                       <SelectItem key={customer.id} value={customer.id}>
                         {customer.name} {customer.company && `(${customer.company})`}
