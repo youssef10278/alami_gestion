@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
       }))
     }))
 
-    // Transformer les fournisseurs avec achats imbriqués
+    // Transformer les fournisseurs avec transactions imbriquées
     const backupSuppliers: BackupSupplierData[] = suppliers.map(supplier => ({
       id: supplier.id,
       name: supplier.name,
@@ -234,25 +234,34 @@ export async function GET(request: NextRequest) {
       phone: supplier.phone,
       address: supplier.address,
       company: supplier.company,
+      taxId: supplier.taxId,
+      totalDebt: Number(supplier.totalDebt),
+      totalPaid: Number(supplier.totalPaid),
+      balance: Number(supplier.balance),
+      notes: supplier.notes,
       isActive: supplier.isActive,
       createdAt: supplier.createdAt.toISOString(),
       updatedAt: supplier.updatedAt.toISOString(),
-      purchases: supplier.purchases.map(purchase => ({
-        id: purchase.id,
-        purchaseNumber: purchase.purchaseNumber,
-        totalAmount: Number(purchase.totalAmount),
-        paidAmount: Number(purchase.paidAmount),
-        status: purchase.status,
-        notes: purchase.notes,
-        createdAt: purchase.createdAt.toISOString(),
-        items: purchase.items.map(item => ({
-          id: item.id,
-          productId: item.productId,
-          productName: item.product?.name || item.productName || 'Produit inconnu',
-          productSku: item.product?.sku,
-          quantity: item.quantity,
-          unitPrice: Number(item.unitPrice),
-          total: Number(item.total)
+      transactions: supplier.transactions.map(transaction => ({
+        id: transaction.id,
+        transactionNumber: transaction.transactionNumber,
+        type: transaction.type,
+        amount: Number(transaction.amount),
+        description: transaction.description,
+        date: transaction.date.toISOString(),
+        status: transaction.status,
+        paymentMethod: transaction.paymentMethod,
+        notes: transaction.notes,
+        createdAt: transaction.createdAt.toISOString(),
+        updatedAt: transaction.updatedAt.toISOString(),
+        checks: transaction.checks.map(check => ({
+          id: check.id,
+          checkNumber: check.checkNumber,
+          amount: Number(check.amount),
+          date: check.date.toISOString(),
+          status: check.status,
+          bankName: check.bankName,
+          notes: check.notes
         }))
       }))
     }))
