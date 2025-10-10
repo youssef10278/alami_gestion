@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useUser } from '@/hooks/useUser'
-import { Building2, User, Shield, Bell, Palette, Paintbrush, FileText, Users, Database } from 'lucide-react'
+import { Building2, User, Shield, Bell, Palette, Paintbrush, FileText, Users, Database, HardDrive } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CompanySettings from '@/components/settings/CompanySettings'
@@ -12,6 +12,7 @@ import QuoteDesigner from '@/components/settings/QuoteDesigner'
 import UserManagement from '@/components/settings/UserManagement'
 import ProfileSettings from '@/components/settings/ProfileSettings'
 import SystemReset from '@/components/settings/SystemReset'
+import Link from 'next/link'
 
 export default function SettingsPage() {
   usePageTitle('Paramètres')
@@ -39,7 +40,7 @@ export default function SettingsPage() {
       <Card className="glass">
         <CardContent className="p-6">
           <Tabs defaultValue="company" className="space-y-6">
-            <TabsList className={`grid w-full ${isOwner ? 'grid-cols-8' : 'grid-cols-7'}`}>
+            <TabsList className={`grid w-full ${isOwner ? 'grid-cols-9' : 'grid-cols-8'}`}>
               <TabsTrigger value="company" className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 Entreprise
@@ -59,6 +60,10 @@ export default function SettingsPage() {
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Profil
+              </TabsTrigger>
+              <TabsTrigger value="backup" className="flex items-center gap-2">
+                <HardDrive className="w-4 h-4" />
+                Sauvegarde
               </TabsTrigger>
               {isOwner && (
                 <TabsTrigger value="system" className="flex items-center gap-2">
@@ -99,6 +104,44 @@ export default function SettingsPage() {
             {/* Onglet Profil */}
             <TabsContent value="profile">
               <ProfileSettings />
+            </TabsContent>
+
+            {/* Onglet Sauvegarde */}
+            <TabsContent value="backup">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">Sauvegarde & Restauration</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Gérez vos sauvegardes de données
+                    </p>
+                  </div>
+                  <Link href="/dashboard/settings/backup">
+                    <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                      Ouvrir la Section Complète
+                    </button>
+                  </Link>
+                </div>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="text-center space-y-4">
+                      <HardDrive className="h-12 w-12 mx-auto text-muted-foreground" />
+                      <div>
+                        <h4 className="font-medium">Système de Sauvegarde</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Export et import de toutes vos données en toute sécurité
+                        </p>
+                      </div>
+                      <Link href="/dashboard/settings/backup">
+                        <button className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors">
+                          Accéder aux Sauvegardes
+                        </button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             {/* Onglet Système - Propriétaires seulement */}
