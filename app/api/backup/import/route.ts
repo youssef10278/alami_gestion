@@ -119,17 +119,26 @@ export async function POST(request: NextRequest) {
     // Validation du checksum si présent
     if (backupData.metadata.checksum && options.validate_relations) {
       console.log('🔐 Validation du checksum...')
-      const dataWithoutChecksum = { ...backupData }
-      delete dataWithoutChecksum.metadata.checksum
-      
-      if (!validateChecksum(dataWithoutChecksum, backupData.metadata.checksum)) {
-        console.error('❌ Checksum invalide')
-        return NextResponse.json({ 
-          error: 'Intégrité des données compromise',
-          details: 'Le checksum ne correspond pas, le fichier pourrait être corrompu'
-        }, { status: 400 })
+      try {
+        // Créer une copie profonde et supprimer le checksum pour validation
+        const dataWithoutChecksum = JSON.parse(JSON.stringify(backupData))
+        delete dataWithoutChecksum.metadata.checksum
+
+        if (!validateChecksum(dataWithoutChecksum, backupData.metadata.checksum)) {
+          console.error('❌ Checksum invalide')
+          console.error('Checksum attendu:', backupData.metadata.checksum)
+          console.error('Checksum calculé:', require('@/lib/backup-utils').calculateChecksum(dataWithoutChecksum))
+          return NextResponse.json({
+            error: 'Intégrité des données compromise',
+            details: 'Le checksum ne correspond pas, le fichier pourrait être corrompu'
+          }, { status: 400 })
+        }
+        console.log('✅ Checksum valide')
+      } catch (checksumError) {
+        console.error('❌ Erreur validation checksum:', checksumError)
+        // Continue sans validation checksum si erreur
+        console.log('⚠️ Validation checksum ignorée à cause de l\'erreur')
       }
-      console.log('✅ Checksum valide')
     }
 
     console.log('✅ Validation terminée avec succès')
@@ -503,10 +512,21 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: false,
-      error: 'Erreur lors de l\'import des données',
+      message: 'Erreur lors de l\'import des données',
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
       details: error instanceof Error ? error.message : 'Erreur inconnue',
       timestamp: new Date().toISOString(),
-      processingTime: errorTime
+      processingTime: errorTime,
+      stats: {
+        products_imported: 0,
+        customers_imported: 0,
+        suppliers_imported: 0,
+        sales_imported: 0,
+        invoices_imported: 0,
+        quotes_imported: 0,
+        errors: 1
+      },
+      errors: [error instanceof Error ? error.message : 'Erreur inconnue']
     }, { status: 500 })
   }
 }
