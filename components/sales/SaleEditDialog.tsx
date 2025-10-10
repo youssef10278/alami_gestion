@@ -93,35 +93,36 @@ export default function SaleEditDialog({
   // Vérifier si la modification est autorisée
   const canEdit = () => {
     if (!sale) return false
-    
-    if (userRole === 'OWNER') return true
-    
-    if (userRole === 'SELLER' && sale.seller.id === userId) {
-      const timeSinceCreation = Date.now() - new Date(sale.createdAt).getTime()
-      const maxEditTime = 24 * 60 * 60 * 1000 // 24 heures
-      return timeSinceCreation <= maxEditTime
-    }
-    
-    return false
+
+    // Pour l'instant, permettre à tous les utilisateurs connectés d'essayer
+    // Les permissions seront vérifiées côté serveur
+    return userRole === 'OWNER' || userRole === 'SELLER'
   }
 
   // Vérifier si la suppression est autorisée
   const canDelete = () => {
     if (!sale) return false
-    
-    if (userRole === 'OWNER') return true
-    
-    if (userRole === 'SELLER' && sale.seller.id === userId) {
-      const timeSinceCreation = Date.now() - new Date(sale.createdAt).getTime()
-      const maxDeleteTime = 2 * 60 * 60 * 1000 // 2 heures
-      return timeSinceCreation <= maxDeleteTime
-    }
-    
-    return false
+
+    // Pour l'instant, permettre à tous les utilisateurs connectés d'essayer
+    // Les permissions seront vérifiées côté serveur
+    return userRole === 'OWNER' || userRole === 'SELLER'
+  }
+
+  // Calculer les délais pour l'affichage
+  const getTimeInfo = () => {
+    if (!sale) return { editTimeLeft: 0, deleteTimeLeft: 0 }
+
+    const timeSinceCreation = Date.now() - new Date(sale.createdAt).getTime()
+    const editTimeLeft = Math.max(0, (24 * 60 * 60 * 1000) - timeSinceCreation)
+    const deleteTimeLeft = Math.max(0, (2 * 60 * 60 * 1000) - timeSinceCreation)
+
+    return { editTimeLeft, deleteTimeLeft }
   }
 
   useEffect(() => {
     if (isOpen && sale) {
+      console.log('Initializing edit dialog with sale:', sale) // Debug
+
       // Initialiser le formulaire avec les données de la vente
       setSelectedCustomer(sale.customerId || '')
       setItems(sale.items.map(item => ({
@@ -134,7 +135,7 @@ export default function SaleEditDialog({
       setAmountPaid(sale.paidAmount.toString())
       setNotes(sale.notes || '')
       setReason('')
-      
+
       // Charger les données
       fetchProducts()
       fetchCustomers()
@@ -201,8 +202,8 @@ export default function SaleEditDialog({
   }
 
   const handleSave = async () => {
-    if (!sale || !canEdit()) {
-      toast.error('Modification non autorisée')
+    if (!sale) {
+      toast.error('Aucune vente sélectionnée')
       return
     }
 
@@ -254,8 +255,8 @@ export default function SaleEditDialog({
   }
 
   const handleDelete = async () => {
-    if (!sale || !canDelete()) {
-      toast.error('Suppression non autorisée')
+    if (!sale) {
+      toast.error('Aucune vente sélectionnée')
       return
     }
 
@@ -292,9 +293,7 @@ export default function SaleEditDialog({
 
   if (!sale) return null
 
-  const timeSinceCreation = Date.now() - new Date(sale.createdAt).getTime()
-  const editTimeLeft = Math.max(0, (24 * 60 * 60 * 1000) - timeSinceCreation)
-  const deleteTimeLeft = Math.max(0, (2 * 60 * 60 * 1000) - timeSinceCreation)
+  const { editTimeLeft, deleteTimeLeft } = getTimeInfo()
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -357,8 +356,7 @@ export default function SaleEditDialog({
           </Card>
 
           {/* Formulaire de modification */}
-          {canEdit() && (
-            <div className="space-y-4">
+          <div className="space-y-4">
               {/* Client */}
               <div>
                 <Label htmlFor="customer">Client</Label>
@@ -527,30 +525,25 @@ export default function SaleEditDialog({
                 </p>
               </div>
             </div>
-          )}
 
           {/* Actions */}
           <div className="flex gap-2 pt-4 border-t">
-            {canEdit() && (
-              <Button
-                onClick={handleSave}
-                disabled={loading || items.length === 0 || !reason.trim()}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {loading ? 'Modification...' : 'Modifier la vente'}
-              </Button>
-            )}
-            
-            {canDelete() && (
-              <Button
-                onClick={handleDelete}
-                disabled={loading || !reason.trim()}
-                variant="destructive"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                {loading ? 'Suppression...' : 'Supprimer'}
-              </Button>
-            )}
+            <Button
+              onClick={handleSave}
+              disabled={loading || items.length === 0 || !reason.trim()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {loading ? 'Modification...' : 'Modifier la vente'}
+            </Button>
+
+            <Button
+              onClick={handleDelete}
+              disabled={loading || !reason.trim()}
+              variant="destructive"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {loading ? 'Suppression...' : 'Supprimer'}
+            </Button>
             
             <Button variant="outline" onClick={onClose} disabled={loading}>
               Fermer
