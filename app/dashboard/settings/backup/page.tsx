@@ -1,21 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
-import { 
-  Download, 
-  Upload, 
-  Shield, 
-  Clock, 
-  FileText, 
+import {
+  Download,
+  Upload,
+  Shield,
+  Clock,
+  FileText,
   Zap,
   AlertCircle,
   CheckCircle,
-  Loader2
+  Loader2,
+  FileUp,
+  Eye,
+  RotateCcw
 } from 'lucide-react'
 import { formatFileSize } from '@/lib/backup-utils'
 
@@ -26,11 +29,49 @@ interface ExportStats {
   compressionRatio?: string
 }
 
+interface ImportStats {
+  products_imported: number
+  customers_imported: number
+  suppliers_imported: number
+  sales_imported: number
+  invoices_imported: number
+  quotes_imported: number
+  errors: number
+}
+
+interface ImportResult {
+  success: boolean
+  message: string
+  stats: ImportStats
+  errors: string[]
+  processingTime: number
+}
+
+interface ImportPreview {
+  filename: string
+  fileSize: number
+  version: string
+  exported_at: string
+  total_records: number
+  breakdown: {
+    products: number
+    customers: number
+    suppliers: number
+    sales: number
+    invoices: number
+    quotes: number
+  }
+}
+
 export default function BackupPage() {
   const [isExporting, setIsExporting] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [lastExport, setLastExport] = useState<Date | null>(null)
   const [exportStats, setExportStats] = useState<ExportStats | null>(null)
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null)
+  const [importResult, setImportResult] = useState<ImportResult | null>(null)
+  const [dragOver, setDragOver] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Export manuel des données
   const handleManualExport = async (compressed = true) => {
@@ -101,11 +142,156 @@ export default function BackupPage() {
     }
   }
 
-  // Import manuel des données (placeholder pour Phase 2)
-  const handleManualImport = () => {
-    toast.info('🚧 Import en développement', {
-      description: 'Cette fonctionnalité sera disponible dans la Phase 2'
+  // Analyse d'un fichier pour aperçu
+  const analyzeFile = async (file: File): Promise<ImportPreview | null> => {
+    try {
+      const fileBuffer = await file.arrayBuffer()
+      let jsonString: string
+
+      // Décompression si nécessaire
+      if (file.name.endsWith('.gz')) {
+        const { gunzip } = await import('zlib')
+        const { promisify } = await import('util')
+        const gunzipAsync = promisify(gunzip)
+        const decompressed = await gunzipAsync(Buffer.from(fileBuffer))
+        jsonString = decompressed.toString('utf8')
+      } else {
+        jsonString = Buffer.from(fileBuffer).toString('utf8')
+      }
+
+      const data = JSON.parse(jsonString)
+
+      return {
+        filename: file.name,
+        fileSize: file.size,
+        version: data.metadata?.version || 'Inconnue',
+        exported_at: data.metadata?.exported_at || 'Inconnue',
+        total_records: data.metadata?.total_records || 0,
+        breakdown: {
+          products: data.data?.products?.length || 0,
+          customers: data.data?.customers?.length || 0,
+          suppliers: data.data?.suppliers?.length || 0,
+          sales: (data.data?.standalone_sales?.length || 0) +
+                 (data.data?.customers?.reduce((sum: number, c: any) => sum + (c.sales?.length || 0), 0) || 0),
+          invoices: data.data?.invoices?.length || 0,
+          quotes: data.data?.quotes?.length || 0
+        }
+      }
+    } catch (error) {
+      console.error('Erreur analyse fichier:', error)
+      return null
+    }
+  }
+
+  // Gestion du drag & drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    const file = files[0]
+
+    if (file) {
+      await handleFileSelect(file)
+    }
+  }
+
+  // Sélection de fichier
+  const handleFileSelect = async (file: File) => {
+    if (!file.name.endsWith('.json') && !file.name.endsWith('.gz')) {
+      toast.error('❌ Format de fichier invalide', {
+        description: 'Seuls les fichiers .json et .json.gz sont acceptés'
+      })
+      return
+    }
+
+    toast.info('🔍 Analyse du fichier...', {
+      description: 'Vérification du contenu et de la structure'
     })
+
+    const preview = await analyzeFile(file)
+    if (preview) {
+      setImportPreview(preview)
+      setImportResult(null)
+      toast.success('✅ Fichier analysé', {
+        description: `${preview.total_records} enregistrements détectés`
+      })
+    } else {
+      toast.error('❌ Fichier invalide', {
+        description: 'Le fichier ne semble pas être une sauvegarde valide'
+      })
+    }
+  }
+
+  // Import manuel des données
+  const handleManualImport = async () => {
+    if (!importPreview || !fileInputRef.current?.files?.[0]) {
+      toast.error('❌ Aucun fichier sélectionné')
+      return
+    }
+
+    setIsImporting(true)
+    setImportResult(null)
+
+    try {
+      toast.info('🔄 Import en cours...', {
+        description: 'Traitement et insertion des données'
+      })
+
+      const formData = new FormData()
+      formData.append('file', fileInputRef.current.files[0])
+      formData.append('options', JSON.stringify({
+        merge_strategy: 'merge',
+        validate_relations: true,
+        create_backup_before_import: true
+      }))
+
+      const response = await fetch('/api/backup/import', {
+        method: 'POST',
+        body: formData
+      })
+
+      const result: ImportResult = await response.json()
+
+      if (response.ok && result.success) {
+        setImportResult(result)
+        toast.success('✅ Import terminé !', {
+          description: `${Object.values(result.stats).reduce((a, b) => a + b, 0) - result.stats.errors} enregistrements importés`
+        })
+      } else {
+        setImportResult(result)
+        toast.error('❌ Erreur lors de l\'import', {
+          description: result.message || 'Erreur inconnue'
+        })
+      }
+
+    } catch (error) {
+      console.error('Erreur import:', error)
+      toast.error('❌ Erreur lors de l\'import', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue'
+      })
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
+  // Réinitialiser l'import
+  const resetImport = () => {
+    setImportPreview(null)
+    setImportResult(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   return (
@@ -244,35 +430,202 @@ export default function BackupPage() {
           <div className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
             <CardTitle>Import Manuel</CardTitle>
-            <Badge variant="secondary">Phase 2</Badge>
+            <Badge variant="default">Opérationnel</Badge>
           </div>
           <CardDescription>
             Restaurez vos données à partir d'un fichier de sauvegarde
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button 
-            variant="outline" 
-            onClick={handleManualImport}
-            disabled={true}
-            className="w-full"
+        <CardContent className="space-y-4">
+          {/* Zone de drag & drop */}
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragOver
+                ? 'border-primary bg-primary/5'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
           >
-            <Upload className="h-4 w-4 mr-2" />
-            Importer des Données
-          </Button>
-          
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,.gz"
+              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+              className="hidden"
+            />
+
+            <div className="space-y-4">
+              <FileUp className="h-12 w-12 mx-auto text-gray-400" />
               <div>
-                <p className="text-blue-800 font-medium">Fonctionnalité en développement</p>
-                <p className="text-blue-700 text-sm mt-1">
-                  L'import de données sera disponible dans la Phase 2 du développement.
-                  Cette fonctionnalité permettra de restaurer vos données depuis un fichier de sauvegarde.
+                <p className="text-lg font-medium">
+                  Glissez votre fichier de sauvegarde ici
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  ou cliquez pour parcourir (.json, .json.gz)
                 </p>
               </div>
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isImporting}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Parcourir les fichiers
+              </Button>
             </div>
           </div>
+
+          {/* Aperçu du fichier */}
+          {importPreview && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Eye className="h-5 w-5 text-blue-600" />
+                    <CardTitle className="text-blue-800">Aperçu du fichier</CardTitle>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetImport}
+                    disabled={isImporting}
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                  <div>
+                    <p className="text-blue-600 font-medium">Fichier</p>
+                    <p className="text-blue-800 truncate">{importPreview.filename}</p>
+                  </div>
+                  <div>
+                    <p className="text-blue-600 font-medium">Taille</p>
+                    <p className="text-blue-800">{formatFileSize(importPreview.fileSize)}</p>
+                  </div>
+                  <div>
+                    <p className="text-blue-600 font-medium">Version</p>
+                    <p className="text-blue-800">{importPreview.version}</p>
+                  </div>
+                  <div>
+                    <p className="text-blue-600 font-medium">Total</p>
+                    <p className="text-blue-800">{importPreview.total_records.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-xs mb-4">
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importPreview.breakdown.products}</p>
+                    <p className="text-muted-foreground">Produits</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importPreview.breakdown.customers}</p>
+                    <p className="text-muted-foreground">Clients</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importPreview.breakdown.suppliers}</p>
+                    <p className="text-muted-foreground">Fournisseurs</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importPreview.breakdown.sales}</p>
+                    <p className="text-muted-foreground">Ventes</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importPreview.breakdown.invoices}</p>
+                    <p className="text-muted-foreground">Factures</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importPreview.breakdown.quotes}</p>
+                    <p className="text-muted-foreground">Devis</p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleManualImport}
+                  disabled={isImporting}
+                  className="w-full"
+                >
+                  {isImporting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  {isImporting ? 'Import en cours...' : 'Importer ces données'}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Résultat de l'import */}
+          {importResult && (
+            <Card className={importResult.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  {importResult.success ? (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  )}
+                  <CardTitle className={importResult.success ? 'text-green-800' : 'text-red-800'}>
+                    {importResult.success ? 'Import réussi' : 'Import avec erreurs'}
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className={`mb-4 ${importResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                  {importResult.message}
+                </p>
+
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-xs mb-4">
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importResult.stats.products_imported}</p>
+                    <p className="text-muted-foreground">Produits</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importResult.stats.customers_imported}</p>
+                    <p className="text-muted-foreground">Clients</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importResult.stats.suppliers_imported}</p>
+                    <p className="text-muted-foreground">Fournisseurs</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importResult.stats.sales_imported}</p>
+                    <p className="text-muted-foreground">Ventes</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importResult.stats.invoices_imported}</p>
+                    <p className="text-muted-foreground">Factures</p>
+                  </div>
+                  <div className="text-center p-2 bg-white rounded">
+                    <p className="font-medium">{importResult.stats.quotes_imported}</p>
+                    <p className="text-muted-foreground">Devis</p>
+                  </div>
+                </div>
+
+                {importResult.errors.length > 0 && (
+                  <div className="mt-4 p-3 bg-red-100 border border-red-200 rounded">
+                    <p className="text-red-800 font-medium mb-2">Erreurs détectées :</p>
+                    <ul className="text-red-700 text-sm space-y-1">
+                      {importResult.errors.slice(0, 5).map((error, index) => (
+                        <li key={index}>• {error}</li>
+                      ))}
+                      {importResult.errors.length > 5 && (
+                        <li>• ... et {importResult.errors.length - 5} autres erreurs</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="mt-4 text-xs text-muted-foreground">
+                  Import terminé en {importResult.processingTime}ms
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </CardContent>
       </Card>
 
