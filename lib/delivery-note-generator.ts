@@ -285,6 +285,13 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
         hasEmail: !!company.email
       })
 
+      // DEBUG: Forcer un logo de test si aucun logo configuré
+      if (!company.logo) {
+        console.log('🧪 DEBUG: Aucun logo configuré, test avec logo par défaut...')
+        company.logo = 'https://via.placeholder.com/200x200/2563EB/FFFFFF?text=LOGO'
+        console.log('🧪 DEBUG: Logo de test assigné:', company.logo)
+      }
+
     } catch (error) {
       console.error('❌ Erreur lors de la récupération des paramètres:', error)
       company = {
