@@ -35,7 +35,7 @@ const categories = [
   'Sport & Loisirs', 'Maison & Jardin'
 ]
 
-function generateRandomProduct(index: number) {
+function generateRandomProduct(index: number, batchIndex: number) {
   const name = productNames[Math.floor(Math.random() * productNames.length)]
   const brand = brands[Math.floor(Math.random() * brands.length)]
   const adjective = adjectives[Math.floor(Math.random() * adjectives.length)]
@@ -48,8 +48,12 @@ function generateRandomProduct(index: number) {
   const stock = Math.floor(Math.random() * 200) + 1 // 1-200 unités
   const minStock = Math.floor(stock * 0.1) + 1 // 10% du stock comme minimum
   
+  // Générer un SKU vraiment unique avec timestamp et index
+  const timestamp = Date.now()
+  const uniqueId = `${timestamp}-${batchIndex}-${index}`
+  
   return {
-    sku: `TEST-${String(index).padStart(5, '0')}`,
+    sku: `TEST-${uniqueId}`,
     name: `${brand} ${name} ${adjective}`,
     description: `${adjective} ${name} de la marque ${brand} - Produit de test généré automatiquement`,
     purchasePrice,
@@ -112,7 +116,18 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ ${createdCategories.length} catégories créées/mises à jour`)
 
-    // 2. Générer les produits par batch pour éviter les timeouts
+    // 2. Supprimer les anciens produits de test s'ils existent
+    console.log('🗑️ Suppression des anciens produits de test...')
+    const deletedCount = await prisma.product.deleteMany({
+      where: {
+        sku: {
+          startsWith: 'TEST-'
+        }
+      }
+    })
+    console.log(`✅ ${deletedCount.count} anciens produits de test supprimés`)
+
+    // 3. Générer les produits par batch pour éviter les timeouts
     const batchSize = 100
     const batches = Math.ceil(count / batchSize)
     let totalCreated = 0
@@ -127,7 +142,7 @@ export async function POST(request: NextRequest) {
       console.log(`🔄 Génération batch ${batchIndex + 1}/${batches} (${batchStart} à ${batchEnd - 1})`)
 
       for (let i = batchStart; i < batchEnd; i++) {
-        const product = generateRandomProduct(i + 1)
+        const product = generateRandomProduct(i + 1, batchIndex)
         // Assigner une catégorie aléatoire
         product.categoryId = createdCategories[Math.floor(Math.random() * createdCategories.length)].id
         batchProducts.push(product)
