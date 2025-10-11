@@ -18,27 +18,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true)
-
-    // Vérifier s'il y a déjà un token valide
-    const checkExistingAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/verify', {
-          method: 'GET',
-          credentials: 'include'
-        })
-
-        if (response.ok) {
-          // L'utilisateur est déjà connecté, rediriger vers le dashboard
-          router.replace('/dashboard')
-        }
-      } catch (error) {
-        // Pas de token valide, rester sur la page de login
-        console.log('No valid token, staying on login page')
-      }
-    }
-
-    checkExistingAuth()
-  }, [router])
+  }, [])
 
   // Ne pas rendre la page tant qu'elle n'est pas montée côté client
   if (!mounted) {

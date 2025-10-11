@@ -1,46 +1,96 @@
-'use client'
-
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
 export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-2xl font-bold text-white">A</span>
-          </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
-            Alami Gestion
-          </CardTitle>
-          <p className="text-gray-600">
-            Application de gestion d'entreprise
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center space-y-3">
-            <Link href="/login">
-              <Button className="w-full" size="lg">
-                Se connecter
-              </Button>
-            </Link>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#f0f9ff',
+      padding: '20px',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '40px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        textAlign: 'center',
+        maxWidth: '400px',
+        width: '100%'
+      }}>
+        <div style={{
+          width: '60px',
+          height: '60px',
+          backgroundColor: '#3b82f6',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 20px',
+          color: 'white',
+          fontSize: '24px',
+          fontWeight: 'bold'
+        }}>
+          A
+        </div>
 
-            <Link href="/debug">
-              <Button variant="outline" className="w-full" size="sm">
-                Page de diagnostic
-              </Button>
-            </Link>
-          </div>
+        <h1 style={{
+          fontSize: '28px',
+          fontWeight: 'bold',
+          color: '#1f2937',
+          marginBottom: '10px'
+        }}>
+          Alami Gestion
+        </h1>
 
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              Version mobile optimisée
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        <p style={{
+          color: '#6b7280',
+          marginBottom: '30px'
+        }}>
+          Application de gestion d'entreprise
+        </p>
+
+        <div style={{ marginBottom: '20px' }}>
+          <a
+            href="/login"
+            style={{
+              display: 'block',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: '500',
+              marginBottom: '10px'
+            }}
+          >
+            Se connecter
+          </a>
+
+          <a
+            href="/debug"
+            style={{
+              display: 'block',
+              backgroundColor: 'transparent',
+              color: '#3b82f6',
+              padding: '8px 16px',
+              border: '1px solid #3b82f6',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontSize: '14px'
+            }}
+          >
+            Page de diagnostic
+          </a>
+        </div>
+
+        <p style={{
+          fontSize: '12px',
+          color: '#9ca3af'
+        }}>
+          Version mobile optimisée
+        </p>
+      </div>
     </div>
   )
 }
