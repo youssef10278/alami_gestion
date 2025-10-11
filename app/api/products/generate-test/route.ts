@@ -81,18 +81,27 @@ export async function POST(request: NextRequest) {
 
     // 1. Créer les catégories de test si elles n'existent pas
     console.log('📁 Création des catégories...')
-    const categoryPromises = categories.map(async (categoryName) => {
-      return prisma.category.upsert({
-        where: { name: categoryName },
-        update: {},
-        create: {
-          name: categoryName,
-          description: `Catégorie ${categoryName} - Générée pour les tests`
-        }
+    const createdCategories = []
+
+    for (const categoryName of categories) {
+      // Vérifier si la catégorie existe déjà
+      let category = await prisma.category.findFirst({
+        where: { name: categoryName }
       })
-    })
-    
-    const createdCategories = await Promise.all(categoryPromises)
+
+      // Si elle n'existe pas, la créer
+      if (!category) {
+        category = await prisma.category.create({
+          data: {
+            name: categoryName,
+            description: `Catégorie ${categoryName} - Générée pour les tests`
+          }
+        })
+      }
+
+      createdCategories.push(category)
+    }
+
     console.log(`✅ ${createdCategories.length} catégories créées/mises à jour`)
 
     // 2. Générer les produits par batch pour éviter les timeouts
