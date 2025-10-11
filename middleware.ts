@@ -5,91 +5,110 @@ import { verifyToken } from '@/lib/auth'
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value
   const pathname = request.nextUrl.pathname
+  const url = request.url
 
-  // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/', '/abc']
-  const isPublicRoute = publicRoutes.some(route =>
-    pathname === route ||
-    pathname.startsWith('/api/auth/login') ||
-    pathname.startsWith('/api/auth/signup')
-  )
+  // Log pour debug (seulement en développement)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[Middleware] ${pathname} - Token: ${token ? 'présent' : 'absent'}`)
+  }
 
-  // API routes that should be excluded from auth checks
-  const isApiRoute = pathname.startsWith('/api/')
-  const isAuthApiRoute = pathname.startsWith('/api/auth/')
+  // Routes qui doivent être complètement ignorées par le middleware
+  const ignoredPaths = [
+    '/_next',
+    '/favicon.ico',
+    '/manifest.json',
+    '/sw.js',
+    '/workbox-',
+    '/api/auth/login',
+    '/api/auth/signup'
+  ]
 
-  // Skip middleware for certain API routes to avoid loops
-  if (isAuthApiRoute) {
+  if (ignoredPaths.some(path => pathname.startsWith(path))) {
     return NextResponse.next()
   }
 
-  // Handle root path specially to avoid loops
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login', '/debug']
+  const isPublicRoute = publicRoutes.includes(pathname)
+
+  // Handle root path specially - TOUJOURS rediriger sans vérification de token
   if (pathname === '/') {
     if (token) {
-      const payload = await verifyToken(token)
-      if (payload) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-    }
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // If no token and trying to access protected route, redirect to login
-  if (!token && !isPublicRoute) {
-    // Avoid redirect loop by checking if we're already going to login
-    if (pathname !== '/login') {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-  }
-
-  // If has token, verify it
-  if (token) {
-    const payload = await verifyToken(token)
-
-    // If token is invalid and trying to access protected route, redirect to login
-    if (!payload && !isPublicRoute) {
-      // Avoid redirect loop by checking if we're already going to login
-      if (pathname !== '/login') {
-        const response = NextResponse.redirect(new URL('/login', request.url))
+      try {
+        const payload = await verifyToken(token)
+        if (payload) {
+          return NextResponse.redirect(new URL('/dashboard', url))
+        }
+      } catch (error) {
+        // Token invalide, supprimer et rediriger vers login
+        const response = NextResponse.redirect(new URL('/login', url))
         response.cookies.delete('auth-token')
         return response
       }
     }
+    return NextResponse.redirect(new URL('/login', url))
+  }
 
-    // If valid token and trying to access login page, redirect to dashboard
-    if (payload && pathname === '/login') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+  // Si on est sur /login, laisser passer SAUF si on a un token valide
+  if (pathname === '/login') {
+    if (token) {
+      try {
+        const payload = await verifyToken(token)
+        if (payload) {
+          return NextResponse.redirect(new URL('/dashboard', url))
+        }
+      } catch (error) {
+        // Token invalide, supprimer le cookie et laisser accéder à login
+        const response = NextResponse.next()
+        response.cookies.delete('auth-token')
+        return response
+      }
+    }
+    return NextResponse.next()
+  }
+
+  // Si on est sur /debug, toujours laisser passer
+  if (pathname === '/debug') {
+    return NextResponse.next()
+  }
+
+  // Pour toutes les autres routes, vérifier l'authentification
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', url))
+  }
+
+  // Vérifier la validité du token
+  try {
+    const payload = await verifyToken(token)
+
+    if (!payload) {
+      const response = NextResponse.redirect(new URL('/login', url))
+      response.cookies.delete('auth-token')
+      return response
     }
 
     // Check role-based access
-    if (payload) {
-      const role = payload.role
-
-      // Seller restrictions - can't access certain admin routes
-      if (role === 'SELLER') {
-        const adminOnlyRoutes = ['/dashboard/users', '/dashboard/settings']
-        if (adminOnlyRoutes.some(route => pathname.startsWith(route))) {
-          return NextResponse.redirect(new URL('/dashboard', request.url))
-        }
+    const role = payload.role
+    if (role === 'SELLER') {
+      const adminOnlyRoutes = ['/dashboard/users', '/dashboard/settings']
+      if (adminOnlyRoutes.some(route => pathname.startsWith(route))) {
+        return NextResponse.redirect(new URL('/dashboard', url))
       }
     }
-  }
 
-  return NextResponse.next()
+    return NextResponse.next()
+  } catch (error) {
+    // Erreur de vérification du token
+    const response = NextResponse.redirect(new URL('/login', url))
+    response.cookies.delete('auth-token')
+    return response
+  }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     * - manifest.json (PWA manifest)
-     * - service worker files
-     */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|workbox-.*|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff|woff2|ttf|eot)$).*)',
+    // Temporairement désactivé pour debug mobile
+    // '/((?!_next|api/auth|favicon.ico|manifest.json|sw.js|.*\\.(svg|png|jpg|jpeg|gif|webp|ico|js|css|woff|woff2|ttf|eot|map)).*)',
   ],
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,46 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+
+    // Vérifier s'il y a déjà un token valide
+    const checkExistingAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/verify', {
+          method: 'GET',
+          credentials: 'include'
+        })
+
+        if (response.ok) {
+          // L'utilisateur est déjà connecté, rediriger vers le dashboard
+          router.replace('/dashboard')
+        }
+      } catch (error) {
+        // Pas de token valide, rester sur la page de login
+        console.log('No valid token, staying on login page')
+      }
+    }
+
+    checkExistingAuth()
+  }, [router])
+
+  // Ne pas rendre la page tant qu'elle n'est pas montée côté client
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Alami Gestion</h2>
+          <p className="text-sm text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
