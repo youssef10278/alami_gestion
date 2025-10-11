@@ -160,34 +160,48 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
 
     // Récupérer les paramètres de l'entreprise
     let company: CompanyInfo
-    try {
-      const settings = await getCompanySettings()
-      console.log('📋 Paramètres récupérés:', {
-        name: settings.companyName,
-        logo: settings.companyLogo,
-        address: settings.companyAddress,
-        phone: settings.companyPhone,
-        email: settings.companyEmail
-      })
-
+    
+    // Priorité aux paramètres passés dans data.companySettings
+    if (data.companySettings) {
+      console.log('📋 Utilisation des paramètres passés dans data.companySettings:', data.companySettings)
       company = {
-        name: settings.companyName || 'Alami Gestion',
-        address: settings.companyAddress || undefined,
-        phone: settings.companyPhone || undefined,
-        email: settings.companyEmail || undefined,
-        ice: settings.companyICE || undefined,
-        taxId: settings.companyTaxId || undefined,
-        website: settings.companyWebsite || undefined,
-        logo: settings.companyLogo || undefined  // ✅ CORRECTION: companyLogo au lieu de logo
+        name: data.companySettings.name || 'Alami Gestion',
+        address: data.companySettings.address || undefined,
+        phone: data.companySettings.phone || undefined,
+        email: data.companySettings.email || undefined,
+        logo: data.companySettings.logo || undefined
       }
+    } else {
+      // Fallback vers getCompanySettings() si pas de paramètres passés
+      try {
+        const settings = await getCompanySettings()
+        console.log('📋 Paramètres récupérés depuis getCompanySettings:', {
+          name: settings.companyName,
+          logo: settings.companyLogo,
+          address: settings.companyAddress,
+          phone: settings.companyPhone,
+          email: settings.companyEmail
+        })
 
-      console.log('🏢 Informations entreprise mappées:', company)
-    } catch (error) {
-      console.error('Error fetching company settings:', error)
-      company = {
-        name: 'Alami Gestion'
+        company = {
+          name: settings.companyName || 'Alami Gestion',
+          address: settings.companyAddress || undefined,
+          phone: settings.companyPhone || undefined,
+          email: settings.companyEmail || undefined,
+          ice: settings.companyICE || undefined,
+          taxId: settings.companyTaxId || undefined,
+          website: settings.companyWebsite || undefined,
+          logo: settings.companyLogo || undefined
+        }
+      } catch (error) {
+        console.error('Error fetching company settings:', error)
+        company = {
+          name: 'Alami Gestion'
+        }
       }
     }
+
+    console.log('🏢 Informations entreprise finales:', company)
 
     // Couleurs simples
     const blueColor: [number, number, number] = [59, 130, 246]

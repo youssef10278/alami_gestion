@@ -122,3 +122,4 @@ import { SafeCurrency } from '@/components/ui/safe-display'
 2. Remplacer progressivement par les composants `SafeDisplay`
 3. Ajouter des tests unitaires pour les fonctions utilitaires
 4. Documenter les bonnes pratiques dans le guide de développement
+

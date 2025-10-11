@@ -113,7 +113,9 @@ export async function GET(
       saleNumber: deliveryNoteData.saleNumber,
       customerName: deliveryNoteData.customerName,
       sellerName: deliveryNoteData.sellerName,
-      itemsCount: deliveryNoteData.items.length
+      itemsCount: deliveryNoteData.items.length,
+      hasCompanySettings: !!deliveryNoteData.companySettings,
+      companyLogo: deliveryNoteData.companySettings?.logo
     })
 
     // Générer le PDF

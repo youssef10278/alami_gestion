@@ -81,3 +81,4 @@ export function SafeCurrency({
     </span>
   )
 }
+
