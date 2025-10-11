@@ -15,13 +15,19 @@ async function testBulkGeneration() {
     // Test avec 100 produits d'abord
     console.log('\n🔬 Test avec 100 produits...')
     
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 secondes timeout
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ count: 100 })
+      body: JSON.stringify({ count: 100 }),
+      signal: controller.signal
     })
+
+    clearTimeout(timeoutId)
 
     console.log(`📊 Status: ${response.status}`)
     console.log(`📊 Status Text: ${response.statusText}`)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Package, AlertTriangle, Grid3x3, List, Trash2 } from 'lucide-react'
+import { Plus, Search, Package, AlertTriangle, Grid3x3, List } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,7 +16,6 @@ import {
 import ProductDialog from '@/components/products/ProductDialog'
 import ProductCard from '@/components/products/ProductCard'
 import ProductTable from '@/components/products/ProductTable'
-import BulkGenerationProgress from '@/components/products/BulkGenerationProgress'
 import { useDebounce } from '@/hooks/useDebounce'
 import { toast } from 'sonner'
 
@@ -57,8 +56,6 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(20)
-  const [isGeneratingTest, setIsGeneratingTest] = useState(false)
-  const [testStats, setTestStats] = useState<any>(null)
 
   // Debounce de la recherche pour éviter trop d'appels API
   const debouncedSearch = useDebounce(search, 300)
@@ -248,98 +245,7 @@ export default function ProductsPage() {
   const potentialValue = products.reduce((sum, p) => sum + (safeNumber(p.price) * p.stock), 0)
   const potentialProfit = potentialValue - stockValue
 
-  // État pour la génération en masse
-  const [bulkGenerationId, setBulkGenerationId] = useState<string | null>(null)
-  const [showBulkProgress, setShowBulkProgress] = useState(false)
 
-  // Fonctions pour les tests de performance
-  const generateTestProducts = async () => {
-    if (isGeneratingTest) return
-
-    const confirmed = confirm(
-      '⚠️ ATTENTION: Test de Performance\n\n' +
-      'Cette action va générer 5000 produits de test pour tester les performances.\n' +
-      'Cela peut prendre quelques minutes.\n\n' +
-      'Voulez-vous continuer ?'
-    )
-
-    if (!confirmed) return
-
-    setIsGeneratingTest(true)
-    setTestStats(null)
-
-    try {
-      toast.info('🚀 Démarrage de la génération de 5000 produits...')
-
-      const response = await fetch('/api/products/generate-bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count: 5000 })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setBulkGenerationId(data.generationId)
-        setShowBulkProgress(true)
-        toast.success('✅ Génération démarrée ! Suivez la progression ci-dessous.')
-      } else {
-        toast.error(data.error || 'Erreur lors du démarrage de la génération')
-      }
-    } catch (error) {
-      console.error('Error starting bulk generation:', error)
-      toast.error('Erreur lors du démarrage de la génération')
-    } finally {
-      setIsGeneratingTest(false)
-    }
-  }
-
-  // Callback quand la génération est terminée
-  const handleBulkGenerationComplete = () => {
-    setShowBulkProgress(false)
-    setBulkGenerationId(null)
-    fetchProducts() // Recharger la liste
-    toast.success('🎉 Génération terminée ! Liste des produits mise à jour.')
-  }
-
-  // Callback en cas d'erreur
-  const handleBulkGenerationError = (error: string) => {
-    setShowBulkProgress(false)
-    setBulkGenerationId(null)
-    toast.error(`❌ Erreur lors de la génération: ${error}`)
-  }
-
-  const deleteTestProducts = async () => {
-    const confirmed = confirm(
-      '🗑️ Supprimer les produits de test\n\n' +
-      'Cette action va supprimer TOUS les produits avec un SKU commençant par "TEST-" ou "BULK-".\n' +
-      'Cette action est irréversible.\n\n' +
-      'Voulez-vous continuer ?'
-    )
-
-    if (!confirmed) return
-
-    try {
-      toast.info('🗑️ Suppression des produits de test...')
-
-      const response = await fetch('/api/products/generate-test', {
-        method: 'DELETE'
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success(`✅ ${data.message}`)
-        setTestStats(null)
-        fetchProducts() // Recharger la liste
-      } else {
-        toast.error(data.error || 'Erreur lors de la suppression')
-      }
-    } catch (error) {
-      console.error('Error deleting test products:', error)
-      toast.error('Erreur lors de la suppression des produits de test')
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -458,76 +364,6 @@ export default function ProductsPage() {
         </Card>
       </div>
 
-      {/* Section Test de Performance - À SUPPRIMER APRÈS LES TESTS */}
-      <Card className="border-2 border-dashed border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 shadow-lg">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-500 rounded-lg">
-              <Package className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-lg font-bold text-yellow-800">
-                🧪 Test de Performance - TEMPORAIRE
-              </CardTitle>
-              <p className="text-sm text-yellow-700 mt-1">
-                Générer des produits de test pour tester les performances de l'application
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3 items-start">
-            <Button
-              onClick={generateTestProducts}
-              disabled={isGeneratingTest}
-              variant="outline"
-              className="border-yellow-400 text-yellow-700 hover:bg-yellow-100 gap-2"
-            >
-              {isGeneratingTest ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin" />
-                  Génération...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  Générer 5000 produits
-                </>
-              )}
-            </Button>
-
-            <Button
-              onClick={deleteTestProducts}
-              variant="outline"
-              className="border-red-400 text-red-700 hover:bg-red-100 gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Supprimer les tests
-            </Button>
-
-            {testStats && (
-              <div className="flex-1 p-3 bg-green-100 rounded-lg border border-green-300">
-                <div className="text-sm text-green-800">
-                  <div className="font-semibold">📊 Derniers résultats :</div>
-                  <div className="mt-1 space-y-1">
-                    <div>• {testStats.testProducts} produits générés</div>
-                    <div>• Durée : {testStats.duration}</div>
-                    <div>• Moyenne : {testStats.averagePerProduct}/produit</div>
-                    <div>• Total produits : {testStats.totalProducts}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-3 p-3 bg-yellow-100 rounded-lg border border-yellow-300">
-            <p className="text-xs text-yellow-800">
-              ⚠️ <strong>Note :</strong> Ce bouton est temporaire et sera supprimé après les tests de performance.
-              Les produits générés ont un SKU commençant par "TEST-" pour faciliter leur identification et suppression.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Filters avec design amélioré - Responsive */}
       <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
@@ -747,16 +583,7 @@ export default function ProductsPage() {
         </>
       )}
 
-      {/* Bulk Generation Progress */}
-      {showBulkProgress && bulkGenerationId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <BulkGenerationProgress
-            generationId={bulkGenerationId}
-            onComplete={handleBulkGenerationComplete}
-            onError={handleBulkGenerationError}
-          />
-        </div>
-      )}
+
 
       {/* Product Dialog */}
       <ProductDialog

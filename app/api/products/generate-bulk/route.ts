@@ -320,5 +320,45 @@ export function cleanupOldSessions() {
   }
 }
 
-// Nettoyer les anciennes sessions toutes les 10 minutes
-setInterval(cleanupOldSessions, 10 * 60 * 1000)
+// Nettoyer les anciennes sessions (appelé manuellement)
+// setInterval(cleanupOldSessions, 10 * 60 * 1000) // Désactivé pour éviter les problèmes
+
+// API pour supprimer tous les produits de test BULK-
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session || session.role !== 'OWNER') {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    }
+
+    console.log('🗑️ Suppression des produits de test BULK-...')
+    const startTime = Date.now()
+
+    // Supprimer tous les produits avec SKU commençant par "BULK-"
+    const result = await prisma.product.deleteMany({
+      where: {
+        sku: {
+          startsWith: 'BULK-'
+        }
+      }
+    })
+
+    const endTime = Date.now()
+    const duration = endTime - startTime
+
+    console.log(`✅ ${result.count} produits BULK- supprimés en ${duration}ms`)
+
+    return NextResponse.json({
+      success: true,
+      message: `${result.count} produits de test BULK- supprimés`,
+      duration: `${duration}ms`
+    })
+
+  } catch (error) {
+    console.error('❌ Erreur lors de la suppression BULK-:', error)
+    return NextResponse.json(
+      { error: 'Erreur lors de la suppression des produits de test BULK-' },
+      { status: 500 }
+    )
+  }
+}
