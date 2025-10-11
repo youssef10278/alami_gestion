@@ -18,38 +18,78 @@ interface CompanyInfo {
 // Fonction pour charger une image en base64
 async function loadImageAsBase64(url: string): Promise<string | null> {
   try {
+    console.log('🌐 Tentative de fetch de l\'image:', url)
     const response = await fetch(url)
-    if (!response.ok) return null
+
+    console.log('📡 Réponse fetch:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      contentType: response.headers.get('content-type')
+    })
+
+    if (!response.ok) {
+      console.error('❌ Réponse fetch non OK:', response.status, response.statusText)
+      return null
+    }
 
     const blob = await response.blob()
+    console.log('📦 Blob créé:', {
+      size: blob.size,
+      type: blob.type
+    })
+
     return new Promise((resolve) => {
       const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = () => resolve(null)
+      reader.onload = () => {
+        const result = reader.result as string
+        console.log('✅ Image convertie en base64, taille:', result.length, 'caractères')
+        resolve(result)
+      }
+      reader.onerror = (error) => {
+        console.error('❌ Erreur FileReader:', error)
+        resolve(null)
+      }
       reader.readAsDataURL(blob)
     })
   } catch (error) {
-    console.warn('Error loading image:', error)
+    console.error('❌ Erreur lors du chargement de l\'image:', error)
     return null
   }
 }
 
 // Fonction pour ajouter le logo de l'entreprise
 async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: number, size: number = 16) {
+  console.log('🖼️ Tentative d\'ajout du logo:', {
+    hasLogo: !!company.logo,
+    logoUrl: company.logo,
+    position: { x, y },
+    size
+  })
+
   if (company.logo) {
     try {
+      console.log('📥 Chargement du logo depuis:', company.logo)
       const logoBase64 = await loadImageAsBase64(company.logo)
+
       if (logoBase64) {
+        console.log('✅ Logo chargé avec succès, ajout au PDF...')
         // Ajouter l'image au PDF
         doc.addImage(logoBase64, 'PNG', x - size/2, y - size/2, size, size)
+        console.log('✅ Logo ajouté au PDF avec succès')
         return true
+      } else {
+        console.warn('⚠️ Échec du chargement du logo (base64 null)')
       }
     } catch (error) {
-      console.warn('Error adding logo to PDF:', error)
+      console.error('❌ Erreur lors de l\'ajout du logo au PDF:', error)
     }
+  } else {
+    console.log('ℹ️ Aucun logo configuré, utilisation du fallback')
   }
 
   // Fallback : cercle avec initiale
+  console.log('🔄 Utilisation du fallback (cercle avec initiale)')
   doc.setFillColor(59, 130, 246) // Bleu
   doc.circle(x, y, size/2, 'F')
   doc.setTextColor(255, 255, 255)
@@ -57,6 +97,7 @@ async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: nu
   doc.setFontSize(size * 0.6)
   const initial = company.name ? company.name.charAt(0).toUpperCase() : 'D'
   doc.text(initial, x, y + size * 0.15, { align: 'center' })
+  console.log('✅ Fallback appliqué avec initiale:', initial)
   return false
 }
 
@@ -121,16 +162,26 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
     let company: CompanyInfo
     try {
       const settings = await getCompanySettings()
+      console.log('📋 Paramètres récupérés:', {
+        name: settings.companyName,
+        logo: settings.companyLogo,
+        address: settings.companyAddress,
+        phone: settings.companyPhone,
+        email: settings.companyEmail
+      })
+
       company = {
-        name: settings.name || 'Alami Gestion',
-        address: settings.address || undefined,
-        phone: settings.phone || undefined,
-        email: settings.email || undefined,
-        ice: settings.ice || undefined,
-        taxId: settings.taxId || undefined,
-        website: settings.website || undefined,
-        logo: settings.logo || undefined
+        name: settings.companyName || 'Alami Gestion',
+        address: settings.companyAddress || undefined,
+        phone: settings.companyPhone || undefined,
+        email: settings.companyEmail || undefined,
+        ice: settings.companyICE || undefined,
+        taxId: settings.companyTaxId || undefined,
+        website: settings.companyWebsite || undefined,
+        logo: settings.companyLogo || undefined  // ✅ CORRECTION: companyLogo au lieu de logo
       }
+
+      console.log('🏢 Informations entreprise mappées:', company)
     } catch (error) {
       console.error('Error fetching company settings:', error)
       company = {
