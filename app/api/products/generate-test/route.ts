@@ -63,18 +63,26 @@ function generateRandomProduct(index: number) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔍 Début de la requête de génération de produits')
+
     // Vérifier l'authentification
     const session = await getSession()
+    console.log('👤 Session:', session ? `${session.userId} (${session.role})` : 'null')
+
     if (!session) {
+      console.log('❌ Pas de session')
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
     // Seul le propriétaire peut générer des produits de test
     if (session.role !== 'OWNER') {
+      console.log(`❌ Rôle insuffisant: ${session.role}`)
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
-    const { count = 5000 } = await request.json()
+    const body = await request.json()
+    const { count = 5000 } = body
+    console.log('📊 Paramètres reçus:', { count })
 
     console.log(`🧪 Génération de ${count} produits de test...`)
     const startTime = Date.now()
@@ -109,10 +117,14 @@ export async function POST(request: NextRequest) {
     const batches = Math.ceil(count / batchSize)
     let totalCreated = 0
 
+    console.log(`📊 Configuration: ${count} produits, ${batches} batches de ${batchSize}`)
+
     for (let batchIndex = 0; batchIndex < batches; batchIndex++) {
       const batchStart = batchIndex * batchSize
       const batchEnd = Math.min(batchStart + batchSize, count)
       const batchProducts = []
+
+      console.log(`🔄 Génération batch ${batchIndex + 1}/${batches} (${batchStart} à ${batchEnd - 1})`)
 
       for (let i = batchStart; i < batchEnd; i++) {
         const product = generateRandomProduct(i + 1)
@@ -121,14 +133,21 @@ export async function POST(request: NextRequest) {
         batchProducts.push(product)
       }
 
+      console.log(`💾 Insertion de ${batchProducts.length} produits...`)
+
       // Insérer le batch
-      await prisma.product.createMany({
+      const result = await prisma.product.createMany({
         data: batchProducts,
         skipDuplicates: true
       })
 
-      totalCreated += batchProducts.length
-      console.log(`📦 Batch ${batchIndex + 1}/${batches} - ${batchProducts.length} produits créés (Total: ${totalCreated})`)
+      totalCreated += result.count
+      console.log(`📦 Batch ${batchIndex + 1}/${batches} - ${result.count} produits créés (Total: ${totalCreated})`)
+
+      // Petit délai pour éviter la surcharge
+      if (batchIndex < batches - 1) {
+        await new Promise(resolve => setTimeout(resolve, 10))
+      }
     }
 
     const endTime = Date.now()
@@ -153,8 +172,13 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Erreur lors de la génération des produits:', error)
+    console.error('❌ Stack trace:', error.stack)
     return NextResponse.json(
-      { error: 'Erreur lors de la génération des produits de test' },
+      {
+        error: 'Erreur lors de la génération des produits de test',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
