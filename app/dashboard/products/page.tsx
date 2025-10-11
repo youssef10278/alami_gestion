@@ -16,6 +16,7 @@ import {
 import ProductDialog from '@/components/products/ProductDialog'
 import ProductCard from '@/components/products/ProductCard'
 import ProductTable from '@/components/products/ProductTable'
+import BulkGenerationProgress from '@/components/products/BulkGenerationProgress'
 import { useDebounce } from '@/hooks/useDebounce'
 import { toast } from 'sonner'
 
@@ -247,6 +248,10 @@ export default function ProductsPage() {
   const potentialValue = products.reduce((sum, p) => sum + (safeNumber(p.price) * p.stock), 0)
   const potentialProfit = potentialValue - stockValue
 
+  // État pour la génération en masse
+  const [bulkGenerationId, setBulkGenerationId] = useState<string | null>(null)
+  const [showBulkProgress, setShowBulkProgress] = useState(false)
+
   // Fonctions pour les tests de performance
   const generateTestProducts = async () => {
     if (isGeneratingTest) return
@@ -254,7 +259,7 @@ export default function ProductsPage() {
     const confirmed = confirm(
       '⚠️ ATTENTION: Test de Performance\n\n' +
       'Cette action va générer 5000 produits de test pour tester les performances.\n' +
-      'Cela peut prendre quelques secondes.\n\n' +
+      'Cela peut prendre quelques minutes.\n\n' +
       'Voulez-vous continuer ?'
     )
 
@@ -264,9 +269,9 @@ export default function ProductsPage() {
     setTestStats(null)
 
     try {
-      toast.info('🧪 Génération de 5000 produits de test en cours...')
+      toast.info('🚀 Démarrage de la génération de 5000 produits...')
 
-      const response = await fetch('/api/products/generate-test', {
+      const response = await fetch('/api/products/generate-bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ count: 5000 })
@@ -275,24 +280,39 @@ export default function ProductsPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setTestStats(data.stats)
-        toast.success(`✅ ${data.stats.testProducts} produits de test générés en ${data.stats.duration}`)
-        fetchProducts() // Recharger la liste
+        setBulkGenerationId(data.generationId)
+        setShowBulkProgress(true)
+        toast.success('✅ Génération démarrée ! Suivez la progression ci-dessous.')
       } else {
-        toast.error(data.error || 'Erreur lors de la génération')
+        toast.error(data.error || 'Erreur lors du démarrage de la génération')
       }
     } catch (error) {
-      console.error('Error generating test products:', error)
-      toast.error('Erreur lors de la génération des produits de test')
+      console.error('Error starting bulk generation:', error)
+      toast.error('Erreur lors du démarrage de la génération')
     } finally {
       setIsGeneratingTest(false)
     }
   }
 
+  // Callback quand la génération est terminée
+  const handleBulkGenerationComplete = () => {
+    setShowBulkProgress(false)
+    setBulkGenerationId(null)
+    fetchProducts() // Recharger la liste
+    toast.success('🎉 Génération terminée ! Liste des produits mise à jour.')
+  }
+
+  // Callback en cas d'erreur
+  const handleBulkGenerationError = (error: string) => {
+    setShowBulkProgress(false)
+    setBulkGenerationId(null)
+    toast.error(`❌ Erreur lors de la génération: ${error}`)
+  }
+
   const deleteTestProducts = async () => {
     const confirmed = confirm(
       '🗑️ Supprimer les produits de test\n\n' +
-      'Cette action va supprimer TOUS les produits avec un SKU commençant par "TEST-".\n' +
+      'Cette action va supprimer TOUS les produits avec un SKU commençant par "TEST-" ou "BULK-".\n' +
       'Cette action est irréversible.\n\n' +
       'Voulez-vous continuer ?'
     )
@@ -725,6 +745,17 @@ export default function ProductsPage() {
             </Card>
           )}
         </>
+      )}
+
+      {/* Bulk Generation Progress */}
+      {showBulkProgress && bulkGenerationId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <BulkGenerationProgress
+            generationId={bulkGenerationId}
+            onComplete={handleBulkGenerationComplete}
+            onError={handleBulkGenerationError}
+          />
+        </div>
       )}
 
       {/* Product Dialog */}
