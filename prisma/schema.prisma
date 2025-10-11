@@ -42,6 +42,7 @@ model Product {
   name           String
   description    String?
   image          String?
+  imagePublicId  String?         // Cloudinary public ID pour la suppression
   purchasePrice  Decimal         @default(0) @db.Decimal(10, 2)
   price          Decimal         @db.Decimal(10, 2)
   stock          Int             @default(0)

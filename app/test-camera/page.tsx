@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { SimpleCameraInput } from '@/components/ui/simple-camera-input'
 import { ImageUpload } from '@/components/ui/image-upload'
+import { CloudinaryImageUpload } from '@/components/ui/cloudinary-image-upload'
 
 export default function TestCameraPage() {
   const [simpleImage, setSimpleImage] = useState('')
   const [advancedImage, setAdvancedImage] = useState('')
+  const [cloudinaryImage, setCloudinaryImage] = useState('')
 
   return (
     <div style={{
@@ -72,6 +74,53 @@ export default function TestCameraPage() {
           )}
         </div>
 
+        {/* Test Cloudinary Upload */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '20px',
+          marginBottom: '20px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        }}>
+          <h2 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            marginBottom: '15px',
+            color: '#374151'
+          }}>
+            ☁️ Version Cloudinary (Recommandée pour production)
+          </h2>
+
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            marginBottom: '15px'
+          }}>
+            Upload direct vers Cloudinary avec optimisation automatique et CDN global.
+          </p>
+
+          <CloudinaryImageUpload
+            value={cloudinaryImage}
+            onChange={(url) => setCloudinaryImage(url)}
+            onRemove={() => setCloudinaryImage('')}
+            productId="test-product"
+          />
+
+          {cloudinaryImage && (
+            <div style={{
+              marginTop: '15px',
+              padding: '10px',
+              backgroundColor: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '8px',
+              color: '#166534',
+              fontSize: '14px'
+            }}>
+              ✅ Image uploadée sur Cloudinary ! URL: {cloudinaryImage.substring(0, 50)}...
+            </div>
+          )}
+        </div>
+
         {/* Test Advanced Camera */}
         <div style={{
           backgroundColor: 'white',
@@ -88,7 +137,7 @@ export default function TestCameraPage() {
           }}>
             📷 Version Avancée (Caméra en direct)
           </h2>
-          
+
           <p style={{
             fontSize: '14px',
             color: '#6b7280',

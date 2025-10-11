@@ -20,8 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BarcodeInput } from '@/components/ui/barcode-input'
-import { ImageUpload } from '@/components/ui/image-upload'
-import { SimpleCameraInput } from '@/components/ui/simple-camera-input'
+import { CloudinaryImageUpload } from '@/components/ui/cloudinary-image-upload'
 import { CategoryCombobox } from '@/components/ui/category-combobox'
 
 interface Product {
@@ -60,7 +59,6 @@ export default function ProductDialog({
 }: ProductDialogProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [isMobile, setIsMobile] = useState(false)
   const [formData, setFormData] = useState({
     sku: '',
     name: '',
@@ -71,19 +69,10 @@ export default function ProductDialog({
     minStock: '10',
     categoryId: '',
     image: '',
+    imagePublicId: '',
   })
 
-  // Détecter si on est sur mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      const userAgent = navigator.userAgent.toLowerCase()
-      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent)
-      const isTouchDevice = 'ontouchstart' in window
-      setIsMobile(isMobileDevice || isTouchDevice)
-    }
 
-    checkMobile()
-  }, [])
 
   useEffect(() => {
     if (product) {
@@ -97,6 +86,7 @@ export default function ProductDialog({
         minStock: product.minStock.toString(),
         categoryId: product.categoryId || 'none',
         image: product.image || '',
+        imagePublicId: (product as any).imagePublicId || '',
       })
     } else {
       setFormData({
@@ -109,6 +99,7 @@ export default function ProductDialog({
         minStock: '10',
         categoryId: 'none',
         image: '',
+        imagePublicId: '',
       })
     }
     setError('')
@@ -198,23 +189,22 @@ export default function ProductDialog({
           {/* Image du produit */}
           <div className="space-y-2">
             <Label>Photo du produit</Label>
-            {isMobile ? (
-              <SimpleCameraInput
-                value={formData.image}
-                onChange={(imageData) =>
-                  setFormData({ ...formData, image: imageData })
-                }
-                onRemove={() => setFormData({ ...formData, image: '' })}
-              />
-            ) : (
-              <ImageUpload
-                value={formData.image}
-                onChange={(imageData) =>
-                  setFormData({ ...formData, image: imageData })
-                }
-                onRemove={() => setFormData({ ...formData, image: '' })}
-              />
-            )}
+            <CloudinaryImageUpload
+              value={formData.image}
+              onChange={(imageUrl, publicId) =>
+                setFormData({
+                  ...formData,
+                  image: imageUrl,
+                  imagePublicId: publicId || ''
+                })
+              }
+              onRemove={() => setFormData({
+                ...formData,
+                image: '',
+                imagePublicId: ''
+              })}
+              productId={product?.id}
+            />
           </div>
 
           {/* Description */}
