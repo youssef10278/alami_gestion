@@ -14,7 +14,7 @@ interface CompanyInfo {
   logo?: string
 }
 
-// Fonction pour charger une image en base64
+// Fonction pour charger une image en base64 (VERSION SERVEUR CORRIGÉE)
 async function loadImageAsBase64(url: string): Promise<string | null> {
   try {
     console.log('🌐 Tentative de fetch de l\'image:', url)
@@ -29,28 +29,44 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
 
     if (!response.ok) {
       console.error('❌ Réponse fetch non OK:', response.status, response.statusText)
-      return null
+      throw new Error(`HTTP ${response.status}`)
     }
 
-    const blob = await response.blob()
-    console.log('📦 Blob créé:', {
-      size: blob.size,
-      type: blob.type
+    // ✅ CORRECTION: Utiliser Buffer (Node.js) au lieu de FileReader (navigateur)
+    const buffer = await response.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+
+    // Déterminer le type MIME basé sur l'extension ou Content-Type
+    const contentType = response.headers.get('content-type')
+    let mimeType = 'image/png' // Par défaut
+
+    if (contentType) {
+      mimeType = contentType
+    } else {
+      // Fallback basé sur l'extension
+      const ext = url.split('.').pop()?.toLowerCase()
+      if (ext === 'jpg' || ext === 'jpeg') {
+        mimeType = 'image/jpeg'
+      } else if (ext === 'png') {
+        mimeType = 'image/png'
+      } else if (ext === 'gif') {
+        mimeType = 'image/gif'
+      } else if (ext === 'webp') {
+        mimeType = 'image/webp'
+      }
+    }
+
+    const dataUrl = `data:${mimeType};base64,${base64}`
+
+    console.log('✅ Image convertie en base64:', {
+      mimeType,
+      base64Length: base64.length,
+      dataUrlLength: dataUrl.length,
+      bufferSize: buffer.byteLength
     })
 
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const result = reader.result as string
-        console.log('✅ Image convertie en base64, taille:', result.length, 'caractères')
-        resolve(result)
-      }
-      reader.onerror = (error) => {
-        console.error('❌ Erreur FileReader:', error)
-        resolve(null)
-      }
-      reader.readAsDataURL(blob)
-    })
+    return dataUrl
+
   } catch (error) {
     console.error('❌ Erreur lors du chargement de l\'image:', error)
     return null
@@ -284,13 +300,6 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
         hasPhone: !!company.phone,
         hasEmail: !!company.email
       })
-
-      // DEBUG: Forcer un logo de test si aucun logo configuré
-      if (!company.logo) {
-        console.log('🧪 DEBUG: Aucun logo configuré, test avec logo par défaut...')
-        company.logo = 'https://via.placeholder.com/200x200/2563EB/FFFFFF?text=LOGO'
-        console.log('🧪 DEBUG: Logo de test assigné:', company.logo)
-      }
 
     } catch (error) {
       console.error('❌ Erreur lors de la récupération des paramètres:', error)
