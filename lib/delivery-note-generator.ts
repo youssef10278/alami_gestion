@@ -1,7 +1,6 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { getCompanySettings } from '@/lib/company-settings'
-import { DeliveryNoteData } from '@/types/delivery-note'
 
 // Types pour les paramètres de l'entreprise
 interface CompanyInfo {
@@ -58,47 +57,131 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   }
 }
 
-// Fonction pour ajouter le logo de l'entreprise
-async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: number, size: number = 16) {
-  console.log('🖼️ Tentative d\'ajout du logo:', {
-    hasLogo: !!company.logo,
-    logoUrl: company.logo,
+// Fonction améliorée pour ajouter le logo de l'entreprise avec validation complète
+async function addEnhancedCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: number, size: number = 18): Promise<boolean> {
+  console.log('🎯 === TRAITEMENT LOGO ENTREPRISE - VERSION AMÉLIORÉE ===')
+  console.log('📊 Paramètres logo:', {
+    hasCompanyData: !!company,
+    companyName: company?.name,
+    hasLogoUrl: !!company?.logo,
+    logoUrl: company?.logo,
     position: { x, y },
     size
   })
 
-  if (company.logo) {
-    try {
-      console.log('📥 Chargement du logo depuis:', company.logo)
-      const logoBase64 = await loadImageAsBase64(company.logo)
-
-      if (logoBase64) {
-        console.log('✅ Logo chargé avec succès, ajout au PDF...')
-        // Ajouter l'image au PDF
-        doc.addImage(logoBase64, 'PNG', x - size/2, y - size/2, size, size)
-        console.log('✅ Logo ajouté au PDF avec succès')
-        return true
-      } else {
-        console.warn('⚠️ Échec du chargement du logo (base64 null)')
-      }
-    } catch (error) {
-      console.error('❌ Erreur lors de l\'ajout du logo au PDF:', error)
-    }
-  } else {
-    console.log('ℹ️ Aucun logo configuré, utilisation du fallback')
+  // Vérification préliminaire
+  if (!company) {
+    console.error('❌ Aucune donnée entreprise fournie')
+    return await createFallbackLogo(doc, 'A', x, y, size)
   }
 
-  // Fallback : cercle avec initiale
-  console.log('🔄 Utilisation du fallback (cercle avec initiale)')
-  doc.setFillColor(59, 130, 246) // Bleu
+  if (!company.logo) {
+    console.log('ℹ️ Aucun logo configuré dans les paramètres entreprise')
+    const initial = company.name ? company.name.charAt(0).toUpperCase() : 'A'
+    return await createFallbackLogo(doc, initial, x, y, size)
+  }
+
+  // Tentative de chargement du logo
+  console.log('🔄 Tentative de chargement du logo depuis:', company.logo)
+
+  try {
+    // Validation de l'URL
+    if (!isValidImageUrl(company.logo)) {
+      console.warn('⚠️ URL du logo invalide:', company.logo)
+      const initial = company.name ? company.name.charAt(0).toUpperCase() : 'A'
+      return await createFallbackLogo(doc, initial, x, y, size)
+    }
+
+    // Chargement de l'image
+    const logoBase64 = await loadImageAsBase64(company.logo)
+
+    if (logoBase64) {
+      console.log('✅ Logo chargé avec succès, ajout au PDF...')
+
+      // Déterminer le format de l'image
+      const imageFormat = getImageFormat(logoBase64)
+      console.log('🎨 Format image détecté:', imageFormat)
+
+      // Ajouter l'image au PDF avec gestion d'erreur
+      try {
+        doc.addImage(logoBase64, imageFormat, x - size/2, y - size/2, size, size)
+        console.log('🎉 Logo ajouté au PDF avec succès!')
+        return true
+      } catch (pdfError) {
+        console.error('❌ Erreur lors de l\'ajout au PDF:', pdfError)
+        const initial = company.name ? company.name.charAt(0).toUpperCase() : 'A'
+        return await createFallbackLogo(doc, initial, x, y, size)
+      }
+    } else {
+      console.warn('⚠️ Échec du chargement du logo (base64 null)')
+      const initial = company.name ? company.name.charAt(0).toUpperCase() : 'A'
+      return await createFallbackLogo(doc, initial, x, y, size)
+    }
+
+  } catch (error) {
+    console.error('❌ Erreur lors du traitement du logo:', error)
+    const initial = company.name ? company.name.charAt(0).toUpperCase() : 'A'
+    return await createFallbackLogo(doc, initial, x, y, size)
+  }
+}
+
+// Fonction pour créer un logo de fallback élégant
+async function createFallbackLogo(doc: jsPDF, initial: string, x: number, y: number, size: number): Promise<boolean> {
+  console.log('🎨 Création du logo de fallback avec initiale:', initial)
+
+  // Cercle de fond avec dégradé simulé
+  doc.setFillColor(59, 130, 246) // Bleu principal
   doc.circle(x, y, size/2, 'F')
+
+  // Cercle intérieur pour effet de profondeur
+  doc.setFillColor(79, 150, 255) // Bleu plus clair
+  doc.circle(x, y, size/2 - 1, 'F')
+
+  // Texte de l'initiale
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(size * 0.6)
-  const initial = company.name ? company.name.charAt(0).toUpperCase() : 'D'
   doc.text(initial, x, y + size * 0.15, { align: 'center' })
-  console.log('✅ Fallback appliqué avec initiale:', initial)
+
+  console.log('✅ Logo de fallback créé avec succès')
   return false
+}
+
+// Fonction pour valider l'URL de l'image
+function isValidImageUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url)
+    const validProtocols = ['http:', 'https:', 'data:']
+    const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+
+    // Vérifier le protocole
+    if (!validProtocols.includes(urlObj.protocol)) {
+      return false
+    }
+
+    // Pour les URLs data:, vérifier le format
+    if (urlObj.protocol === 'data:') {
+      return url.startsWith('data:image/')
+    }
+
+    // Pour les URLs HTTP, vérifier l'extension ou accepter toutes
+    const pathname = urlObj.pathname.toLowerCase()
+    return validExtensions.some(ext => pathname.endsWith(ext)) || pathname.includes('image')
+
+  } catch {
+    return false
+  }
+}
+
+// Fonction pour détecter le format de l'image depuis base64
+function getImageFormat(base64: string): 'PNG' | 'JPEG' | 'GIF' | 'WEBP' {
+  if (base64.startsWith('data:image/png')) return 'PNG'
+  if (base64.startsWith('data:image/jpeg') || base64.startsWith('data:image/jpg')) return 'JPEG'
+  if (base64.startsWith('data:image/gif')) return 'GIF'
+  if (base64.startsWith('data:image/webp')) return 'WEBP'
+
+  // Par défaut, essayer PNG
+  return 'PNG'
 }
 
 // Fonction pour nettoyer le texte et éviter les erreurs d'encodage
@@ -151,82 +234,106 @@ interface DeliveryNoteData {
 
 export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<Uint8Array> {
   try {
-    console.log('📄 Début génération PDF bon de livraison - Design Simple')
+    console.log('🚀 === GÉNÉRATION BON DE LIVRAISON - VERSION AMÉLIORÉE ===')
+    console.log('📊 Données reçues:', {
+      saleNumber: data.saleNumber,
+      customerName: data.customerName,
+      itemsCount: data.items?.length || 0,
+      sellerName: data.sellerName
+    })
 
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.width
     const pageHeight = doc.internal.pageSize.height
     let currentY = 20
 
-    // Récupérer les paramètres de l'entreprise
+    // === ÉTAPE 1: RÉCUPÉRATION SÉCURISÉE DES PARAMÈTRES ENTREPRISE ===
+    console.log('🏢 Étape 1: Récupération des paramètres de l\'entreprise...')
     let company: CompanyInfo
-    
-    // Priorité aux paramètres passés dans data.companySettings
-    if (data.companySettings) {
-      console.log('📋 Utilisation des paramètres passés dans data.companySettings:', data.companySettings)
-      company = {
-        name: data.companySettings.name || 'Alami Gestion',
-        address: data.companySettings.address || undefined,
-        phone: data.companySettings.phone || undefined,
-        email: data.companySettings.email || undefined,
-        logo: data.companySettings.logo || undefined
-      }
-    } else {
-      // Fallback vers getCompanySettings() si pas de paramètres passés
-      try {
-        const settings = await getCompanySettings()
-        console.log('📋 Paramètres récupérés depuis getCompanySettings:', {
-          name: settings.companyName,
-          logo: settings.companyLogo,
-          address: settings.companyAddress,
-          phone: settings.companyPhone,
-          email: settings.companyEmail
-        })
+    let logoLoaded = false
 
-        company = {
-          name: settings.companyName || 'Alami Gestion',
-          address: settings.companyAddress || undefined,
-          phone: settings.companyPhone || undefined,
-          email: settings.companyEmail || undefined,
-          ice: settings.companyICE || undefined,
-          taxId: settings.companyTaxId || undefined,
-          website: settings.companyWebsite || undefined,
-          logo: settings.companyLogo || undefined
-        }
-      } catch (error) {
-        console.error('Error fetching company settings:', error)
-        company = {
-          name: 'Alami Gestion'
-        }
+    try {
+      const settings = await getCompanySettings()
+      console.log('✅ Paramètres entreprise récupérés avec succès')
+      console.log('📋 Détails des paramètres:', {
+        companyName: settings.companyName,
+        companyLogo: settings.companyLogo ? '✅ Configuré' : '❌ Non configuré',
+        logoUrl: settings.companyLogo,
+        companyAddress: settings.companyAddress ? '✅ Configurée' : '❌ Non configurée',
+        companyPhone: settings.companyPhone ? '✅ Configuré' : '❌ Non configuré',
+        companyEmail: settings.companyEmail ? '✅ Configuré' : '❌ Non configuré'
+      })
+
+      // Mapping sécurisé des données entreprise
+      company = {
+        name: settings.companyName || 'Alami Gestion',
+        address: settings.companyAddress || undefined,
+        phone: settings.companyPhone || undefined,
+        email: settings.companyEmail || undefined,
+        ice: settings.companyICE || undefined,
+        taxId: settings.companyTaxId || undefined,
+        website: settings.companyWebsite || undefined,
+        logo: settings.companyLogo || undefined
       }
+
+      console.log('🎯 Informations entreprise mappées pour PDF:', {
+        name: company.name,
+        hasLogo: !!company.logo,
+        logoUrl: company.logo,
+        hasAddress: !!company.address,
+        hasPhone: !!company.phone,
+        hasEmail: !!company.email
+      })
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des paramètres:', error)
+      company = {
+        name: 'Alami Gestion'
+      }
+      console.log('🔄 Utilisation des paramètres par défaut')
     }
 
-    console.log('🏢 Informations entreprise finales:', company)
+    // === ÉTAPE 2: PRÉPARATION DU DOCUMENT PDF ===
+    console.log('📄 Étape 2: Initialisation du document PDF...')
 
-    // Couleurs simples
-    const blueColor: [number, number, number] = [59, 130, 246]
+    // Couleurs du thème
+    const primaryColor: [number, number, number] = [59, 130, 246]  // Bleu
     const darkGray: [number, number, number] = [64, 64, 64]
     const lightGray: [number, number, number] = [156, 163, 175]
+    const successColor: [number, number, number] = [34, 197, 94]   // Vert
 
-    // === LOGO ET EN-TÊTE ===
-    // Logo de l'entreprise à gauche
-    await addCompanyLogo(doc, company, 25, 25, 16)
+    // === ÉTAPE 3: AJOUT DU LOGO ENTREPRISE ===
+    console.log('🖼️ Étape 3: Traitement du logo de l\'entreprise...')
+    logoLoaded = await addEnhancedCompanyLogo(doc, company, 25, 25, 18)
 
-    // Titre "BON DE LIVRAISON" à droite
+    if (logoLoaded) {
+      console.log('✅ Logo entreprise ajouté avec succès')
+    } else {
+      console.log('🔄 Logo de fallback utilisé')
+    }
+
+    // === ÉTAPE 4: EN-TÊTE DU DOCUMENT ===
+    console.log('📋 Étape 4: Création de l\'en-tête du document...')
+
+    // Titre "BON DE LIVRAISON" à droite avec style amélioré
     doc.setTextColor(...darkGray)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(16)
-    doc.text('BON DE LIVRAISON', pageWidth - 15, 20, { align: 'right' })
-    
-    // Numéro du bon
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text(cleanText(data.saleNumber), pageWidth - 15, 28, { align: 'right' })
-    
-    // Date
-    doc.text(`Date: ${data.createdAt.toLocaleDateString('fr-FR')}`, pageWidth - 15, 35, { align: 'right' })
+    doc.setFontSize(20)
+    doc.text('BON DE LIVRAISON', pageWidth - 20, 25, { align: 'right' })
 
-    currentY = 50
+    // Ligne décorative sous le titre
+    doc.setDrawColor(...primaryColor)
+    doc.setLineWidth(2)
+    doc.line(pageWidth - 120, 30, pageWidth - 20, 30)
+
+    // Numéro et date avec style amélioré
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    doc.setTextColor(...darkGray)
+    doc.text(`N° ${data.saleNumber}`, pageWidth - 20, 40, { align: 'right' })
+    doc.text(`Date: ${new Date(data.createdAt).toLocaleDateString('fr-FR')}`, pageWidth - 20, 48, { align: 'right' })
+
+    currentY = 65
 
     // === INFORMATIONS ENTREPRISE (gauche) ===
     doc.setTextColor(...darkGray)
@@ -416,6 +523,7 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
 
   } catch (error) {
     console.error('❌ Erreur génération PDF:', error)
-    throw new Error(`Erreur génération PDF: ${error.message}`)
+    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
+    throw new Error(`Erreur génération PDF: ${errorMessage}`)
   }
 }
