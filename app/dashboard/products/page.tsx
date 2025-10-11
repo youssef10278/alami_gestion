@@ -176,11 +176,13 @@ export default function ProductsPage() {
   }
 
   const handleEdit = (product: Product) => {
+    console.log('handleEdit called with product:', product.name)
     setEditingProduct(product)
     setDialogOpen(true)
   }
 
   const handleDelete = async (productId: string) => {
+    console.log('handleDelete called with productId:', productId)
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return
 
     try {
