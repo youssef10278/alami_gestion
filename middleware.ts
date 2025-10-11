@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/debug', '/mobile-test', '/login-simple']
+  const publicRoutes = ['/login', '/debug', '/mobile-test', '/login-simple', '/test-camera']
   const isPublicRoute = publicRoutes.includes(pathname)
 
   // Handle root path specially - TOUJOURS rediriger sans vérification de token

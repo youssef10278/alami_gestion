@@ -25,10 +25,23 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isCameraActive, setIsCameraActive] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+
+  // Détecter si on est sur mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase()
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent)
+      const isTouchDevice = 'ontouchstart' in window
+      setIsMobile(isMobileDevice || isTouchDevice)
+    }
+
+    checkMobile()
+  }, [])
 
 
 
@@ -49,23 +62,59 @@ export function ImageUpload({
   // Activer la caméra
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // Vérifier si l'API est disponible
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error('Caméra non supportée', {
+          description: 'Votre navigateur ne supporte pas l\'accès à la caméra.',
+        })
+        return
+      }
+
+      // Vérifier si on est en HTTPS (requis pour la caméra sur mobile)
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+        toast.error('HTTPS requis', {
+          description: 'L\'accès à la caméra nécessite une connexion sécurisée (HTTPS).',
+        })
+        return
+      }
+
+      // Configuration pour mobile avec fallback
+      const constraints = {
         video: {
-          facingMode: 'environment', // Caméra arrière par défaut
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          facingMode: { ideal: 'environment' }, // Caméra arrière préférée
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 }
         }
-      })
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         streamRef.current = stream
         setIsCameraActive(true)
+
+        toast.success('Caméra activée', {
+          description: 'Positionnez le produit et appuyez sur "Capturer"',
+        })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur d\'accès à la caméra:', error)
-      toast.error('Erreur', {
-        description: 'Impossible d\'accéder à la caméra. Vérifiez les permissions.',
+
+      let errorMessage = 'Impossible d\'accéder à la caméra.'
+
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Permission refusée. Autorisez l\'accès à la caméra dans les paramètres.'
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'Aucune caméra trouvée sur cet appareil.'
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = 'Caméra non supportée par ce navigateur.'
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = 'Caméra déjà utilisée par une autre application.'
+      }
+
+      toast.error('Erreur caméra', {
+        description: errorMessage,
       })
     }
   }
@@ -311,25 +360,53 @@ export function ImageUpload({
             </div>
 
             <div className="flex gap-2">
-              <Button
-                type="button"
-                onClick={handleFileSelect}
-                disabled={disabled}
-                variant="outline"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Choisir un fichier
-              </Button>
-              <Button
-                type="button"
-                onClick={startCamera}
-                disabled={disabled}
-                variant="outline"
-                className="bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 border-violet-200"
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                Prendre une photo
-              </Button>
+              {isMobile ? (
+                // Sur mobile, prioriser la prise de photo
+                <>
+                  <Button
+                    type="button"
+                    onClick={handleFileSelect}
+                    disabled={disabled}
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Prendre une photo
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={startCamera}
+                    disabled={disabled}
+                    variant="outline"
+                    className="bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 border-violet-200"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Caméra avancée
+                  </Button>
+                </>
+              ) : (
+                // Sur desktop, garder l'ordre original
+                <>
+                  <Button
+                    type="button"
+                    onClick={handleFileSelect}
+                    disabled={disabled}
+                    variant="outline"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Choisir un fichier
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={startCamera}
+                    disabled={disabled}
+                    variant="outline"
+                    className="bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 border-violet-200"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Prendre une photo
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
@@ -338,6 +415,7 @@ export function ImageUpload({
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            capture="environment" // Active la caméra directement sur mobile
             onChange={handleFileChange}
             className="hidden"
             disabled={disabled}
@@ -348,26 +426,55 @@ export function ImageUpload({
       {/* Boutons de modification si image existe */}
       {value && !disabled && !isProcessing && !isCameraActive && (
         <div className="flex gap-2">
-          <Button
-            type="button"
-            onClick={handleFileSelect}
-            variant="outline"
-            size="sm"
-            className="flex-1"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Changer l'image
-          </Button>
-          <Button
-            type="button"
-            onClick={startCamera}
-            variant="outline"
-            size="sm"
-            className="flex-1 bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 border-violet-200"
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            Nouvelle photo
-          </Button>
+          {isMobile ? (
+            // Sur mobile, prioriser la prise de photo
+            <>
+              <Button
+                type="button"
+                onClick={handleFileSelect}
+                variant="outline"
+                size="sm"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-blue-600"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Nouvelle photo
+              </Button>
+              <Button
+                type="button"
+                onClick={startCamera}
+                variant="outline"
+                size="sm"
+                className="flex-1 bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 border-violet-200"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Caméra avancée
+              </Button>
+            </>
+          ) : (
+            // Sur desktop, garder l'ordre original
+            <>
+              <Button
+                type="button"
+                onClick={handleFileSelect}
+                variant="outline"
+                size="sm"
+                className="flex-1"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Changer l'image
+              </Button>
+              <Button
+                type="button"
+                onClick={startCamera}
+                variant="outline"
+                size="sm"
+                className="flex-1 bg-gradient-to-r from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 border-violet-200"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Nouvelle photo
+              </Button>
+            </>
+          )}
         </div>
       )}
     </div>

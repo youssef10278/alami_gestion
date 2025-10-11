@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { BarcodeInput } from '@/components/ui/barcode-input'
 import { ImageUpload } from '@/components/ui/image-upload'
+import { SimpleCameraInput } from '@/components/ui/simple-camera-input'
 import { CategoryCombobox } from '@/components/ui/category-combobox'
 
 interface Product {
@@ -59,6 +60,7 @@ export default function ProductDialog({
 }: ProductDialogProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isMobile, setIsMobile] = useState(false)
   const [formData, setFormData] = useState({
     sku: '',
     name: '',
@@ -70,6 +72,18 @@ export default function ProductDialog({
     categoryId: '',
     image: '',
   })
+
+  // Détecter si on est sur mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase()
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent)
+      const isTouchDevice = 'ontouchstart' in window
+      setIsMobile(isMobileDevice || isTouchDevice)
+    }
+
+    checkMobile()
+  }, [])
 
   useEffect(() => {
     if (product) {
@@ -184,13 +198,23 @@ export default function ProductDialog({
           {/* Image du produit */}
           <div className="space-y-2">
             <Label>Photo du produit</Label>
-            <ImageUpload
-              value={formData.image}
-              onChange={(imageData) =>
-                setFormData({ ...formData, image: imageData })
-              }
-              onRemove={() => setFormData({ ...formData, image: '' })}
-            />
+            {isMobile ? (
+              <SimpleCameraInput
+                value={formData.image}
+                onChange={(imageData) =>
+                  setFormData({ ...formData, image: imageData })
+                }
+                onRemove={() => setFormData({ ...formData, image: '' })}
+              />
+            ) : (
+              <ImageUpload
+                value={formData.image}
+                onChange={(imageData) =>
+                  setFormData({ ...formData, image: imageData })
+                }
+                onRemove={() => setFormData({ ...formData, image: '' })}
+              />
+            )}
           </div>
 
           {/* Description */}
