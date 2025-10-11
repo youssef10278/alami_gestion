@@ -2,7 +2,7 @@
   "name": "Alami Gestion",
   "short_name": "Alami",
   "description": "Application de gestion d'entreprise complète",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#F0F9FF",
   "theme_color": "#4DA6FF",
