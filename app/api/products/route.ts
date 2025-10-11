@@ -81,7 +81,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { sku, name, description, purchasePrice, price, stock, minStock, categoryId, image, imagePublicId } = body
+    const { sku, name, description, purchasePrice, price, stock, minStock, categoryId, image } = body
+    // imagePublicId temporairement retiré pour éviter l'erreur
 
     // Validation
     if (!sku || !name || !price) {
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
         minStock: parseInt(minStock) || 10,
         categoryId: categoryId || null,
         image: image || null,
-        imagePublicId: imagePublicId || null,
+        // imagePublicId: imagePublicId || null, // Temporairement retiré
       },
       include: {
         category: true,

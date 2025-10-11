@@ -61,7 +61,8 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { name, description, purchasePrice, price, stock, minStock, categoryId, image, imagePublicId, isActive } = body
+    const { name, description, purchasePrice, price, stock, minStock, categoryId, image, isActive } = body
+    // imagePublicId temporairement retiré pour éviter l'erreur
 
     const product = await prisma.product.findUnique({
       where: { id: params.id },
@@ -120,7 +121,7 @@ export async function PUT(
         minStock: minStock !== undefined ? parseInt(minStock) : product.minStock,
         categoryId: categoryId !== undefined ? categoryId : product.categoryId,
         image: image !== undefined ? image : product.image,
-        imagePublicId: imagePublicId !== undefined ? imagePublicId : product.imagePublicId,
+        // imagePublicId: imagePublicId !== undefined ? imagePublicId : product.imagePublicId, // Temporairement retiré
         isActive: isActive !== undefined ? isActive : product.isActive,
       },
       include: {

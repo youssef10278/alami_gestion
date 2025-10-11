@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BarcodeInput } from '@/components/ui/barcode-input'
-import { CloudinaryImageUpload } from '@/components/ui/cloudinary-image-upload'
+import { ImageUpload } from '@/components/ui/image-upload'
 import { CategoryCombobox } from '@/components/ui/category-combobox'
 
 interface Product {
@@ -69,7 +69,7 @@ export default function ProductDialog({
     minStock: '10',
     categoryId: '',
     image: '',
-    imagePublicId: '',
+    // imagePublicId: '', // Temporairement retiré
   })
 
 
@@ -86,7 +86,7 @@ export default function ProductDialog({
         minStock: product.minStock.toString(),
         categoryId: product.categoryId || 'none',
         image: product.image || '',
-        imagePublicId: (product as any).imagePublicId || '',
+        // imagePublicId: (product as any).imagePublicId || '', // Temporairement retiré
       })
     } else {
       setFormData({
@@ -99,7 +99,7 @@ export default function ProductDialog({
         minStock: '10',
         categoryId: 'none',
         image: '',
-        imagePublicId: '',
+        // imagePublicId: '', // Temporairement retiré
       })
     }
     setError('')
@@ -189,21 +189,12 @@ export default function ProductDialog({
           {/* Image du produit */}
           <div className="space-y-2">
             <Label>Photo du produit</Label>
-            <CloudinaryImageUpload
+            <ImageUpload
               value={formData.image}
-              onChange={(imageUrl, publicId) =>
-                setFormData({
-                  ...formData,
-                  image: imageUrl,
-                  imagePublicId: publicId || ''
-                })
+              onChange={(imageData) =>
+                setFormData({ ...formData, image: imageData })
               }
-              onRemove={() => setFormData({
-                ...formData,
-                image: '',
-                imagePublicId: ''
-              })}
-              productId={product?.id}
+              onRemove={() => setFormData({ ...formData, image: '' })}
             />
           </div>
 
