@@ -1,5 +1,64 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { getCompanySettings } from '@/lib/company-settings'
+import { DeliveryNoteData } from '@/types/delivery-note'
+
+// Types pour les paramètres de l'entreprise
+interface CompanyInfo {
+  name: string
+  address?: string
+  phone?: string
+  email?: string
+  ice?: string
+  taxId?: string
+  website?: string
+  logo?: string
+}
+
+// Fonction pour charger une image en base64
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) return null
+
+    const blob = await response.blob()
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(blob)
+    })
+  } catch (error) {
+    console.warn('Error loading image:', error)
+    return null
+  }
+}
+
+// Fonction pour ajouter le logo de l'entreprise
+async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: number, size: number = 16) {
+  if (company.logo) {
+    try {
+      const logoBase64 = await loadImageAsBase64(company.logo)
+      if (logoBase64) {
+        // Ajouter l'image au PDF
+        doc.addImage(logoBase64, 'PNG', x - size/2, y - size/2, size, size)
+        return true
+      }
+    } catch (error) {
+      console.warn('Error adding logo to PDF:', error)
+    }
+  }
+
+  // Fallback : cercle avec initiale
+  doc.setFillColor(59, 130, 246) // Bleu
+  doc.circle(x, y, size/2, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(size * 0.6)
+  const initial = company.name ? company.name.charAt(0).toUpperCase() : 'D'
+  doc.text(initial, x, y + size * 0.15, { align: 'center' })
+  return false
+}
 
 // Fonction pour nettoyer le texte et éviter les erreurs d'encodage
 function cleanText(text: string): string {
@@ -52,11 +111,32 @@ interface DeliveryNoteData {
 export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<Uint8Array> {
   try {
     console.log('📄 Début génération PDF bon de livraison - Design Simple')
-    
+
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.width
     const pageHeight = doc.internal.pageSize.height
     let currentY = 20
+
+    // Récupérer les paramètres de l'entreprise
+    let company: CompanyInfo
+    try {
+      const settings = await getCompanySettings()
+      company = {
+        name: settings.name || 'Alami Gestion',
+        address: settings.address || undefined,
+        phone: settings.phone || undefined,
+        email: settings.email || undefined,
+        ice: settings.ice || undefined,
+        taxId: settings.taxId || undefined,
+        website: settings.website || undefined,
+        logo: settings.logo || undefined
+      }
+    } catch (error) {
+      console.error('Error fetching company settings:', error)
+      company = {
+        name: 'Alami Gestion'
+      }
+    }
 
     // Couleurs simples
     const blueColor: [number, number, number] = [59, 130, 246]
@@ -64,13 +144,8 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
     const lightGray: [number, number, number] = [156, 163, 175]
 
     // === LOGO ET EN-TÊTE ===
-    // Logo circulaire à gauche (simulé avec "D")
-    doc.setFillColor(...blueColor)
-    doc.circle(25, 25, 8, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
-    doc.text('D', 22, 28)
+    // Logo de l'entreprise à gauche
+    await addCompanyLogo(doc, company, 25, 25, 16)
 
     // Titre "BON DE LIVRAISON" à droite
     doc.setTextColor(...darkGray)
@@ -92,24 +167,24 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
     doc.setTextColor(...darkGray)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(11)
-    doc.text(cleanText(data.companySettings?.name || 'Société de test'), 15, currentY)
+    doc.text(cleanText(company.name), 15, currentY)
     
     currentY += 6
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
-    
-    if (data.companySettings?.address) {
-      doc.text(cleanText(`Adresse: ${data.companySettings.address}`), 15, currentY)
+
+    if (company.address) {
+      doc.text(cleanText(`Adresse: ${company.address}`), 15, currentY)
       currentY += 4
     }
-    
-    if (data.companySettings?.phone) {
-      doc.text(cleanText(`Tél: ${data.companySettings.phone}`), 15, currentY)
+
+    if (company.phone) {
+      doc.text(cleanText(`Tél: ${company.phone}`), 15, currentY)
       currentY += 4
     }
-    
-    if (data.companySettings?.email) {
-      doc.text(cleanText(`Email: ${data.companySettings.email}`), 15, currentY)
+
+    if (company.email) {
+      doc.text(cleanText(`Email: ${company.email}`), 15, currentY)
       currentY += 4
     }
 
