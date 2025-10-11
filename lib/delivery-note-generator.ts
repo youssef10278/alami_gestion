@@ -337,8 +337,8 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
     doc.setFontSize(20)
     doc.text('BON DE LIVRAISON', pageWidth - 20, 25, { align: 'right' })
 
-    // Ligne décorative sous le titre
-    doc.setDrawColor(...primaryColor)
+    // Ligne décorative sous le titre (NOIR au lieu de bleu)
+    doc.setDrawColor(...darkGray)
     doc.setLineWidth(2)
     doc.line(pageWidth - 120, 30, pageWidth - 20, 30)
 
