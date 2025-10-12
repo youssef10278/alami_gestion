@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     const categoryIds = [...new Set(products.map(p => p.categoryId).filter(Boolean))]
     const categories = categoryIds.length > 0 ? await prisma.category.findMany({
       where: { id: { in: categoryIds } },
-      select: { id: true, name: true, color: true }
+      select: { id: true, name: true, description: true }
     }) : []
 
     // Mapper les catégories aux produits

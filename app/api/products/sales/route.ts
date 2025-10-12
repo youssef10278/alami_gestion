@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            color: true
+            description: true
           }
         },
         // Champs pour le tri par popularité
