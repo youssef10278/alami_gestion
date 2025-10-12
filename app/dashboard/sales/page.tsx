@@ -109,8 +109,8 @@ export default function SalesPage() {
 
   const fetchProducts = async () => {
     try {
-      // ✅ FIX: Utiliser la limite par défaut de l'API pour la cohérence
-      const response = await fetch('/api/products')
+      // ✅ FIX: Récupérer TOUS les produits sans limite (comme la page Gestion des Produits)
+      const response = await fetch('/api/products?limit=all')
       const data = await response.json()
       setProducts(data.products || [])
     } catch (error) {
