@@ -772,7 +772,8 @@ export default function SalesPage() {
 
               {/* Liste des produits - Design amélioré */}
               {!loadingProducts && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
@@ -858,25 +859,26 @@ export default function SalesPage() {
                     {/* Effet de survol */}
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--color-business-blue)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
                   </div>
-                ))}
-                </div>
-
-                {/* Message si aucun produit */}
-                {filteredProducts.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="p-4 bg-[hsl(var(--muted))]/20 rounded-xl inline-block">
-                      <ShoppingCart className="w-12 h-12 text-[hsl(var(--muted-foreground))] mx-auto mb-3" />
-                      <p className="text-[hsl(var(--muted-foreground))] font-medium">
-                        {searchProduct ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
-                      </p>
-                      {searchProduct && (
-                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-                          Essayez un autre terme de recherche
-                        </p>
-                      )}
-                    </div>
+                  ))}
                   </div>
-                )}
+
+                  {/* Message si aucun produit */}
+                  {filteredProducts.length === 0 && (
+                    <div className="text-center py-12">
+                      <div className="p-4 bg-[hsl(var(--muted))]/20 rounded-xl inline-block">
+                        <ShoppingCart className="w-12 h-12 text-[hsl(var(--muted-foreground))] mx-auto mb-3" />
+                        <p className="text-[hsl(var(--muted-foreground))] font-medium">
+                          {searchProduct ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
+                        </p>
+                        {searchProduct && (
+                          <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                            Essayez un autre terme de recherche
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
