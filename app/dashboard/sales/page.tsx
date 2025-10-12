@@ -24,6 +24,7 @@ import {
 
 import { toast } from 'sonner'
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
+import { useProductsCache } from '@/hooks/useProductsCache'
 import DeliveryNoteButton from '@/components/sales/DeliveryNoteButton'
 import { Scan } from 'lucide-react'
 import { safeToFixed, safeNumber } from '@/lib/utils'
@@ -54,7 +55,16 @@ interface CartItem {
 }
 
 export default function SalesPage() {
-  const [products, setProducts] = useState<Product[]>([])
+  // ✅ OPTIMISATION: Utilisation du cache des produits
+  const {
+    products,
+    loading: loadingProducts,
+    error: productsError,
+    cacheAge,
+    updateProductStock,
+    refresh: refreshProducts
+  } = useProductsCache()
+
   const [customers, setCustomers] = useState<Customer[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [isWalkInCustomer, setIsWalkInCustomer] = useState(true) // Par défaut client de passage
@@ -64,9 +74,6 @@ export default function SalesPage() {
   const [amountPaid, setAmountPaid] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
-  const [loadingProducts, setLoadingProducts] = useState(true)
-  const [loadingAllProducts, setLoadingAllProducts] = useState(false)
-  const [productsError, setProductsError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [lastSale, setLastSale] = useState<any>(null)
   const [showNewCustomerDialog, setShowNewCustomerDialog] = useState(false)
@@ -106,42 +113,9 @@ export default function SalesPage() {
   })
 
   useEffect(() => {
-    fetchProducts()
+    // ✅ OPTIMISATION: Plus besoin de fetchProducts, géré par useProductsCache
     fetchCustomers()
   }, [])
-
-  const fetchProducts = async () => {
-    try {
-      setLoadingProducts(true)
-      console.log('🔍 Début du chargement des produits...')
-
-      // ✅ TEMPORAIRE: Retour à l'API originale pour déboguer
-      const response = await fetch('/api/products?limit=all')
-      console.log('📡 Réponse API:', response.status, response.statusText)
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      console.log('📊 Données reçues:', {
-        productsCount: data.products?.length || 0,
-        total: data.pagination?.total || 0,
-        firstProduct: data.products?.[0]?.name || 'Aucun'
-      })
-
-      setProducts(data.products || [])
-      setLoadingProducts(false)
-
-      console.log('✅ Produits chargés avec succès:', data.products?.length || 0)
-
-    } catch (error) {
-      console.error('❌ Erreur lors du chargement des produits:', error)
-      setLoadingProducts(false)
-      setLoadingAllProducts(false)
-      setProductsError(error.message || 'Erreur inconnue')
-    }
-  }
 
   const fetchCustomers = async () => {
     try {
@@ -630,8 +604,14 @@ export default function SalesPage() {
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
 
-      // Rafraîchir les données
-      fetchProducts()
+      // ✅ OPTIMISATION: Mise à jour intelligente du stock sans recharger tous les produits
+      cart.forEach(item => {
+        const newStock = item.product.stock - item.quantity
+        updateProductStock(item.product.id, newStock)
+        console.log(`📦 Stock mis à jour: ${item.product.name} ${item.product.stock} → ${newStock}`)
+      })
+
+      // Rafraîchir seulement les clients
       fetchCustomers()
     } catch (error) {
       console.error('Error creating sale:', error)
@@ -736,10 +716,7 @@ export default function SalesPage() {
                       <h3 className="font-medium text-red-800">Erreur de chargement des produits</h3>
                       <p className="text-sm text-red-600 mt-1">{productsError}</p>
                       <button
-                        onClick={() => {
-                          setProductsError(null)
-                          fetchProducts()
-                        }}
+                        onClick={refreshProducts}
                         className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
                       >
                         Réessayer
@@ -749,15 +726,27 @@ export default function SalesPage() {
                 </div>
               )}
 
-              {/* Indicateur de chargement supplémentaire */}
-              {loadingAllProducts && !loadingProducts && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                  <div className="flex items-center gap-2 text-blue-700">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
-                    <span className="text-sm">Chargement de tous les produits en arrière-plan...</span>
+              {/* Indicateur de cache */}
+              {!loadingProducts && !productsError && cacheAge > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-green-700">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium">
+                        ⚡ Chargement ultra-rapide (cache: {Math.round(cacheAge / 60)}min)
+                      </span>
+                    </div>
+                    <button
+                      onClick={refreshProducts}
+                      className="text-xs text-green-600 hover:text-green-800 underline"
+                    >
+                      Actualiser
+                    </button>
                   </div>
                 </div>
               )}
+
+
 
               {/* Recherche et Scanner - Design amélioré */}
               {!loadingProducts && (
@@ -781,7 +770,7 @@ export default function SalesPage() {
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-sm font-medium">
                       {products.length} produits disponibles
-                      {loadingAllProducts && " (chargement en cours...)"}
+                      {cacheAge > 0 && ` (cache: ${Math.round(cacheAge / 60)}min)`}
                     </span>
                   </div>
                   {filteredProducts.length !== products.length && (
