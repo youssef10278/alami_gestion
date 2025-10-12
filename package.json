@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build",
-    "build:production": "prisma generate && SKIP_ENV_VALIDATION=true next build",
+    "build": "next build",
+    "build:production": "SKIP_ENV_VALIDATION=true next build",
+    "postinstall": "prisma generate",
     "deploy": "prisma migrate deploy",
     "start": "node scripts/auto-migrate-quote-columns.js && next start",
     "lint": "eslint",

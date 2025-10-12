@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CalendarIcon, Filter } from 'lucide-react'
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subWeeks, subMonths } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -166,65 +164,26 @@ export default function DateRangeFilter({ onDateRangeChange, className }: DateRa
             ))}
           </div>
 
-          {/* Sélecteur de dates personnalisé */}
+          {/* Sélecteur de dates personnalisé - Version simplifiée */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600 font-medium">De:</span>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "justify-start text-left font-normal bg-white",
-                    !fromDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {fromDate ? format(fromDate, "dd/MM/yyyy", { locale: fr }) : "12/10/2025"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={fromDate}
-                  onSelect={setFromDate}
-                  disabled={(date) =>
-                    date > new Date() || (toDate && date > toDate)
-                  }
-                  initialFocus
-                  locale={fr}
-                />
-              </PopoverContent>
-            </Popover>
+            <input
+              type="date"
+              value={fromDate ? format(fromDate, 'yyyy-MM-dd') : ''}
+              onChange={(e) => setFromDate(e.target.value ? new Date(e.target.value) : undefined)}
+              max={toDate ? format(toDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
 
             <span className="text-sm text-gray-600 font-medium">à:</span>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "justify-start text-left font-normal bg-white",
-                    !toDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {toDate ? format(toDate, "dd/MM/yyyy", { locale: fr }) : "12/10/2025"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={toDate}
-                  onSelect={setToDate}
-                  disabled={(date) =>
-                    date > new Date() || (fromDate && date < fromDate)
-                  }
-                  initialFocus
-                  locale={fr}
-                />
-              </PopoverContent>
-            </Popover>
+            <input
+              type="date"
+              value={toDate ? format(toDate, 'yyyy-MM-dd') : ''}
+              onChange={(e) => setToDate(e.target.value ? new Date(e.target.value) : undefined)}
+              min={fromDate ? format(fromDate, 'yyyy-MM-dd') : undefined}
+              max={format(new Date(), 'yyyy-MM-dd')}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
 
             <Button
               onClick={handleCustomDateChange}
