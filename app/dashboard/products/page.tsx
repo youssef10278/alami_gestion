@@ -55,7 +55,8 @@ export default function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(20)
+  // ✅ FIX: Augmenter la limite d'affichage par défaut pour montrer plus de produits
+  const [itemsPerPage, setItemsPerPage] = useState(100)
 
   // Debounce de la recherche pour éviter trop d'appels API
   const debouncedSearch = useDebounce(search, 300)
@@ -138,10 +139,11 @@ export default function ProductsPage() {
 
   const sortedProducts = sortProducts(products)
 
-  // Pagination
-  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
+  // Pagination avec gestion de "Tous les produits"
+  const showAllProducts = itemsPerPage >= 9999
+  const totalPages = showAllProducts ? 1 : Math.ceil(sortedProducts.length / itemsPerPage)
+  const startIndex = showAllProducts ? 0 : (currentPage - 1) * itemsPerPage
+  const endIndex = showAllProducts ? sortedProducts.length : startIndex + itemsPerPage
   const paginatedProducts = sortedProducts.slice(startIndex, endIndex)
 
   // Réinitialiser la page lors du changement de filtre
@@ -492,7 +494,7 @@ export default function ProductsPage() {
           )}
 
           {/* Pagination avec design moderne - Responsive */}
-          {totalPages > 1 && (
+          {(totalPages > 1 || showAllProducts) && (
             <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
               <CardContent className="py-4 md:py-6">
                 <div className="space-y-4">
@@ -504,11 +506,16 @@ export default function ProductsPage() {
                           📊 <span className="hidden sm:inline">Affichage</span>
                         </span>
                         <span className="font-bold text-blue-600">
-                          {startIndex + 1}-{Math.min(endIndex, sortedProducts.length)}
+                          {showAllProducts ? 'Tous' : `${startIndex + 1}-${Math.min(endIndex, sortedProducts.length)}`}
                         </span>
                         <span className="text-gray-500">
                           <span className="hidden sm:inline">sur</span> {sortedProducts.length}
                         </span>
+                        {showAllProducts && (
+                          <span className="text-green-600 font-medium text-xs">
+                            ✅ Tous affichés
+                          </span>
+                        )}
                       </div>
                       <Select
                         value={itemsPerPage.toString()}
@@ -525,6 +532,8 @@ export default function ProductsPage() {
                           <SelectItem value="20">📄 20</SelectItem>
                           <SelectItem value="50">📄 50</SelectItem>
                           <SelectItem value="100">📄 100</SelectItem>
+                          <SelectItem value="500">📄 500</SelectItem>
+                          <SelectItem value="9999">📄 Tous</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
