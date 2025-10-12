@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import DateRangeFilter, { DateRange } from './DateRangeFilter'
-import AnalyticsCharts from './AnalyticsCharts'
-import { useDashboardAnalytics } from '@/hooks/useDashboardAnalytics'
+import AnalyticsEmergency from './AnalyticsEmergency'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, BarChart3, AlertCircle } from 'lucide-react'
