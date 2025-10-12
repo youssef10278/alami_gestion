@@ -57,14 +57,14 @@ const response = await fetch('/api/products')  // Pas de limite explicite = déf
 ### Avant la correction
 - **API défaut** : 10 produits
 - **Page Vente** : 100 produits (limite explicite)
-- **Page Gestion** : 10 produits (défaut API)
-- **Incohérence** : ❌ 100 vs 10
+- **Page Gestion** : 10 produits (défaut API) + pagination côté client (20 max)
+- **Incohérence** : ❌ 100 vs 10, pagination limitée
 
-### Après la correction
+### Après la correction complète
 - **API défaut** : 100 produits
 - **Page Vente** : 100 produits (défaut API)
-- **Page Gestion** : 1000 produits (limite élevée)
-- **Cohérence** : ✅ Tous les produits disponibles
+- **Page Gestion** : 1000 produits (API) + 100 par défaut (client) + option "Tous"
+- **Cohérence** : ✅ Tous les produits disponibles avec option d'affichage flexible
 
 ## 🧪 Tests de Validation
 
@@ -129,12 +129,43 @@ const useProductsCache = () => {
 import { FixedSizeList as List } from 'react-window'
 ```
 
+## 🔄 Correction Supplémentaire - Pagination Côté Client
+
+### Problème découvert après la première correction
+Même après avoir corrigé l'API, la page produits n'affichait toujours que 20 produits à cause de la **pagination côté client**.
+
+### Solutions appliquées
+
+#### 4. Correction de la pagination côté client (`app/dashboard/products/page.tsx`)
+```typescript
+// ✅ APRÈS - Limite d'affichage par défaut augmentée
+const [itemsPerPage, setItemsPerPage] = useState(100)  // 20 → 100
+
+// ✅ APRÈS - Option "Tous" ajoutée
+<SelectItem value="9999">📄 Tous</SelectItem>
+
+// ✅ APRÈS - Logique de pagination améliorée
+const showAllProducts = itemsPerPage >= 9999
+const totalPages = showAllProducts ? 1 : Math.ceil(sortedProducts.length / itemsPerPage)
+const startIndex = showAllProducts ? 0 : (currentPage - 1) * itemsPerPage
+const endIndex = showAllProducts ? sortedProducts.length : startIndex + itemsPerPage
+
+// ✅ APRÈS - Affichage amélioré
+{showAllProducts ? 'Tous' : `${startIndex + 1}-${Math.min(endIndex, sortedProducts.length)}`}
+{showAllProducts && (
+  <span className="text-green-600 font-medium text-xs">✅ Tous affichés</span>
+)}
+```
+
 ## 📝 Checklist de Validation
 
 - [x] API retourne 100 produits par défaut
 - [x] Page Nouvelle Vente affiche tous les produits disponibles
-- [x] Page Gestion des Produits affiche tous les produits
+- [x] Page Gestion des Produits - API récupère tous les produits
+- [x] Page Gestion des Produits - Affichage par défaut augmenté (100)
+- [x] Page Gestion des Produits - Option "Tous" disponible
 - [x] Nombre cohérent entre les pages
+- [x] Indicateur visuel "Tous affichés"
 - [x] Tests automatiques créés
 - [x] Documentation mise à jour
 

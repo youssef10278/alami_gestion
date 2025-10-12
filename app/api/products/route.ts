@@ -14,9 +14,12 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || ''
     const categoryId = searchParams.get('categoryId')
     const page = parseInt(searchParams.get('page') || '1')
-    // ✅ FIX: Augmenter la limite par défaut pour éviter les incohérences
-    const limit = parseInt(searchParams.get('limit') || '100')
-    const skip = (page - 1) * limit
+    const limitParam = searchParams.get('limit')
+
+    // ✅ FIX: Support pour récupérer TOUS les produits sans limite
+    const getAllProducts = limitParam === 'all' || limitParam === '0'
+    const limit = getAllProducts ? undefined : parseInt(limitParam || '100')
+    const skip = getAllProducts ? undefined : (page - 1) * (limit || 100)
 
     const where: any = {
       isActive: true,
@@ -34,16 +37,23 @@ export async function GET(request: NextRequest) {
       where.categoryId = categoryId
     }
 
+    // ✅ FIX: Requête conditionnelle selon si on veut tous les produits ou avec pagination
+    const queryOptions: any = {
+      where,
+      include: {
+        category: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    }
+
+    // Ajouter skip et take seulement si on ne veut pas tous les produits
+    if (!getAllProducts) {
+      queryOptions.skip = skip
+      queryOptions.take = limit
+    }
+
     const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        include: {
-          category: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
+      prisma.product.findMany(queryOptions),
       prisma.product.count({ where }),
     ])
 
@@ -51,9 +61,10 @@ export async function GET(request: NextRequest) {
       products,
       pagination: {
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: getAllProducts ? 1 : page,
+        limit: getAllProducts ? total : limit,
+        totalPages: getAllProducts ? 1 : Math.ceil(total / (limit || 100)),
+        showingAll: getAllProducts,
       },
     })
   } catch (error) {
