@@ -17,6 +17,7 @@ import ProductDialog from '@/components/products/ProductDialog'
 import ProductCard from '@/components/products/ProductCard'
 import ProductTable from '@/components/products/ProductTable'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useProductsCache } from '@/hooks/useProductsCache'
 import { toast } from 'sonner'
 
 interface Product {
@@ -45,7 +46,15 @@ interface Category {
 }
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
+  // ✅ OPTIMISATION: Utilisation du cache des produits
+  const {
+    products: cachedProducts,
+    loading: loadingProducts,
+    error: productsError,
+    cacheAge,
+    refresh: refreshProducts
+  } = useProductsCache()
+
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -62,8 +71,18 @@ export default function ProductsPage() {
   const debouncedSearch = useDebounce(search, 300)
 
   useEffect(() => {
-    fetchProducts()
+    // ✅ OPTIMISATION: Plus besoin de fetchProducts, géré par useProductsCache
     fetchCategories()
+    // Mettre à jour le loading quand les produits sont chargés
+    if (!loadingProducts) {
+      setLoading(false)
+    }
+  }, [loadingProducts])
+
+  // Effet séparé pour la recherche et filtres (pas de rechargement API)
+  useEffect(() => {
+    // Pas besoin de recharger les produits, juste filtrer localement
+    setCurrentPage(1) // Réinitialiser la pagination
   }, [debouncedSearch, selectedCategory])
 
   // Raccourcis clavier
@@ -93,22 +112,26 @@ export default function ProductsPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [dialogOpen])
 
-  const fetchProducts = async () => {
-    try {
-      const params = new URLSearchParams()
-      if (search) params.append('search', search)
-      if (selectedCategory !== 'all') params.append('categoryId', selectedCategory)
-      // ✅ FIX: Récupérer TOUS les produits sans limite
-      params.append('limit', 'all')
+  // ✅ OPTIMISATION: Filtrage local des produits (pas d'appel API)
+  const getFilteredProducts = () => {
+    let filtered = cachedProducts
 
-      const response = await fetch(`/api/products?${params}`)
-      const data = await response.json()
-      setProducts(data.products || [])
-    } catch (error) {
-      console.error('Error fetching products:', error)
-    } finally {
-      setLoading(false)
+    // Filtrage par recherche
+    if (debouncedSearch) {
+      const searchLower = debouncedSearch.toLowerCase()
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.sku.toLowerCase().includes(searchLower) ||
+        (product.description && product.description.toLowerCase().includes(searchLower))
+      )
     }
+
+    // Filtrage par catégorie
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(product => product.categoryId === selectedCategory)
+    }
+
+    return filtered
   }
 
   // Fonction de tri des produits
@@ -137,7 +160,9 @@ export default function ProductsPage() {
     }
   }
 
-  const sortedProducts = sortProducts(products)
+  // ✅ OPTIMISATION: Utiliser les produits filtrés au lieu de tous les produits
+  const filteredProducts = getFilteredProducts()
+  const sortedProducts = sortProducts(filteredProducts)
 
   // Pagination avec gestion de "Tous les produits"
   const showAllProducts = itemsPerPage >= 9999
@@ -173,7 +198,8 @@ export default function ProductsPage() {
   }
 
   const handleProductSaved = () => {
-    fetchProducts()
+    // ✅ OPTIMISATION: Rafraîchir le cache au lieu de recharger
+    refreshProducts()
     setDialogOpen(false)
     setEditingProduct(null)
     toast.success(editingProduct ? 'Produit modifié avec succès' : 'Produit créé avec succès')
@@ -195,7 +221,8 @@ export default function ProductsPage() {
       })
 
       if (response.ok) {
-        fetchProducts()
+        // ✅ OPTIMISATION: Rafraîchir le cache au lieu de recharger
+        refreshProducts()
         toast.success('Produit supprimé avec succès')
       } else {
         toast.error('Erreur lors de la suppression du produit')
@@ -231,7 +258,8 @@ export default function ProductsPage() {
       })
 
       if (response.ok) {
-        fetchProducts()
+        // ✅ OPTIMISATION: Rafraîchir le cache au lieu de recharger
+        refreshProducts()
         toast.success(`${quantity} unités ajoutées au stock`)
       } else {
         toast.error('Erreur lors de l\'ajout du stock')
@@ -242,11 +270,12 @@ export default function ProductsPage() {
     }
   }
 
-  const lowStockCount = products.filter(p => p.stock <= p.minStock).length
+  // ✅ OPTIMISATION: Utiliser cachedProducts pour les calculs
+  const lowStockCount = cachedProducts.filter(p => p.stock <= p.minStock).length
 
   // Calcul de la valeur du stock
-  const stockValue = products.reduce((sum, p) => sum + (safeNumber(p.purchasePrice) * p.stock), 0)
-  const potentialValue = products.reduce((sum, p) => sum + (safeNumber(p.price) * p.stock), 0)
+  const stockValue = cachedProducts.reduce((sum, p) => sum + (safeNumber(p.purchasePrice) * p.stock), 0)
+  const potentialValue = cachedProducts.reduce((sum, p) => sum + (safeNumber(p.price) * p.stock), 0)
   const potentialProfit = potentialValue - stockValue
 
 
@@ -317,7 +346,7 @@ export default function ProductsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-              {products.length}
+              {cachedProducts.length}
             </div>
             <p className="text-xs md:text-sm text-blue-600 mt-2 font-medium">
               📂 {categories.length} catégories
@@ -368,6 +397,51 @@ export default function ProductsPage() {
         </Card>
       </div>
 
+      {/* ✅ INDICATEUR DE PERFORMANCE */}
+      {!loadingProducts && cacheAge > 0 && (
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-green-700">
+                  ⚡ Chargement ultra-rapide (cache: {Math.round(cacheAge / 60)}min)
+                </span>
+                <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                  {cachedProducts.length} produits
+                </span>
+              </div>
+              <button
+                onClick={refreshProducts}
+                className="text-xs text-green-600 hover:text-green-800 underline transition-colors"
+              >
+                Actualiser
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Indicateur d'erreur */}
+      {productsError && (
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-red-50 to-orange-50">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3">
+              <div className="text-red-500">❌</div>
+              <div>
+                <h3 className="font-medium text-red-800">Erreur de chargement des produits</h3>
+                <p className="text-sm text-red-600 mt-1">{productsError}</p>
+                <button
+                  onClick={refreshProducts}
+                  className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors"
+                >
+                  Réessayer
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters avec design amélioré - Responsive */}
       <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
