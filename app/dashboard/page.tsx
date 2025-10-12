@@ -15,6 +15,7 @@ import ProfitStats from '@/components/dashboard/ProfitStats'
 import DashboardPageClient from '@/components/dashboard/DashboardPageClient'
 import DashboardStatsCards from '@/components/dashboard/DashboardStatsCards'
 import AutoUpdateNotice from '@/components/dashboard/AutoUpdateNotice'
+import DashboardAnalyticsWrapper from '@/components/dashboard/DashboardAnalyticsWrapper'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -343,6 +344,9 @@ export default async function DashboardPage() {
         </div>
       </div>
       </div>
+
+      {/* Analytics avancées avec filtres de date */}
+      <DashboardAnalyticsWrapper />
 
       {/* Notification de mise à jour automatique */}
       <AutoUpdateNotice />
