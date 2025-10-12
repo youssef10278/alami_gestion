@@ -79,8 +79,20 @@ export function useDashboardAnalytics(dateRange: DateRange) {
         to: dateRange.to.toISOString()
       })
 
-      const response = await fetch(`/api/dashboard/analytics?${params}`)
-      
+      // Timeout pour éviter les blocages
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 secondes max
+
+      const response = await fetch(`/api/dashboard/analytics?${params}`, {
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
+
+      clearTimeout(timeoutId)
+
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: ${response.statusText}`)
       }
@@ -89,7 +101,35 @@ export function useDashboardAnalytics(dateRange: DateRange) {
       setAnalytics(data)
     } catch (err) {
       console.error('Erreur lors du chargement des analytics:', err)
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Timeout - Requête trop longue')
+      } else {
+        setError(err instanceof Error ? err.message : 'Erreur de connexion')
+      }
+
+      // Données de fallback en cas d'erreur
+      setAnalytics({
+        totalSales: 0,
+        totalRevenue: 0,
+        totalOrders: 0,
+        averageOrderValue: 0,
+        salesGrowth: 0,
+        revenueGrowth: 0,
+        ordersGrowth: 0,
+        salesByDay: [],
+        salesByHour: [],
+        topProducts: [],
+        topCustomers: [],
+        paymentMethods: [],
+        lowStockProducts: 0,
+        totalProducts: 0,
+        totalCustomers: 0,
+        newCustomers: 0,
+        completedSales: 0,
+        pendingSales: 0,
+        cancelledSales: 0
+      })
     } finally {
       setLoading(false)
     }
