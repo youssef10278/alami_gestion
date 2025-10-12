@@ -139,6 +139,56 @@ export function useProductsCache() {
     })
   }, [loadFromCache, saveToCache])
 
+  // Ajouter un nouveau produit au cache (optimisation UX)
+  const addProductToCache = useCallback((newProduct: Product) => {
+    setProducts(prevProducts => {
+      const updatedProducts = [newProduct, ...prevProducts]
+
+      // Mettre à jour le cache
+      const cached = loadFromCache()
+      if (cached) {
+        saveToCache(updatedProducts, cached.total + 1)
+      }
+
+      return updatedProducts
+    })
+    console.log('✅ Produit ajouté instantanément au cache:', newProduct.name)
+  }, [loadFromCache, saveToCache])
+
+  // Mettre à jour un produit existant dans le cache
+  const updateProductInCache = useCallback((updatedProduct: Product) => {
+    setProducts(prevProducts => {
+      const updatedProducts = prevProducts.map(product =>
+        product.id === updatedProduct.id ? updatedProduct : product
+      )
+
+      // Mettre à jour le cache
+      const cached = loadFromCache()
+      if (cached) {
+        saveToCache(updatedProducts, cached.total)
+      }
+
+      return updatedProducts
+    })
+    console.log('✅ Produit mis à jour instantanément dans le cache:', updatedProduct.name)
+  }, [loadFromCache, saveToCache])
+
+  // Supprimer un produit du cache
+  const removeProductFromCache = useCallback((productId: string) => {
+    setProducts(prevProducts => {
+      const updatedProducts = prevProducts.filter(product => product.id !== productId)
+
+      // Mettre à jour le cache
+      const cached = loadFromCache()
+      if (cached) {
+        saveToCache(updatedProducts, cached.total - 1)
+      }
+
+      return updatedProducts
+    })
+    console.log('✅ Produit supprimé instantanément du cache:', productId)
+  }, [loadFromCache, saveToCache])
+
   // Invalider le cache
   const invalidateCache = useCallback(() => {
     localStorage.removeItem(CACHE_KEY)
@@ -171,6 +221,9 @@ export function useProductsCache() {
     cacheAge,
     fetchProducts,
     updateProductStock,
+    addProductToCache,
+    updateProductInCache,
+    removeProductFromCache,
     invalidateCache,
     isCacheRecent,
     refresh: () => fetchProducts(true)

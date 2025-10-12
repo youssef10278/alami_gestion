@@ -45,7 +45,7 @@ interface ProductDialogProps {
   onOpenChange: (open: boolean) => void
   product: Product | null
   categories: Category[]
-  onSaved: () => void
+  onSaved: (savedProduct?: any, isEdit?: boolean) => void
   onCategoryCreated?: (category: Category) => void
 }
 
@@ -128,7 +128,8 @@ export default function ProductDialog({
         return
       }
 
-      onSaved()
+      // Passer le produit sauvegardé et indiquer si c'est une édition
+      onSaved(data, !!product)
     } catch (err) {
       setError('Erreur lors de la sauvegarde du produit')
       setLoading(false)

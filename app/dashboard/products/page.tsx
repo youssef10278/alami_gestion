@@ -46,13 +46,16 @@ interface Category {
 }
 
 export default function ProductsPage() {
-  // ✅ OPTIMISATION: Utilisation du cache des produits
+  // ✅ OPTIMISATION: Utilisation du cache des produits avec mise à jour instantanée
   const {
     products: cachedProducts,
     loading: loadingProducts,
     error: productsError,
     cacheAge,
-    refresh: refreshProducts
+    refresh: refreshProducts,
+    addProductToCache,
+    updateProductInCache,
+    removeProductFromCache
   } = useProductsCache()
 
   const [categories, setCategories] = useState<Category[]>([])
@@ -197,12 +200,25 @@ export default function ProductsPage() {
     toast.success(`Catégorie "${newCategory.name}" créée avec succès`)
   }
 
-  const handleProductSaved = () => {
-    // ✅ OPTIMISATION: Rafraîchir le cache au lieu de recharger
-    refreshProducts()
+  const handleProductSaved = (savedProduct?: any, isEdit?: boolean) => {
+    if (savedProduct) {
+      if (isEdit) {
+        // ✅ OPTIMISATION ULTRA-RAPIDE: Mise à jour instantanée dans le cache
+        updateProductInCache(savedProduct)
+        toast.success('Produit modifié avec succès')
+      } else {
+        // ✅ OPTIMISATION ULTRA-RAPIDE: Ajout instantané au cache
+        addProductToCache(savedProduct)
+        toast.success('Produit créé avec succès')
+      }
+    } else {
+      // Fallback: rafraîchir le cache si pas de données
+      refreshProducts()
+      toast.success(isEdit ? 'Produit modifié avec succès' : 'Produit créé avec succès')
+    }
+
     setDialogOpen(false)
     setEditingProduct(null)
-    toast.success(editingProduct ? 'Produit modifié avec succès' : 'Produit créé avec succès')
   }
 
   const handleEdit = (product: Product) => {
@@ -221,8 +237,8 @@ export default function ProductsPage() {
       })
 
       if (response.ok) {
-        // ✅ OPTIMISATION: Rafraîchir le cache au lieu de recharger
-        refreshProducts()
+        // ✅ OPTIMISATION ULTRA-RAPIDE: Suppression instantanée du cache
+        removeProductFromCache(productId)
         toast.success('Produit supprimé avec succès')
       } else {
         toast.error('Erreur lors de la suppression du produit')
