@@ -26,33 +26,10 @@ export async function GET(request: NextRequest) {
     const previousFromDate = subDays(fromDate, daysDiff)
     const previousToDate = subDays(toDate, daysDiff)
 
-    // Requêtes parallèles pour optimiser les performances
-    const [
-      // Période actuelle
-      currentSales,
-      currentRevenue,
-      currentOrders,
-      
-      // Période précédente
-      previousSales,
-      previousRevenue,
-      previousOrders,
-      
-      // Données détaillées
-      salesByDay,
-      topProducts,
-      topCustomers,
-      paymentMethods,
-      
-      // Métriques générales
-      totalProducts,
-      lowStockProducts,
-      totalCustomers,
-      newCustomers,
-      
-      // Statuts des ventes
-      salesStatus
-    ] = await Promise.all([
+    // Requêtes parallèles pour optimiser les performances avec gestion d'erreur
+    let results
+    try {
+      results = await Promise.all([
       // Période actuelle
       prisma.sale.count({
         where: {
@@ -151,17 +128,15 @@ export async function GET(request: NextRequest) {
       }),
       
       // Méthodes de paiement
-      prisma.payment.groupBy({
-        by: ['method'],
+      prisma.sale.groupBy({
+        by: ['paymentMethod'],
         where: {
-          sale: {
-            status: 'COMPLETED',
-            createdAt: { gte: fromDate, lte: toDate }
-          }
+          status: 'COMPLETED',
+          createdAt: { gte: fromDate, lte: toDate }
         },
         _count: true,
         _sum: {
-          amount: true
+          totalAmount: true
         }
       }),
       
@@ -197,6 +172,32 @@ export async function GET(request: NextRequest) {
         _count: true
       })
     ])
+    } catch (dbError) {
+      console.error('Erreur base de données:', dbError)
+      return NextResponse.json(
+        { error: 'Erreur lors de la récupération des données' },
+        { status: 500 }
+      )
+    }
+
+    // Destructurer les résultats
+    const [
+      currentSales,
+      currentRevenue,
+      currentOrders,
+      previousSales,
+      previousRevenue,
+      previousOrders,
+      salesByDay,
+      topProducts,
+      topCustomers,
+      paymentMethods,
+      totalProducts,
+      lowStockProducts,
+      totalCustomers,
+      newCustomers,
+      salesStatus
+    ] = results
 
     // Traitement des données pour les graphiques
     const days = eachDayOfInterval({ start: fromDate, end: toDate })
@@ -245,79 +246,114 @@ export async function GET(request: NextRequest) {
     }
 
     // Enrichir les top produits avec les noms
-    const topProductsWithNames = await Promise.all(
-      topProducts.map(async (item) => {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-          select: { name: true }
+    let topProductsWithNames = []
+    try {
+      topProductsWithNames = await Promise.all(
+        (topProducts || []).map(async (item) => {
+          try {
+            const product = await prisma.product.findUnique({
+              where: { id: item.productId },
+              select: { name: true }
+            })
+            return {
+              id: item.productId,
+              name: product?.name || 'Produit supprimé',
+              quantity: item._sum.quantity || 0,
+              revenue: Number(item._sum.totalPrice || 0)
+            }
+          } catch (error) {
+            console.error('Erreur produit:', error)
+            return {
+              id: item.productId,
+              name: 'Erreur de chargement',
+              quantity: item._sum.quantity || 0,
+              revenue: Number(item._sum.totalPrice || 0)
+            }
+          }
         })
-        return {
-          id: item.productId,
-          name: product?.name || 'Produit supprimé',
-          quantity: item._sum.quantity || 0,
-          revenue: Number(item._sum.totalPrice || 0)
-        }
-      })
-    )
+      )
+    } catch (error) {
+      console.error('Erreur enrichissement produits:', error)
+      topProductsWithNames = []
+    }
 
     // Enrichir les top clients avec les noms
-    const topCustomersWithNames = await Promise.all(
-      topCustomers.map(async (item) => {
-        if (!item.customerId) return null
-        const customer = await prisma.customer.findUnique({
-          where: { id: item.customerId },
-          select: { name: true }
+    let topCustomersWithNames = []
+    try {
+      const customerResults = await Promise.all(
+        (topCustomers || []).map(async (item) => {
+          if (!item.customerId) return null
+          try {
+            const customer = await prisma.customer.findUnique({
+              where: { id: item.customerId },
+              select: { name: true }
+            })
+            return {
+              id: item.customerId,
+              name: customer?.name || 'Client supprimé',
+              orders: item._count,
+              revenue: Number(item._sum.totalAmount || 0)
+            }
+          } catch (error) {
+            console.error('Erreur client:', error)
+            return {
+              id: item.customerId,
+              name: 'Erreur de chargement',
+              orders: item._count,
+              revenue: Number(item._sum.totalAmount || 0)
+            }
+          }
         })
-        return {
-          id: item.customerId,
-          name: customer?.name || 'Client supprimé',
-          orders: item._count,
-          revenue: Number(item._sum.totalAmount || 0)
-        }
-      })
-    ).then(results => results.filter(Boolean))
+      )
+      topCustomersWithNames = customerResults.filter(Boolean)
+    } catch (error) {
+      console.error('Erreur enrichissement clients:', error)
+      topCustomersWithNames = []
+    }
 
-    // Calculer les croissances
-    const currentRevenueValue = Number(currentRevenue._sum.totalAmount || 0)
-    const previousRevenueValue = Number(previousRevenue._sum.totalAmount || 0)
-    
-    const salesGrowth = previousSales > 0 ? ((currentSales - previousSales) / previousSales) * 100 : 0
+    // Calculer les croissances avec valeurs par défaut
+    const currentRevenueValue = Number(currentRevenue?._sum?.totalAmount || 0)
+    const previousRevenueValue = Number(previousRevenue?._sum?.totalAmount || 0)
+
+    const salesGrowth = (previousSales || 0) > 0 ? (((currentSales || 0) - (previousSales || 0)) / (previousSales || 0)) * 100 : 0
     const revenueGrowth = previousRevenueValue > 0 ? ((currentRevenueValue - previousRevenueValue) / previousRevenueValue) * 100 : 0
-    const ordersGrowth = previousOrders > 0 ? ((currentOrders - previousOrders) / previousOrders) * 100 : 0
+    const ordersGrowth = (previousOrders || 0) > 0 ? (((currentOrders || 0) - (previousOrders || 0)) / (previousOrders || 0)) * 100 : 0
 
-    // Organiser les statuts des ventes
-    const statusCounts = salesStatus.reduce((acc, status) => {
-      acc[status.status] = status._count
+    // Organiser les statuts des ventes avec gestion d'erreur
+    const statusCounts = (salesStatus || []).reduce((acc, status) => {
+      if (status && status.status) {
+        acc[status.status] = status._count || 0
+      }
       return acc
     }, {} as Record<string, number>)
 
     const analytics = {
-      totalSales: currentSales,
-      totalRevenue: currentRevenueValue,
-      totalOrders: currentOrders,
-      averageOrderValue: currentSales > 0 ? currentRevenueValue / currentSales : 0,
-      
-      salesGrowth,
-      revenueGrowth,
-      ordersGrowth,
-      
-      salesByDay: salesByDayData,
-      salesByHour: salesByHourData,
-      
-      topProducts: topProductsWithNames,
-      topCustomers: topCustomersWithNames,
-      
-      paymentMethods: paymentMethods.map(pm => ({
-        method: pm.method,
-        count: pm._count,
-        amount: Number(pm._sum.amount || 0)
+      totalSales: currentSales || 0,
+      totalRevenue: currentRevenueValue || 0,
+      totalOrders: currentOrders || 0,
+      averageOrderValue: (currentSales || 0) > 0 ? currentRevenueValue / (currentSales || 1) : 0,
+
+      salesGrowth: salesGrowth || 0,
+      revenueGrowth: revenueGrowth || 0,
+      ordersGrowth: ordersGrowth || 0,
+
+      salesByDay: salesByDayData || [],
+      salesByHour: salesByHourData || [],
+
+      topProducts: topProductsWithNames || [],
+      topCustomers: topCustomersWithNames || [],
+
+      paymentMethods: (paymentMethods || []).map(pm => ({
+        method: pm?.paymentMethod || 'UNKNOWN',
+        count: pm?._count || 0,
+        amount: Number(pm?._sum?.totalAmount || 0)
       })),
-      
-      lowStockProducts: Number((lowStockProducts as any)[0]?.count || 0),
-      totalProducts,
-      totalCustomers,
-      newCustomers,
-      
+
+      lowStockProducts: Number((lowStockProducts as any)?.[0]?.count || 0),
+      totalProducts: totalProducts || 0,
+      totalCustomers: totalCustomers || 0,
+      newCustomers: newCustomers || 0,
+
       completedSales: statusCounts.COMPLETED || 0,
       pendingSales: statusCounts.PENDING || 0,
       cancelledSales: statusCounts.CANCELLED || 0
