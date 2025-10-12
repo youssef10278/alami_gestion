@@ -28,20 +28,26 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
-    const limit = parseInt(searchParams.get('limit') || '300') // Limite raisonnable
+    const limitParam = searchParams.get('limit') || '300'
     const useCache = searchParams.get('cache') !== 'false'
+
+    // ✅ Support pour récupérer TOUS les produits
+    const getAllProducts = limitParam === 'all' || limitParam === '0'
+    const limit = getAllProducts ? undefined : parseInt(limitParam)
 
     // Vérifier le cache si pas de recherche
     const now = Date.now()
     if (useCache && !search && fastCache && (now - cacheTimestamp) < CACHE_DURATION) {
       console.log('⚡ Cache hit - Réponse instantanée')
+      const cachedProducts = getAllProducts ? fastCache : fastCache.slice(0, limit)
       return NextResponse.json({
-        products: fastCache.slice(0, limit),
+        products: cachedProducts,
         pagination: {
           total: fastCache.length,
-          limit,
+          limit: getAllProducts ? fastCache.length : limit,
           cached: true,
-          cacheAge: Math.round((now - cacheTimestamp) / 1000)
+          cacheAge: Math.round((now - cacheTimestamp) / 1000),
+          showingAll: getAllProducts
         }
       })
     }
@@ -79,7 +85,7 @@ export async function GET(request: NextRequest) {
         { stock: 'desc' },    // Produits en stock en premier
         { name: 'asc' }       // Tri alphabétique
       ],
-      take: limit
+      take: getAllProducts ? undefined : limit
     })
 
     const queryTime = Date.now() - startTime
@@ -113,10 +119,11 @@ export async function GET(request: NextRequest) {
       products: productsWithCategories,
       pagination: {
         total: productsWithCategories.length,
-        limit,
+        limit: getAllProducts ? productsWithCategories.length : limit,
         cached: false,
         queryTime,
-        totalTime
+        totalTime,
+        showingAll: getAllProducts
       }
     })
 

@@ -93,9 +93,9 @@ export function useProductsCache() {
       }
 
       setLoading(true)
-      console.log('🚀 Chargement des produits depuis l\'API rapide...')
+      console.log('🚀 Chargement de TOUS les produits depuis l\'API rapide...')
 
-      const response = await fetch('/api/products/fast?limit=500&cache=true')
+      const response = await fetch('/api/products/fast?limit=all&cache=true')
       
       if (!response.ok) {
         throw new Error(`Erreur API: ${response.status} ${response.statusText}`)
