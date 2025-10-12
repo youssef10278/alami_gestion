@@ -92,16 +92,23 @@ export default function SalesPage() {
   const [checkBeneficiary, setCheckBeneficiary] = useState('')
   const [checkDate, setCheckDate] = useState('')
 
-  // Détection automatique du scanner physique
+  // Détection automatique du scanner physique avec protection stock
   const { isScanning } = useBarcodeScanner({
     onScan: (barcode) => {
       const product = products.find((p) => p.sku === barcode)
       if (product) {
-        addToCart(product)
-        toast.success(`${product.name} ajouté au panier`, {
-          description: 'Scanné avec succès',
-          icon: <Scan className="w-4 h-4" />,
-        })
+        if (product.stock <= 0) {
+          toast.error('Produit en rupture de stock', {
+            description: `${product.name} n'est plus disponible`,
+            icon: <AlertTriangle className="w-4 h-4" />,
+          })
+        } else {
+          addToCart(product)
+          toast.success(`${product.name} ajouté au panier`, {
+            description: 'Scanné avec succès',
+            icon: <Scan className="w-4 h-4" />,
+          })
+        }
       } else {
         toast.error('Produit non trouvé', {
           description: `Code-barres: ${barcode}`,
@@ -164,11 +171,24 @@ export default function SalesPage() {
   }
 
   const addToCart = (product: Product) => {
+    // ✅ SÉCURITÉ: Empêcher l'ajout de produits en rupture de stock
+    if (product.stock <= 0) {
+      toast.error('Produit en rupture de stock', {
+        description: `${product.name} n'est plus disponible`,
+        icon: <AlertTriangle className="w-4 h-4" />,
+      })
+      return
+    }
+
     const existingItem = cart.find(item => item.product.id === product.id)
-    
+
     if (existingItem) {
+      // Vérifier si on peut ajouter une unité de plus
       if (existingItem.quantity >= product.stock) {
-        alert('Stock insuffisant')
+        toast.error('Stock insuffisant', {
+          description: `Seulement ${product.stock} unités disponibles`,
+          icon: <AlertTriangle className="w-4 h-4" />,
+        })
         return
       }
       setCart(cart.map(item =>
@@ -176,8 +196,15 @@ export default function SalesPage() {
           ? { ...item, quantity: item.quantity + 1 }
           : item
       ))
+      toast.success(`Quantité augmentée`, {
+        description: `${product.name} (${existingItem.quantity + 1} unités)`,
+      })
     } else {
+      // Ajouter le produit au panier
       setCart([...cart, { product, quantity: 1 }])
+      toast.success(`Ajouté au panier`, {
+        description: `${product.name}`,
+      })
     }
   }
 
@@ -785,13 +812,21 @@ export default function SalesPage() {
               {!loadingProducts && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
-                {filteredProducts.map((product) => (
+                {filteredProducts.map((product) => {
+                  const isOutOfStock = product.stock <= 0
+                  const isLowStock = product.stock > 0 && product.stock <= 10
+
+                  return (
                   <div
                     key={product.id}
-                    className="group relative p-4 border-2 border-[hsl(var(--border))] rounded-xl hover:border-[var(--color-business-blue)] hover:shadow-lg cursor-pointer transition-all duration-200 bg-[hsl(var(--card))] hover:bg-[hsl(var(--accent))]"
-                    onClick={() => addToCart(product)}
+                    className={`group relative p-4 border-2 rounded-xl transition-all duration-200 ${
+                      isOutOfStock
+                        ? 'border-red-200 bg-red-50 opacity-60 cursor-not-allowed'
+                        : 'border-[hsl(var(--border))] hover:border-[var(--color-business-blue)] hover:shadow-lg cursor-pointer bg-[hsl(var(--card))] hover:bg-[hsl(var(--accent))]'
+                    }`}
+                    onClick={() => !isOutOfStock && addToCart(product)}
                   >
-                    {/* Badge de stock */}
+                    {/* Badge de stock amélioré */}
                     <div className="absolute top-3 right-3 z-10">
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                         product.stock > 10
@@ -800,9 +835,18 @@ export default function SalesPage() {
                             ? 'bg-orange-100 text-orange-700'
                             : 'bg-red-100 text-red-700'
                       }`}>
-                        {product.stock > 0 ? `${product.stock} en stock` : 'Rupture'}
+                        {product.stock > 0 ? `${product.stock} en stock` : '🚫 Rupture'}
                       </div>
                     </div>
+
+                    {/* Overlay pour produits en rupture */}
+                    {isOutOfStock && (
+                      <div className="absolute inset-0 bg-red-100 bg-opacity-50 rounded-xl flex items-center justify-center z-20">
+                        <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                          🚫 INDISPONIBLE
+                        </div>
+                      </div>
+                    )}
 
                     {/* Image et Contenu */}
                     <div className="flex gap-3">
@@ -867,10 +911,13 @@ export default function SalesPage() {
                       </div>
                     </div>
 
-                    {/* Effet de survol */}
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--color-business-blue)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+                    {/* Effet de survol - désactivé pour produits en rupture */}
+                    {!isOutOfStock && (
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--color-business-blue)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+                    )}
                   </div>
-                  ))}
+                  )
+                })}
                   </div>
 
                   {/* Message si aucun produit */}
