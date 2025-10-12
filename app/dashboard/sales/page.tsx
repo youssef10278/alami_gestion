@@ -64,6 +64,8 @@ export default function SalesPage() {
   const [amountPaid, setAmountPaid] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingProducts, setLoadingProducts] = useState(true)
+  const [loadingAllProducts, setLoadingAllProducts] = useState(false)
   const [success, setSuccess] = useState(false)
   const [lastSale, setLastSale] = useState<any>(null)
   const [showNewCustomerDialog, setShowNewCustomerDialog] = useState(false)
@@ -109,12 +111,35 @@ export default function SalesPage() {
 
   const fetchProducts = async () => {
     try {
-      // ✅ FIX: Récupérer TOUS les produits sans limite (comme la page Gestion des Produits)
-      const response = await fetch('/api/products?limit=all')
+      setLoadingProducts(true)
+
+      // ✅ OPTIMISATION: Utilisation de l'API optimisée avec cache
+      const response = await fetch('/api/products/sales?limit=500&cache=true')
       const data = await response.json()
       setProducts(data.products || [])
+      setLoadingProducts(false)
+
+      // Afficher un indicateur si on charge plus de produits en arrière-plan
+      if (data.pagination?.total > 500) {
+        setLoadingAllProducts(true)
+
+        // Chargement différé du reste des produits
+        setTimeout(async () => {
+          try {
+            const fullResponse = await fetch('/api/products/sales?limit=0&cache=true')
+            const fullData = await fullResponse.json()
+            setProducts(fullData.products || [])
+            setLoadingAllProducts(false)
+          } catch (error) {
+            console.error('Error fetching all products:', error)
+            setLoadingAllProducts(false)
+          }
+        }, 500) // Délai de 500ms pour laisser l'UI se stabiliser
+      }
     } catch (error) {
       console.error('Error fetching products:', error)
+      setLoadingProducts(false)
+      setLoadingAllProducts(false)
     }
   }
 
@@ -692,22 +717,62 @@ export default function SalesPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              {/* Recherche et Scanner - Design amélioré */}
-              <div className="flex gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(var(--muted-foreground))] w-5 h-5" />
-                  <Input
-                    placeholder="Rechercher un produit par nom ou SKU..."
-                    value={searchProduct}
-                    onChange={(e) => setSearchProduct(e.target.value)}
-                    className="pl-11 h-12 text-base border-2 focus:border-[var(--color-business-blue)] transition-colors"
-                  />
+              {/* Indicateur de chargement des produits */}
+              {loadingProducts && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="flex items-center gap-3 text-[var(--color-business-blue)]">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--color-business-blue)]"></div>
+                    <span className="font-medium">Chargement des produits...</span>
+                  </div>
                 </div>
+              )}
 
-              </div>
+              {/* Indicateur de chargement supplémentaire */}
+              {loadingAllProducts && !loadingProducts && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+                    <span className="text-sm">Chargement de tous les produits en arrière-plan...</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Recherche et Scanner - Design amélioré */}
+              {!loadingProducts && (
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(var(--muted-foreground))] w-5 h-5" />
+                    <Input
+                      placeholder="Rechercher un produit par nom ou SKU..."
+                      value={searchProduct}
+                      onChange={(e) => setSearchProduct(e.target.value)}
+                      className="pl-11 h-12 text-base border-2 focus:border-[var(--color-business-blue)] transition-colors"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Compteur de produits */}
+              {!loadingProducts && products.length > 0 && (
+                <div className="flex items-center justify-between mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium">
+                      {products.length} produits disponibles
+                      {loadingAllProducts && " (chargement en cours...)"}
+                    </span>
+                  </div>
+                  {filteredProducts.length !== products.length && (
+                    <span className="text-xs text-green-600">
+                      {filteredProducts.length} affichés
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Liste des produits - Design amélioré */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+              {!loadingProducts && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
@@ -794,23 +859,24 @@ export default function SalesPage() {
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--color-business-blue)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
                   </div>
                 ))}
-              </div>
-
-              {/* Message si aucun produit */}
-              {filteredProducts.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="p-4 bg-[hsl(var(--muted))]/20 rounded-xl inline-block">
-                    <ShoppingCart className="w-12 h-12 text-[hsl(var(--muted-foreground))] mx-auto mb-3" />
-                    <p className="text-[hsl(var(--muted-foreground))] font-medium">
-                      {searchProduct ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
-                    </p>
-                    {searchProduct && (
-                      <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-                        Essayez un autre terme de recherche
-                      </p>
-                    )}
-                  </div>
                 </div>
+
+                {/* Message si aucun produit */}
+                {filteredProducts.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="p-4 bg-[hsl(var(--muted))]/20 rounded-xl inline-block">
+                      <ShoppingCart className="w-12 h-12 text-[hsl(var(--muted-foreground))] mx-auto mb-3" />
+                      <p className="text-[hsl(var(--muted-foreground))] font-medium">
+                        {searchProduct ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
+                      </p>
+                      {searchProduct && (
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                          Essayez un autre terme de recherche
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               )}
             </CardContent>
           </Card>
