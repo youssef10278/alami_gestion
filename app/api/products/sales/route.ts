@@ -46,9 +46,10 @@ export async function GET(request: NextRequest) {
     // Construire les conditions de recherche
     const where: any = {
       isActive: true,
-      stock: {
-        gt: 0 // Seulement les produits en stock pour la vente
-      }
+      // ✅ TEMPORAIRE: Permettre tous les produits actifs pour déboguer
+      // stock: {
+      //   gt: 0 // Seulement les produits en stock pour la vente
+      // }
     }
 
     if (search) {

@@ -66,6 +66,7 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(false)
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [loadingAllProducts, setLoadingAllProducts] = useState(false)
+  const [productsError, setProductsError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [lastSale, setLastSale] = useState<any>(null)
   const [showNewCustomerDialog, setShowNewCustomerDialog] = useState(false)
@@ -112,34 +113,33 @@ export default function SalesPage() {
   const fetchProducts = async () => {
     try {
       setLoadingProducts(true)
+      console.log('🔍 Début du chargement des produits...')
 
-      // ✅ OPTIMISATION: Utilisation de l'API optimisée avec cache
-      const response = await fetch('/api/products/sales?limit=500&cache=true')
+      // ✅ TEMPORAIRE: Retour à l'API originale pour déboguer
+      const response = await fetch('/api/products?limit=all')
+      console.log('📡 Réponse API:', response.status, response.statusText)
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      }
+
       const data = await response.json()
+      console.log('📊 Données reçues:', {
+        productsCount: data.products?.length || 0,
+        total: data.pagination?.total || 0,
+        firstProduct: data.products?.[0]?.name || 'Aucun'
+      })
+
       setProducts(data.products || [])
       setLoadingProducts(false)
 
-      // Afficher un indicateur si on charge plus de produits en arrière-plan
-      if (data.pagination?.total > 500) {
-        setLoadingAllProducts(true)
+      console.log('✅ Produits chargés avec succès:', data.products?.length || 0)
 
-        // Chargement différé du reste des produits
-        setTimeout(async () => {
-          try {
-            const fullResponse = await fetch('/api/products/sales?limit=0&cache=true')
-            const fullData = await fullResponse.json()
-            setProducts(fullData.products || [])
-            setLoadingAllProducts(false)
-          } catch (error) {
-            console.error('Error fetching all products:', error)
-            setLoadingAllProducts(false)
-          }
-        }, 500) // Délai de 500ms pour laisser l'UI se stabiliser
-      }
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error('❌ Erreur lors du chargement des produits:', error)
       setLoadingProducts(false)
       setLoadingAllProducts(false)
+      setProductsError(error.message || 'Erreur inconnue')
     }
   }
 
@@ -723,6 +723,28 @@ export default function SalesPage() {
                   <div className="flex items-center gap-3 text-[var(--color-business-blue)]">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--color-business-blue)]"></div>
                     <span className="font-medium">Chargement des produits...</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Indicateur d'erreur */}
+              {productsError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="text-red-500">❌</div>
+                    <div>
+                      <h3 className="font-medium text-red-800">Erreur de chargement des produits</h3>
+                      <p className="text-sm text-red-600 mt-1">{productsError}</p>
+                      <button
+                        onClick={() => {
+                          setProductsError(null)
+                          fetchProducts()
+                        }}
+                        className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
+                      >
+                        Réessayer
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
