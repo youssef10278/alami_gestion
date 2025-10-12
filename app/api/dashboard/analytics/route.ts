@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
         },
         _sum: {
           quantity: true,
-          totalPrice: true
+          total: true
         },
         orderBy: {
           _sum: {
@@ -259,7 +259,7 @@ export async function GET(request: NextRequest) {
               id: item.productId,
               name: product?.name || 'Produit supprimé',
               quantity: item._sum.quantity || 0,
-              revenue: Number(item._sum.totalPrice || 0)
+              revenue: Number(item._sum.total || 0)
             }
           } catch (error) {
             console.error('Erreur produit:', error)
@@ -267,7 +267,7 @@ export async function GET(request: NextRequest) {
               id: item.productId,
               name: 'Erreur de chargement',
               quantity: item._sum.quantity || 0,
-              revenue: Number(item._sum.totalPrice || 0)
+              revenue: Number(item._sum.total || 0)
             }
           }
         })
