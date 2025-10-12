@@ -97,6 +97,8 @@ export default function ProductsPage() {
       const params = new URLSearchParams()
       if (search) params.append('search', search)
       if (selectedCategory !== 'all') params.append('categoryId', selectedCategory)
+      // ✅ FIX: Récupérer tous les produits par défaut (même limite que la page vente)
+      params.append('limit', '1000')
 
       const response = await fetch(`/api/products?${params}`)
       const data = await response.json()

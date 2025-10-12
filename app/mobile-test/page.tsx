@@ -97,10 +97,6 @@ export default function MobileTestPage() {
             Se connecter (React)
           </a>
 
-          <a href="/test-camera" className="button button-outline">
-            Test Caméra
-          </a>
-
           <a href="/debug" className="button button-outline">
             Page de diagnostic
           </a>

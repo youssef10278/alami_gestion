@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || ''
     const categoryId = searchParams.get('categoryId')
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
+    // ✅ FIX: Augmenter la limite par défaut pour éviter les incohérences
+    const limit = parseInt(searchParams.get('limit') || '100')
     const skip = (page - 1) * limit
 
     const where: any = {

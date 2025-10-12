@@ -109,7 +109,8 @@ export default function SalesPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products?limit=100')
+      // ✅ FIX: Utiliser la limite par défaut de l'API pour la cohérence
+      const response = await fetch('/api/products')
       const data = await response.json()
       setProducts(data.products || [])
     } catch (error) {
