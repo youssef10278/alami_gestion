@@ -821,7 +821,7 @@ export default function SalesPage() {
                     key={product.id}
                     className={`group relative p-4 border-2 rounded-xl transition-all duration-200 ${
                       isOutOfStock
-                        ? 'border-red-200 bg-red-50 opacity-60 cursor-not-allowed'
+                        ? 'border-red-300 bg-red-50 cursor-not-allowed'
                         : 'border-[hsl(var(--border))] hover:border-[var(--color-business-blue)] hover:shadow-lg cursor-pointer bg-[hsl(var(--card))] hover:bg-[hsl(var(--accent))]'
                     }`}
                     onClick={() => !isOutOfStock && addToCart(product)}
@@ -839,17 +839,15 @@ export default function SalesPage() {
                       </div>
                     </div>
 
-                    {/* Overlay pour produits en rupture */}
+                    {/* Bandeau discret pour produits en rupture */}
                     {isOutOfStock && (
-                      <div className="absolute inset-0 bg-red-100 bg-opacity-50 rounded-xl flex items-center justify-center z-20">
-                        <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                          🚫 INDISPONIBLE
-                        </div>
+                      <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-xs font-medium py-1 px-2 rounded-t-xl z-20 flex items-center justify-center">
+                        🚫 RUPTURE DE STOCK
                       </div>
                     )}
 
                     {/* Image et Contenu */}
-                    <div className="flex gap-3">
+                    <div className={`flex gap-3 ${isOutOfStock ? 'mt-6' : ''}`}>
                       {/* Image du produit */}
                       <div className="flex-shrink-0">
                         {product.image ? (
@@ -885,10 +883,18 @@ export default function SalesPage() {
 
                       {/* Contenu principal */}
                       <div className="flex-1 pr-16 min-w-0">
-                        <h4 className="font-bold text-base text-[hsl(var(--foreground))] group-hover:text-[var(--color-business-blue)] transition-colors line-clamp-2">
+                        <h4 className={`font-bold text-base transition-colors line-clamp-2 ${
+                          isOutOfStock
+                            ? 'text-red-600'
+                            : 'text-[hsl(var(--foreground))] group-hover:text-[var(--color-business-blue)]'
+                        }`}>
                           {product.name}
                         </h4>
-                        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1 font-mono">
+                        <p className={`text-sm mt-1 font-mono ${
+                          isOutOfStock
+                            ? 'text-red-500'
+                            : 'text-[hsl(var(--muted-foreground))]'
+                        }`}>
                           {product.sku}
                         </p>
                       </div>
@@ -897,17 +903,31 @@ export default function SalesPage() {
                     {/* Prix et action */}
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="text-2xl font-bold text-[var(--color-business-blue)]">
+                        <span className={`text-2xl font-bold ${
+                          isOutOfStock
+                            ? 'text-red-500'
+                            : 'text-[var(--color-business-blue)]'
+                        }`}>
                           {safeToFixed(product.price)} DH
                         </span>
-                        <span className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
-                          Prix unitaire
+                        <span className={`text-xs mt-1 ${
+                          isOutOfStock
+                            ? 'text-red-400'
+                            : 'text-[hsl(var(--muted-foreground))]'
+                        }`}>
+                          {isOutOfStock ? 'Non disponible' : 'Prix unitaire'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-[var(--color-business-blue)]/10 rounded-lg group-hover:bg-[var(--color-business-blue)] transition-colors">
-                          <Plus className="w-5 h-5 text-[var(--color-business-blue)] group-hover:text-white transition-colors" />
-                        </div>
+                        {isOutOfStock ? (
+                          <div className="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium">
+                            INDISPONIBLE
+                          </div>
+                        ) : (
+                          <div className="p-2 bg-[var(--color-business-blue)]/10 rounded-lg group-hover:bg-[var(--color-business-blue)] transition-colors">
+                            <Plus className="w-5 h-5 text-[var(--color-business-blue)] group-hover:text-white transition-colors" />
+                          </div>
+                        )}
                       </div>
                     </div>
 
