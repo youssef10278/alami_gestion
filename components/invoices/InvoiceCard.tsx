@@ -164,14 +164,15 @@ export default function InvoiceCard({ invoice, onDelete }: InvoiceCardProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
+          {/* Première ligne */}
           <Button
             onClick={handleViewPDF}
             variant="outline"
             size="sm"
-            className="flex-1 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300"
+            className="w-full border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300"
           >
-            <Eye className="w-4 h-4 mr-2" />
+            <Eye className="w-4 h-4 mr-1" />
             Voir
           </Button>
 
@@ -179,29 +180,31 @@ export default function InvoiceCard({ invoice, onDelete }: InvoiceCardProps) {
             onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}/edit`}
             variant="outline"
             size="sm"
-            className="flex-1 border-2 border-green-200 hover:border-green-400 hover:bg-green-50 transition-all duration-300"
+            className="w-full border-2 border-green-200 hover:border-green-400 hover:bg-green-50 transition-all duration-300"
           >
-            <Edit className="w-4 h-4 mr-2" />
+            <Edit className="w-4 h-4 mr-1" />
             Modifier
           </Button>
 
+          {/* Deuxième ligne */}
           <Button
             onClick={handleDownloadPDF}
             disabled={isDownloading}
             size="sm"
-            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
           >
-            <Download className="w-4 h-4 mr-2" />
-            {isDownloading ? 'Téléchargement...' : 'Télécharger'}
+            <Download className="w-4 h-4 mr-1" />
+            {isDownloading ? 'Téléch...' : 'Télécharger'}
           </Button>
 
           <Button
             onClick={() => onDelete(invoice.id, invoice.invoiceNumber)}
             variant="destructive"
             size="sm"
-            className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 shadow-md hover:shadow-lg transition-all duration-300"
+            className="w-full bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 shadow-md hover:shadow-lg transition-all duration-300"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 mr-1" />
+            Supprimer
           </Button>
         </div>
 
