@@ -70,6 +70,8 @@ export default function NewCreditNotePage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState('')
   const [loadingProducts, setLoadingProducts] = useState(false)
+  // ✅ NOUVEAU: État de chargement initial
+  const [initialLoading, setInitialLoading] = useState(true)
 
   // Données de la facture d'avoir
   const [invoiceNumber, setInvoiceNumber] = useState('')
@@ -97,10 +99,23 @@ export default function NewCreditNotePage() {
 
   // Charger les données initiales
   useEffect(() => {
-    fetchProducts()
-    fetchCustomers()
-    fetchInvoices()
-    fetchNextInvoiceNumber()
+    const loadInitialData = async () => {
+      try {
+        setInitialLoading(true)
+        await Promise.all([
+          fetchProducts(),
+          fetchCustomers(),
+          fetchInvoices(),
+          fetchNextInvoiceNumber()
+        ])
+      } catch (error) {
+        console.error('❌ Erreur chargement données initiales:', error)
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    loadInitialData()
   }, [])
 
   // Filtrer les produits selon la recherche
@@ -141,8 +156,24 @@ export default function NewCreditNotePage() {
       if (response.ok) {
         const data = await response.json()
         const productsList = data.products || data
-        setProducts(Array.isArray(productsList) ? productsList : [])
-        console.log('✅ Produits chargés pour facture d\'avoir:', productsList.length)
+
+        // ✅ NOUVEAU: Validation stricte des données produits
+        const validProducts = Array.isArray(productsList)
+          ? productsList.filter(product =>
+              product &&
+              typeof product === 'object' &&
+              product.id &&
+              product.name &&
+              typeof product.price === 'number'
+            )
+          : []
+
+        setProducts(validProducts)
+        console.log('✅ Produits valides chargés pour facture d\'avoir:', validProducts.length)
+
+        if (validProducts.length !== (productsList?.length || 0)) {
+          console.warn('⚠️ Certains produits ont été filtrés car invalides')
+        }
       } else {
         console.error('❌ Erreur API produits:', response.status, response.statusText)
         setProducts([])
@@ -161,7 +192,19 @@ export default function NewCreditNotePage() {
       if (response.ok) {
         const data = await response.json()
         const customersList = data.customers || data
-        setCustomers(Array.isArray(customersList) ? customersList : [])
+
+        // ✅ NOUVEAU: Validation stricte des données clients
+        const validCustomers = Array.isArray(customersList)
+          ? customersList.filter(customer =>
+              customer &&
+              typeof customer === 'object' &&
+              customer.id &&
+              customer.name
+            )
+          : []
+
+        setCustomers(validCustomers)
+        console.log('✅ Clients valides chargés:', validCustomers.length)
       }
     } catch (error) {
       console.error('Error fetching customers:', error)
@@ -347,6 +390,34 @@ export default function NewCreditNotePage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // ✅ NOUVEAU: Écran de chargement initial
+  if (initialLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-red-600 via-pink-600 to-purple-600 rounded-xl p-6 text-white">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard/invoices">
+              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-red-600">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold">🧾 Nouvelle Facture d'Avoir</h1>
+              <p className="text-red-100 mt-1">Chargement des données...</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Chargement des produits et clients...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
