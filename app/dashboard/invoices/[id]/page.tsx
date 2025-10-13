@@ -64,11 +64,11 @@ interface Invoice {
     total: number
     createdAt: string
   }[]
-  creator: {
+  creator?: {
     id: string
     name: string
   }
-  items: InvoiceItem[]
+  items?: InvoiceItem[]
 }
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -266,7 +266,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {invoice.items.map((item) => (
+                {(invoice.items || []).map((item) => (
                   <div key={item.id} className={`border rounded-lg p-4 ${
                     invoice.type === 'CREDIT_NOTE' ? 'bg-red-50 border-red-200' : 'bg-gray-50'
                   }`}>
@@ -395,7 +395,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div>
                 <span className="font-medium text-gray-600">Créée par:</span>
-                <p>{invoice.creator.name}</p>
+                <p>{invoice.creator?.name || 'Utilisateur inconnu'}</p>
               </div>
               {invoice.dueDate && (
                 <div>
