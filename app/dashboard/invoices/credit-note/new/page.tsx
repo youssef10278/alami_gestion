@@ -109,12 +109,13 @@ export default function NewCreditNotePage() {
     }
   }, [searchProduct, products])
 
-  // Recalculer les totaux quand les articles changent
+  // Recalculer les totaux quand les articles changent (pour facture d'avoir)
   useEffect(() => {
     const newSubtotal = items.reduce((sum, item) => sum + item.total, 0)
     const newTotalDiscount = items.reduce((sum, item) => sum + item.discountAmount, 0)
     const newTaxAmount = (newSubtotal * taxRate) / 100
-    const newTotal = newSubtotal + newTaxAmount
+    // Pour une facture d'avoir: total = -(sous-total - remise + TVA)
+    const newTotal = -(newSubtotal - newTotalDiscount + newTaxAmount)
 
     setSubtotal(newSubtotal)
     setTotalDiscount(newTotalDiscount)
@@ -608,7 +609,7 @@ export default function NewCreditNotePage() {
               </div>
               <div className="flex justify-between">
                 <span>Remise totale:</span>
-                <span className="font-semibold">+{totalDiscount.toLocaleString('fr-FR')} DH</span>
+                <span className="font-semibold text-green-600">+{totalDiscount.toLocaleString('fr-FR')} DH</span>
               </div>
               <div className="flex justify-between">
                 <span>TVA ({taxRate}%):</span>
@@ -617,7 +618,7 @@ export default function NewCreditNotePage() {
               <div className="border-t pt-3">
                 <div className="flex justify-between text-lg">
                   <span className="font-bold">Total à Rembourser:</span>
-                  <span className="font-bold text-red-600">-{total.toLocaleString('fr-FR')} DH</span>
+                  <span className="font-bold text-red-600">{total.toLocaleString('fr-FR')} DH</span>
                 </div>
               </div>
             </div>
