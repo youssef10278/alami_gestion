@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FileText, Download, Eye, Trash2, Calendar, User, Euro, Edit } from 'lucide-react'
+import { FileText, Download, Eye, Trash2, Calendar, User, Banknote, Edit } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -99,10 +99,7 @@ export default function InvoiceCard({ invoice, onDelete }: InvoiceCardProps) {
   }
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount)
+    return `${amount.toLocaleString('fr-FR')} DH`
   }
 
   return (
@@ -155,7 +152,7 @@ export default function InvoiceCard({ invoice, onDelete }: InvoiceCardProps) {
         {/* Montant */}
         <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-100">
           <div className="flex items-center gap-2">
-            <Euro className="w-5 h-5 text-blue-600" />
+            <Banknote className="w-5 h-5 text-blue-600" />
             <span className="font-semibold text-gray-700">Total</span>
           </div>
           <span className="text-2xl font-bold text-blue-600">
