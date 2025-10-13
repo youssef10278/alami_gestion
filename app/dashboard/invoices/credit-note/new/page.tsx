@@ -105,11 +105,11 @@ export default function NewCreditNotePage() {
 
   // Filtrer les produits selon la recherche
   useEffect(() => {
-    console.log('🔍 Recherche produit:', searchProduct, 'Produits disponibles:', products.length)
-    if (searchProduct.trim()) {
+    console.log('🔍 Recherche produit:', searchProduct, 'Produits disponibles:', products?.length || 0)
+    if (searchProduct.trim() && products?.length > 0) {
       const filtered = products.filter(product =>
-        product.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchProduct.toLowerCase())
+        product?.name?.toLowerCase().includes(searchProduct.toLowerCase()) ||
+        product?.sku?.toLowerCase().includes(searchProduct.toLowerCase())
       )
       console.log('📋 Produits filtrés:', filtered.length)
       setFilteredProducts(filtered.slice(0, 10))
@@ -197,10 +197,10 @@ export default function NewCreditNotePage() {
   }
 
   const handleCustomerSelect = (selectedCustomerId: string) => {
-    const customer = customers.find(c => c.id === selectedCustomerId)
+    const customer = customers?.find(c => c?.id === selectedCustomerId)
     if (customer) {
       setCustomerId(customer.id)
-      setCustomerName(customer.name)
+      setCustomerName(customer.name || '')
       setCustomerPhone(customer.phone || '')
       setCustomerEmail(customer.email || '')
       setCustomerAddress(customer.address || '')
@@ -224,14 +224,14 @@ export default function NewCreditNotePage() {
     } else {
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
-        productId: product.id,
-        productName: product.name,
-        productSku: product.sku,
-        description: product.description || '',
+        productId: product?.id || '',
+        productName: product?.name || '',
+        productSku: product?.sku || '',
+        description: product?.description || '',
         quantity: 1,
-        unitPrice: product.price,
+        unitPrice: product?.price || 0,
         discountAmount: 0,
-        total: product.price,
+        total: product?.price || 0,
         // ✅ NOUVEAU: Valeurs par défaut pour système de retour
         returnStatus: 'GOOD',
         returnReason: '',
@@ -431,10 +431,12 @@ export default function NewCreditNotePage() {
                   <SelectValue placeholder="Sélectionner un client existant (optionnel)" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name} {customer.company && `(${customer.company})`}
-                    </SelectItem>
+                  {customers?.map((customer) => (
+                    customer?.id && customer?.name && (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name} {customer.company && `(${customer.company})`}
+                      </SelectItem>
+                    )
                   ))}
                 </SelectContent>
               </Select>
@@ -515,18 +517,20 @@ export default function NewCreditNotePage() {
               />
               {filteredProducts.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                  {filteredProducts.map((product) => (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => addProductToInvoice(product)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 border-b last:border-b-0"
-                    >
-                      <div className="font-medium">{product.name}</div>
-                      <div className="text-sm text-gray-500">
-                        SKU: {product.sku} • Prix: {product.price.toLocaleString('fr-FR')} DH • Stock: {product.stock}
-                      </div>
-                    </button>
+                  {filteredProducts?.map((product) => (
+                    product?.id && product?.name && (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onClick={() => addProductToInvoice(product)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 border-b last:border-b-0"
+                      >
+                        <div className="font-medium">{product.name}</div>
+                        <div className="text-sm text-gray-500">
+                          SKU: {product.sku || 'N/A'} • Prix: {(product.price || 0).toLocaleString('fr-FR')} DH • Stock: {product.stock || 0}
+                        </div>
+                      </button>
+                    )
                   ))}
                 </div>
               )}

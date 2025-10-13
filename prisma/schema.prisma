@@ -12,11 +12,11 @@ model User {
   email     String     @unique
   password  String
   name      String
-  company   String?
   role      UserRole   @default(SELLER)
   isActive  Boolean    @default(true)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  company   String?
   documents Document[]
   invoices  Invoice[]
   sales     Sale[]
@@ -45,18 +45,18 @@ model Product {
   purchasePrice  Decimal         @default(0) @db.Decimal(10, 2)
   price          Decimal         @db.Decimal(10, 2)
   stock          Int             @default(0)
-  defectiveStock Int             @default(0) // ✅ NOUVEAU: Stock défectueux séparé
   minStock       Int             @default(10)
   categoryId     String?
   isActive       Boolean         @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  defectiveStock Int             @default(0)
   invoiceItems   InvoiceItem[]
   category       Category?       @relation(fields: [categoryId], references: [id])
+  productReturns ProductReturn[]
   quoteItems     QuoteItem[]
   saleItems      SaleItem[]
   stockMovements StockMovement[]
-  productReturns ProductReturn[] // ✅ NOUVEAU: Relation vers retours
 
   @@index([sku])
   @@index([name])
@@ -148,16 +148,16 @@ model StockMovement {
 }
 
 model CreditPayment {
-  id                   String                @id @default(cuid())
-  saleId               String?
-  customerId           String
-  amount               Decimal               @db.Decimal(10, 2)
-  paymentMethod        String                @default("CASH")
-  notes                String?
-  createdAt            DateTime              @default(now())
-  customer             Customer              @relation(fields: [customerId], references: [id])
-  sale                 Sale?                 @relation(fields: [saleId], references: [id])
-  creditPaymentCheck   CreditPaymentCheck?
+  id                 String              @id @default(cuid())
+  saleId             String?
+  customerId         String
+  amount             Decimal             @db.Decimal(10, 2)
+  notes              String?
+  createdAt          DateTime            @default(now())
+  paymentMethod      String              @default("CASH")
+  customer           Customer            @relation(fields: [customerId], references: [id])
+  sale               Sale?               @relation(fields: [saleId], references: [id])
+  creditPaymentCheck CreditPaymentCheck?
 
   @@index([saleId])
   @@index([customerId])
@@ -298,9 +298,9 @@ model QuoteItem {
 }
 
 model Invoice {
-  id                String        @id @default(cuid())
-  invoiceNumber     String        @unique
-  type              InvoiceType   @default(INVOICE)
+  id                String          @id @default(cuid())
+  invoiceNumber     String          @unique
+  type              InvoiceType     @default(INVOICE)
   customerId        String?
   customerName      String
   customerPhone     String?
@@ -308,23 +308,23 @@ model Invoice {
   customerAddress   String?
   customerTaxId     String?
   originalInvoiceId String?
-  subtotal          Decimal       @db.Decimal(10, 2)
-  discountAmount    Decimal       @default(0) @db.Decimal(10, 2)
-  taxRate           Decimal       @default(20) @db.Decimal(5, 2)
-  taxAmount         Decimal       @default(0) @db.Decimal(10, 2)
-  total             Decimal       @db.Decimal(10, 2)
+  subtotal          Decimal         @db.Decimal(10, 2)
+  discountAmount    Decimal         @default(0) @db.Decimal(10, 2)
+  taxRate           Decimal         @default(20) @db.Decimal(5, 2)
+  taxAmount         Decimal         @default(0) @db.Decimal(10, 2)
+  total             Decimal         @db.Decimal(10, 2)
   notes             String?
   terms             String?
   dueDate           DateTime?
   createdBy         String
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  creator           User          @relation(fields: [createdBy], references: [id])
-  customer          Customer?     @relation(fields: [customerId], references: [id])
-  originalInvoice   Invoice?      @relation("InvoiceCreditNote", fields: [originalInvoiceId], references: [id])
-  creditNotes       Invoice[]     @relation("InvoiceCreditNote")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  creator           User            @relation(fields: [createdBy], references: [id])
+  customer          Customer?       @relation(fields: [customerId], references: [id])
+  originalInvoice   Invoice?        @relation("InvoiceCreditNote", fields: [originalInvoiceId], references: [id])
+  creditNotes       Invoice[]       @relation("InvoiceCreditNote")
   items             InvoiceItem[]
-  productReturns    ProductReturn[] // ✅ NOUVEAU: Retours associés à cette facture
+  productReturns    ProductReturn[]
 
   @@index([invoiceNumber])
   @@index([customerId])
@@ -353,20 +353,17 @@ model InvoiceItem {
   @@index([productId])
 }
 
-// ✅ NOUVEAU: Modèle pour gestion complète des retours
 model ProductReturn {
   id                String       @id @default(cuid())
-  invoiceId         String       // Lien vers facture d'avoir
-  productId         String       // Produit retourné
-  quantity          Int          // Quantité retournée
-  returnStatus      ReturnStatus // État du retour (BON/DÉFECTUEUX/INUTILISABLE)
-  reason            String?      // Raison du retour (optionnel)
-  restockedQuantity Int          @default(0) // Quantité remise en stock
-  processedAt       DateTime?    // Date de traitement du retour
+  invoiceId         String
+  productId         String
+  quantity          Int
+  returnStatus      ReturnStatus
+  reason            String?
+  restockedQuantity Int          @default(0)
+  processedAt       DateTime?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
-
-  // Relations
   invoice           Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   product           Product      @relation(fields: [productId], references: [id])
 
@@ -377,49 +374,48 @@ model ProductReturn {
 }
 
 model CompanySettings {
-  id               String   @id @default(cuid())
-  companyName      String   @default("Mon Entreprise")
-  companyLogo      String?
-  companyICE       String?
-  companyEmail     String?
-  companyPhone     String?
-  companyAddress   String?
-  companyWebsite   String?
-  companyTaxId     String?
-  invoicePrefix    String   @default("FAC")
-  creditNotePrefix String   @default("FAV")
-  defaultTaxRate   Decimal  @default(20) @db.Decimal(5, 2)
-  bankName         String?
-  bankAccount      String?
-  bankRIB          String?
-  legalMentions    String?
-  invoiceTheme     String   @default("modern")
-  primaryColor     String   @default("#2563EB")
-  secondaryColor   String   @default("#10B981")
-  tableHeaderColor String   @default("#10B981")
-  sectionColor     String   @default("#10B981")
-  accentColor      String   @default("#F59E0B")
-  textColor        String   @default("#1F2937")
-  headerTextColor  String   @default("#FFFFFF")
-  sectionTextColor String   @default("#FFFFFF")
-  backgroundColor  String   @default("#FFFFFF")
-  headerStyle      String   @default("gradient")
-  logoPosition     String   @default("left")
-  logoSize         String   @default("medium")
-  fontFamily       String   @default("helvetica")
-  fontSize         String   @default("normal")
-  borderRadius     String   @default("rounded")
-  showWatermark    Boolean  @default(false)
-  watermarkText    String?
-  customCSS        String?
-  // Paramètres spécifiques aux devis
-  quoteTheme       String   @default("modern")
-  showValidityPeriod Boolean @default(true)
-  validityPeriodText String  @default("Ce devis est valable 30 jours à compter de la date d'émission.")
-  showTermsAndConditions Boolean @default(true)
-  termsAndConditionsText String @default("Conditions générales de vente disponibles sur demande.")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  companyName            String   @default("Mon Entreprise")
+  companyLogo            String?
+  companyICE             String?
+  companyEmail           String?
+  companyPhone           String?
+  companyAddress         String?
+  companyWebsite         String?
+  companyTaxId           String?
+  invoicePrefix          String   @default("FAC")
+  creditNotePrefix       String   @default("FAV")
+  defaultTaxRate         Decimal  @default(20) @db.Decimal(5, 2)
+  bankName               String?
+  bankAccount            String?
+  bankRIB                String?
+  legalMentions          String?
+  invoiceTheme           String   @default("modern")
+  primaryColor           String   @default("#2563EB")
+  secondaryColor         String   @default("#10B981")
+  tableHeaderColor       String   @default("#10B981")
+  sectionColor           String   @default("#10B981")
+  accentColor            String   @default("#F59E0B")
+  textColor              String   @default("#1F2937")
+  headerTextColor        String   @default("#FFFFFF")
+  sectionTextColor       String   @default("#FFFFFF")
+  backgroundColor        String   @default("#FFFFFF")
+  headerStyle            String   @default("gradient")
+  logoPosition           String   @default("left")
+  logoSize               String   @default("medium")
+  fontFamily             String   @default("helvetica")
+  fontSize               String   @default("normal")
+  borderRadius           String   @default("rounded")
+  showWatermark          Boolean  @default(false)
+  watermarkText          String?
+  customCSS              String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  quoteTheme             String   @default("modern")
+  showTermsAndConditions Boolean  @default(true)
+  showValidityPeriod     Boolean  @default(true)
+  termsAndConditionsText String   @default("Conditions générales de vente disponibles sur demande.")
+  validityPeriodText     String   @default("Ce devis est valable 30 jours à compter de la date d'émission.")
 
   @@map("company_settings")
 }
@@ -447,19 +443,19 @@ model SaleCheck {
 }
 
 model CreditPaymentCheck {
-  id               String                   @id @default(cuid())
-  creditPaymentId  String                   @unique
-  checkNumber      String
-  issuer           String
-  beneficiary      String
-  checkDate        DateTime
-  amount           Decimal                  @db.Decimal(10, 2)
-  status           CreditPaymentCheckStatus @default(PENDING)
-  cashedDate       DateTime?
-  notes            String?
-  createdAt        DateTime                 @default(now())
-  updatedAt        DateTime                 @updatedAt
-  creditPayment    CreditPayment            @relation(fields: [creditPaymentId], references: [id], onDelete: Cascade)
+  id              String                   @id @default(cuid())
+  creditPaymentId String                   @unique
+  checkNumber     String
+  issuer          String
+  beneficiary     String
+  checkDate       DateTime
+  amount          Decimal                  @db.Decimal(10, 2)
+  status          CreditPaymentCheckStatus @default(PENDING)
+  cashedDate      DateTime?
+  notes           String?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  creditPayment   CreditPayment            @relation(fields: [creditPaymentId], references: [id], onDelete: Cascade)
 
   @@index([checkNumber])
   @@index([status])
@@ -489,9 +485,9 @@ enum DocumentType {
 
 enum SaleStatus {
   PENDING
-  PARTIAL
   COMPLETED
   CANCELLED
+  PARTIAL
 }
 
 enum TransactionType {
@@ -541,9 +537,8 @@ enum InvoiceType {
   CREDIT_NOTE
 }
 
-// ✅ NOUVEAU: Statuts de retour pour système de retour complet
 enum ReturnStatus {
-  GOOD        // Bon état - retour en stock
-  DEFECTIVE   // Défectueux - stock séparé
-  UNUSABLE    // Inutilisable - pas de stock
+  GOOD
+  DEFECTIVE
+  UNUSABLE
 }
