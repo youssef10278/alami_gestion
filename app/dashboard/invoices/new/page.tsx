@@ -543,20 +543,20 @@ export default function NewInvoicePage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Sous-total:</span>
-                    <span>{subtotal.toFixed(2)} €</span>
+                    <span>{subtotal.toFixed(2)} DH</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Remise totale:</span>
-                    <span className="text-red-600">-{discountAmount.toFixed(2)} €</span>
+                    <span className="text-red-600">-{discountAmount.toFixed(2)} DH</span>
                   </div>
                   <div className="flex justify-between">
                     <span>TVA ({taxRate}%):</span>
-                    <span>{taxAmount.toFixed(2)} €</span>
+                    <span>{taxAmount.toFixed(2)} DH</span>
                   </div>
                   <div className="border-t pt-2">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total TTC:</span>
-                      <span className="text-blue-600">{total.toFixed(2)} €</span>
+                      <span className="text-blue-600">{total.toFixed(2)} DH</span>
                     </div>
                   </div>
                 </div>

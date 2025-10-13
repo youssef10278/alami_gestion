@@ -210,11 +210,11 @@ export default function InvoicesPage() {
                 <div>
                   <p className="text-sm text-gray-600">Montant Total</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {stats.overview.totalInvoiceAmount.toLocaleString('fr-FR')} €
+                    {stats.overview.totalInvoiceAmount.toLocaleString('fr-FR')} DH
                   </p>
                 </div>
                 <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold">€</span>
+                  <span className="text-green-600 font-bold">DH</span>
                 </div>
               </div>
             </CardContent>
@@ -226,11 +226,11 @@ export default function InvoicesPage() {
                 <div>
                   <p className="text-sm text-gray-600">Montant Net</p>
                   <p className="text-2xl font-bold text-purple-600">
-                    {stats.overview.netAmount.toLocaleString('fr-FR')} €
+                    {stats.overview.netAmount.toLocaleString('fr-FR')} DH
                   </p>
                 </div>
                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-bold">€</span>
+                  <span className="text-purple-600 font-bold">DH</span>
                 </div>
               </div>
             </CardContent>

@@ -464,7 +464,7 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                     >
                       <div className="font-medium">{product.name}</div>
                       <div className="text-sm text-gray-500">
-                        SKU: {product.sku} • Prix: {product.price.toLocaleString('fr-FR')} € • Stock: {product.stock}
+                        SKU: {product.sku} • Prix: {product.price.toLocaleString('fr-FR')} DH • Stock: {product.stock}
                       </div>
                     </button>
                   ))}
@@ -519,7 +519,7 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                         />
                       </div>
                       <div>
-                        <Label>Prix Unitaire (€)</Label>
+                        <Label>Prix Unitaire (DH)</Label>
                         <Input
                           type="number"
                           min="0"
@@ -529,7 +529,7 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                         />
                       </div>
                       <div>
-                        <Label>Remise (€)</Label>
+                        <Label>Remise (DH)</Label>
                         <Input
                           type="number"
                           min="0"
@@ -539,7 +539,7 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                         />
                       </div>
                       <div>
-                        <Label>Total (€)</Label>
+                        <Label>Total (DH)</Label>
                         <div className={`p-2 rounded font-semibold ${
                           invoice.type === 'CREDIT_NOTE' 
                             ? 'bg-red-100 text-red-700' 
@@ -584,21 +584,21 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                 <span>Sous-total:</span>
                 <span className={`font-semibold ${invoice.type === 'CREDIT_NOTE' ? 'text-red-600' : ''}`}>
                   {invoice.type === 'CREDIT_NOTE' ? '-' : ''}
-                  {subtotal.toLocaleString('fr-FR')} €
+                  {subtotal.toLocaleString('fr-FR')} DH
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Remise totale:</span>
                 <span className={`font-semibold ${invoice.type === 'CREDIT_NOTE' ? '' : 'text-red-600'}`}>
                   {invoice.type === 'CREDIT_NOTE' ? '+' : '-'}
-                  {totalDiscount.toLocaleString('fr-FR')} €
+                  {totalDiscount.toLocaleString('fr-FR')} DH
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>TVA ({taxRate}%):</span>
                 <span className={`font-semibold ${invoice.type === 'CREDIT_NOTE' ? 'text-red-600' : ''}`}>
                   {invoice.type === 'CREDIT_NOTE' ? '-' : ''}
-                  {taxAmount.toLocaleString('fr-FR')} €
+                  {taxAmount.toLocaleString('fr-FR')} DH
                 </span>
               </div>
               <div className="border-t pt-3">
@@ -610,7 +610,7 @@ export default function EditInvoicePage({ params }: { params: { id: string } }) 
                     invoice.type === 'CREDIT_NOTE' ? 'text-red-600' : 'text-blue-600'
                   }`}>
                     {invoice.type === 'CREDIT_NOTE' ? '-' : ''}
-                    {total.toLocaleString('fr-FR')} €
+                    {total.toLocaleString('fr-FR')} DH
                   </span>
                 </div>
               </div>

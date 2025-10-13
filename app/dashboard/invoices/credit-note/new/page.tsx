@@ -380,7 +380,7 @@ export default function NewCreditNotePage() {
                 <SelectContent>
                   {invoices.map((invoice) => (
                     <SelectItem key={invoice.id} value={invoice.id}>
-                      {invoice.invoiceNumber} - {invoice.customerName} ({invoice.total.toLocaleString('fr-FR')} €)
+                      {invoice.invoiceNumber} - {invoice.customerName} ({invoice.total.toLocaleString('fr-FR')} DH)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -495,7 +495,7 @@ export default function NewCreditNotePage() {
                     >
                       <div className="font-medium">{product.name}</div>
                       <div className="text-sm text-gray-500">
-                        SKU: {product.sku} • Prix: {product.price.toLocaleString('fr-FR')} € • Stock: {product.stock}
+                        SKU: {product.sku} • Prix: {product.price.toLocaleString('fr-FR')} DH • Stock: {product.stock}
                       </div>
                     </button>
                   ))}
@@ -548,7 +548,7 @@ export default function NewCreditNotePage() {
                         />
                       </div>
                       <div>
-                        <Label>Prix Unitaire (€)</Label>
+                        <Label>Prix Unitaire (DH)</Label>
                         <Input
                           type="number"
                           min="0"
@@ -558,7 +558,7 @@ export default function NewCreditNotePage() {
                         />
                       </div>
                       <div>
-                        <Label>Remise (€)</Label>
+                        <Label>Remise (DH)</Label>
                         <Input
                           type="number"
                           min="0"
@@ -568,7 +568,7 @@ export default function NewCreditNotePage() {
                         />
                       </div>
                       <div>
-                        <Label>Total (€)</Label>
+                        <Label>Total (DH)</Label>
                         <div className="p-2 bg-red-100 rounded font-semibold text-red-700">
                           -{item.total.toLocaleString('fr-FR')}
                         </div>
@@ -604,20 +604,20 @@ export default function NewCreditNotePage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Sous-total:</span>
-                <span className="font-semibold text-red-600">-{subtotal.toLocaleString('fr-FR')} €</span>
+                <span className="font-semibold text-red-600">-{subtotal.toLocaleString('fr-FR')} DH</span>
               </div>
               <div className="flex justify-between">
                 <span>Remise totale:</span>
-                <span className="font-semibold">+{totalDiscount.toLocaleString('fr-FR')} €</span>
+                <span className="font-semibold">+{totalDiscount.toLocaleString('fr-FR')} DH</span>
               </div>
               <div className="flex justify-between">
                 <span>TVA ({taxRate}%):</span>
-                <span className="font-semibold text-red-600">-{taxAmount.toLocaleString('fr-FR')} €</span>
+                <span className="font-semibold text-red-600">-{taxAmount.toLocaleString('fr-FR')} DH</span>
               </div>
               <div className="border-t pt-3">
                 <div className="flex justify-between text-lg">
                   <span className="font-bold">Total à Rembourser:</span>
-                  <span className="font-bold text-red-600">-{total.toLocaleString('fr-FR')} €</span>
+                  <span className="font-bold text-red-600">-{total.toLocaleString('fr-FR')} DH</span>
                 </div>
               </div>
             </div>

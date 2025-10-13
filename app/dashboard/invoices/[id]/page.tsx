@@ -285,7 +285,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                           invoice.type === 'CREDIT_NOTE' ? 'text-red-600' : 'text-green-600'
                         }`}>
                           {invoice.type === 'CREDIT_NOTE' ? '-' : ''}
-                          {item.total.toLocaleString('fr-FR')} €
+                          {item.total.toLocaleString('fr-FR')} DH
                         </p>
                       </div>
                     </div>
@@ -294,11 +294,11 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                         <span className="font-medium">Quantité:</span> {item.quantity}
                       </div>
                       <div>
-                        <span className="font-medium">Prix unitaire:</span> {item.unitPrice.toLocaleString('fr-FR')} €
+                        <span className="font-medium">Prix unitaire:</span> {item.unitPrice.toLocaleString('fr-FR')} DH
                       </div>
                       {item.discountAmount > 0 && (
                         <div>
-                          <span className="font-medium">Remise:</span> {item.discountAmount.toLocaleString('fr-FR')} €
+                          <span className="font-medium">Remise:</span> {item.discountAmount.toLocaleString('fr-FR')} DH
                         </div>
                       )}
                     </div>
@@ -348,7 +348,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <span>Sous-total:</span>
                 <span className={`font-semibold ${invoice.type === 'CREDIT_NOTE' ? 'text-red-600' : ''}`}>
                   {invoice.type === 'CREDIT_NOTE' ? '-' : ''}
-                  {invoice.subtotal.toLocaleString('fr-FR')} €
+                  {invoice.subtotal.toLocaleString('fr-FR')} DH
                 </span>
               </div>
               {invoice.discountAmount > 0 && (
@@ -356,7 +356,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                   <span>Remise:</span>
                   <span className={`font-semibold ${invoice.type === 'CREDIT_NOTE' ? '' : 'text-red-600'}`}>
                     {invoice.type === 'CREDIT_NOTE' ? '+' : '-'}
-                    {invoice.discountAmount.toLocaleString('fr-FR')} €
+                    {invoice.discountAmount.toLocaleString('fr-FR')} DH
                   </span>
                 </div>
               )}
@@ -364,7 +364,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <span>TVA ({invoice.taxRate}%):</span>
                 <span className={`font-semibold ${invoice.type === 'CREDIT_NOTE' ? 'text-red-600' : ''}`}>
                   {invoice.type === 'CREDIT_NOTE' ? '-' : ''}
-                  {invoice.taxAmount.toLocaleString('fr-FR')} €
+                  {invoice.taxAmount.toLocaleString('fr-FR')} DH
                 </span>
               </div>
               <div className="border-t pt-3">
@@ -376,7 +376,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     invoice.type === 'CREDIT_NOTE' ? 'text-red-600' : 'text-blue-600'
                   }`}>
                     {invoice.type === 'CREDIT_NOTE' ? '-' : ''}
-                    {invoice.total.toLocaleString('fr-FR')} €
+                    {invoice.total.toLocaleString('fr-FR')} DH
                   </span>
                 </div>
               </div>
@@ -430,7 +430,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <div>
                   <span className="font-medium text-gray-600">Montant:</span>
                   <p className="font-semibold text-green-600">
-                    {invoice.originalInvoice.total.toLocaleString('fr-FR')} €
+                    {invoice.originalInvoice.total.toLocaleString('fr-FR')} DH
                   </p>
                 </div>
                 <Link href={`/dashboard/invoices/${invoice.originalInvoice.id}`}>
@@ -455,7 +455,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     <div className="flex justify-between items-center mb-2">
                       <span className="font-semibold">{creditNote.invoiceNumber}</span>
                       <span className="font-semibold text-red-600">
-                        -{creditNote.total.toLocaleString('fr-FR')} €
+                        -{creditNote.total.toLocaleString('fr-FR')} DH
                       </span>
                     </div>
                     <div className="text-sm text-gray-600 mb-2">
