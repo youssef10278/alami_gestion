@@ -193,7 +193,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="flex gap-3">
             <Link href={`/dashboard/invoices/${invoice.id}/edit`}>
-              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+              <Button
+                variant="outline"
+                className="border-2 border-white bg-white/10 text-white hover:bg-white hover:text-gray-800 backdrop-blur-sm font-medium"
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Modifier
               </Button>
@@ -201,13 +204,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             <Button
               variant="outline"
               onClick={handleDelete}
-              className="border-white text-white hover:bg-white hover:text-red-600"
+              className="border-2 border-white bg-white/10 text-white hover:bg-white hover:text-red-600 backdrop-blur-sm font-medium"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Supprimer
             </Button>
             <Button
-              className="bg-white text-blue-600 hover:bg-gray-100"
+              className="bg-white text-gray-800 hover:bg-gray-100 font-medium shadow-lg"
               onClick={() => window.open(`/api/invoices/${invoice.id}/pdf`, '_blank')}
             >
               <Download className="w-4 h-4 mr-2" />
