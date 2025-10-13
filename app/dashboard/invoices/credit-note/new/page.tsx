@@ -63,6 +63,7 @@ export default function NewCreditNotePage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState('')
+  const [loadingProducts, setLoadingProducts] = useState(false)
 
   // Données de la facture d'avoir
   const [invoiceNumber, setInvoiceNumber] = useState('')
@@ -98,11 +99,13 @@ export default function NewCreditNotePage() {
 
   // Filtrer les produits selon la recherche
   useEffect(() => {
+    console.log('🔍 Recherche produit:', searchProduct, 'Produits disponibles:', products.length)
     if (searchProduct.trim()) {
       const filtered = products.filter(product =>
         product.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
         product.sku.toLowerCase().includes(searchProduct.toLowerCase())
       )
+      console.log('📋 Produits filtrés:', filtered.length)
       setFilteredProducts(filtered.slice(0, 10))
     } else {
       setFilteredProducts([])
@@ -124,16 +127,25 @@ export default function NewCreditNotePage() {
   }, [items, taxRate])
 
   const fetchProducts = async () => {
+    setLoadingProducts(true)
     try {
-      const response = await fetch('/api/products?limit=1000')
+      console.log('🔄 Chargement des produits pour facture d\'avoir...')
+      // ✅ CORRECTION: Utiliser l'API rapide optimisée
+      const response = await fetch('/api/products/fast?limit=all&cache=true')
       if (response.ok) {
         const data = await response.json()
         const productsList = data.products || data
         setProducts(Array.isArray(productsList) ? productsList : [])
+        console.log('✅ Produits chargés pour facture d\'avoir:', productsList.length)
+      } else {
+        console.error('❌ Erreur API produits:', response.status, response.statusText)
+        setProducts([])
       }
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error('❌ Erreur lors du chargement des produits:', error)
       setProducts([])
+    } finally {
+      setLoadingProducts(false)
     }
   }
 
