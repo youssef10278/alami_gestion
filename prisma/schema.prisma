@@ -45,6 +45,7 @@ model Product {
   purchasePrice  Decimal         @default(0) @db.Decimal(10, 2)
   price          Decimal         @db.Decimal(10, 2)
   stock          Int             @default(0)
+  defectiveStock Int             @default(0) // ✅ NOUVEAU: Stock défectueux séparé
   minStock       Int             @default(10)
   categoryId     String?
   isActive       Boolean         @default(true)
@@ -55,6 +56,7 @@ model Product {
   quoteItems     QuoteItem[]
   saleItems      SaleItem[]
   stockMovements StockMovement[]
+  productReturns ProductReturn[] // ✅ NOUVEAU: Relation vers retours
 
   @@index([sku])
   @@index([name])
@@ -322,6 +324,7 @@ model Invoice {
   originalInvoice   Invoice?      @relation("InvoiceCreditNote", fields: [originalInvoiceId], references: [id])
   creditNotes       Invoice[]     @relation("InvoiceCreditNote")
   items             InvoiceItem[]
+  productReturns    ProductReturn[] // ✅ NOUVEAU: Retours associés à cette facture
 
   @@index([invoiceNumber])
   @@index([customerId])
@@ -348,6 +351,29 @@ model InvoiceItem {
 
   @@index([invoiceId])
   @@index([productId])
+}
+
+// ✅ NOUVEAU: Modèle pour gestion complète des retours
+model ProductReturn {
+  id                String       @id @default(cuid())
+  invoiceId         String       // Lien vers facture d'avoir
+  productId         String       // Produit retourné
+  quantity          Int          // Quantité retournée
+  returnStatus      ReturnStatus // État du retour (BON/DÉFECTUEUX/INUTILISABLE)
+  reason            String?      // Raison du retour (optionnel)
+  restockedQuantity Int          @default(0) // Quantité remise en stock
+  processedAt       DateTime?    // Date de traitement du retour
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // Relations
+  invoice           Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product           Product      @relation(fields: [productId], references: [id])
+
+  @@index([invoiceId])
+  @@index([productId])
+  @@index([returnStatus])
+  @@index([createdAt])
 }
 
 model CompanySettings {
@@ -513,4 +539,11 @@ enum QuoteStatus {
 enum InvoiceType {
   INVOICE
   CREDIT_NOTE
+}
+
+// ✅ NOUVEAU: Statuts de retour pour système de retour complet
+enum ReturnStatus {
+  GOOD        // Bon état - retour en stock
+  DEFECTIVE   // Défectueux - stock séparé
+  UNUSABLE    // Inutilisable - pas de stock
 }

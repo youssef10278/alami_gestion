@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Plus, Trash2, Search, Calculator, FileText } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Search, Calculator, FileText, Package, AlertTriangle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -44,6 +44,9 @@ interface Invoice {
   createdAt: string
 }
 
+// ✅ NOUVEAU: Types pour système de retour
+type ReturnStatus = 'GOOD' | 'DEFECTIVE' | 'UNUSABLE'
+
 interface InvoiceItem {
   id: string
   productId?: string
@@ -54,6 +57,9 @@ interface InvoiceItem {
   unitPrice: number
   discountAmount: number
   total: number
+  // ✅ NOUVEAU: Champs pour gestion des retours
+  returnStatus: ReturnStatus
+  returnReason?: string
 }
 
 export default function NewCreditNotePage() {
@@ -226,6 +232,9 @@ export default function NewCreditNotePage() {
         unitPrice: product.price,
         discountAmount: 0,
         total: product.price,
+        // ✅ NOUVEAU: Valeurs par défaut pour système de retour
+        returnStatus: 'GOOD',
+        returnReason: '',
       }
       setItems([...items, newItem])
     }
@@ -241,6 +250,9 @@ export default function NewCreditNotePage() {
       unitPrice: 0,
       discountAmount: 0,
       total: 0,
+      // ✅ NOUVEAU: Valeurs par défaut pour système de retour
+      returnStatus: 'GOOD',
+      returnReason: '',
     }
     setItems([...items, newItem])
   }
@@ -307,6 +319,9 @@ export default function NewCreditNotePage() {
           unitPrice: Number(item.unitPrice),
           discountAmount: Number(item.discountAmount),
           total: Number(item.total),
+          // ✅ NOUVEAU: Inclure les données de retour
+          returnStatus: item.returnStatus,
+          returnReason: item.returnReason,
         })),
       }
 
@@ -597,6 +612,88 @@ export default function NewCreditNotePage() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
+                      </div>
+                    </div>
+
+                    {/* ✅ NOUVEAU: Section Gestion des Retours */}
+                    <div className="border-t pt-4 mt-4">
+                      <h4 className="font-medium text-sm mb-3 flex items-center">
+                        <Package className="w-4 h-4 mr-2" />
+                        Gestion du Retour
+                      </h4>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>État du Produit Retourné</Label>
+                          <Select
+                            value={item.returnStatus}
+                            onValueChange={(value: ReturnStatus) => updateItem(item.id, 'returnStatus', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="GOOD">
+                                <div className="flex items-center">
+                                  <Package className="w-4 h-4 mr-2 text-green-600" />
+                                  <div>
+                                    <div className="font-medium">Bon État</div>
+                                    <div className="text-xs text-gray-500">Retour en stock vendable</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="DEFECTIVE">
+                                <div className="flex items-center">
+                                  <AlertTriangle className="w-4 h-4 mr-2 text-orange-600" />
+                                  <div>
+                                    <div className="font-medium">Défectueux</div>
+                                    <div className="text-xs text-gray-500">Stock séparé, pas vendable</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="UNUSABLE">
+                                <div className="flex items-center">
+                                  <XCircle className="w-4 h-4 mr-2 text-red-600" />
+                                  <div>
+                                    <div className="font-medium">Inutilisable</div>
+                                    <div className="text-xs text-gray-500">Pas de retour en stock</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label>Raison du Retour (Optionnel)</Label>
+                          <Input
+                            placeholder="Ex: Produit endommagé, défaut de fabrication..."
+                            value={item.returnReason || ''}
+                            onChange={(e) => updateItem(item.id, 'returnReason', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Indicateur visuel de l'impact sur le stock */}
+                      <div className="mt-3 p-3 rounded-lg bg-gray-50">
+                        <div className="text-sm">
+                          <span className="font-medium">Impact sur le stock:</span>
+                          {item.returnStatus === 'GOOD' && (
+                            <span className="ml-2 text-green-600">
+                              +{item.quantity} en stock vendable
+                            </span>
+                          )}
+                          {item.returnStatus === 'DEFECTIVE' && (
+                            <span className="ml-2 text-orange-600">
+                              +{item.quantity} en stock défectueux
+                            </span>
+                          )}
+                          {item.returnStatus === 'UNUSABLE' && (
+                            <span className="ml-2 text-red-600">
+                              Aucun retour en stock
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

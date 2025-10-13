@@ -33,6 +33,9 @@ const createInvoiceSchema = z.object({
     unitPrice: z.coerce.number().min(0, 'Le prix unitaire doit être positif'),
     discountAmount: z.coerce.number().min(0).default(0),
     total: z.coerce.number(), // ✅ CORRECTION: Permettre totaux négatifs pour articles d'avoir
+    // ✅ NOUVEAU: Champs pour système de retour
+    returnStatus: z.enum(['GOOD', 'DEFECTIVE', 'UNUSABLE']).optional().default('GOOD'),
+    returnReason: z.string().optional().nullable().transform(val => val === '' ? null : val),
   })).min(1, 'Au moins un article est requis'),
 }).refine((data) => {
   // ✅ VALIDATION CONDITIONNELLE: Pour factures normales, total doit être positif
@@ -232,40 +235,107 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Créer la facture avec ses articles
-    const invoice = await prisma.invoice.create({
-      data: {
-        invoiceNumber,
-        type: validatedData.type,
-        customerId: validatedData.customerId || null,
-        customerName: validatedData.customerName,
-        customerPhone: validatedData.customerPhone || null,
-        customerEmail: validatedData.customerEmail || null,
-        customerAddress: validatedData.customerAddress || null,
-        customerTaxId: validatedData.customerTaxId || null,
-        originalInvoiceId: validatedData.originalInvoiceId || null,
-        subtotal: validatedData.subtotal,
-        discountAmount: validatedData.discountAmount,
-        taxRate: validatedData.taxRate,
-        taxAmount: validatedData.taxAmount,
-        total: validatedData.total,
-        notes: validatedData.notes || null,
-        terms: validatedData.terms || null,
-        dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
-        createdBy: session.userId,
-        items: {
-          create: validatedData.items.map(item => ({
-            productId: item.productId || null,
-            productName: item.productName,
-            productSku: item.productSku || null,
-            description: item.description || null,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            discountAmount: item.discountAmount,
-            total: item.total,
-          })),
+    // ✅ NOUVEAU: Créer la facture avec traitement automatique des retours
+    const invoice = await prisma.$transaction(async (tx) => {
+      // Créer la facture
+      const createdInvoice = await tx.invoice.create({
+        data: {
+          invoiceNumber,
+          type: validatedData.type,
+          customerId: validatedData.customerId || null,
+          customerName: validatedData.customerName,
+          customerPhone: validatedData.customerPhone || null,
+          customerEmail: validatedData.customerEmail || null,
+          customerAddress: validatedData.customerAddress || null,
+          customerTaxId: validatedData.customerTaxId || null,
+          originalInvoiceId: validatedData.originalInvoiceId || null,
+          subtotal: validatedData.subtotal,
+          discountAmount: validatedData.discountAmount,
+          taxRate: validatedData.taxRate,
+          taxAmount: validatedData.taxAmount,
+          total: validatedData.total,
+          notes: validatedData.notes || null,
+          terms: validatedData.terms || null,
+          dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
+          createdBy: session.userId,
+          items: {
+            create: validatedData.items.map(item => ({
+              productId: item.productId || null,
+              productName: item.productName,
+              productSku: item.productSku || null,
+              description: item.description || null,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              discountAmount: item.discountAmount,
+              total: item.total,
+            })),
+          },
         },
-      },
+      })
+
+      // ✅ NOUVEAU: Si c'est une facture d'avoir, traiter automatiquement les retours
+      if (validatedData.type === 'CREDIT_NOTE') {
+        console.log('🔄 Traitement automatique des retours pour facture d\'avoir')
+
+        for (const item of validatedData.items) {
+          if (item.productId) {
+            // Créer l'enregistrement de retour
+            const productReturn = await tx.productReturn.create({
+              data: {
+                invoiceId: createdInvoice.id,
+                productId: item.productId,
+                quantity: item.quantity,
+                returnStatus: item.returnStatus || 'GOOD',
+                reason: item.returnReason || null,
+                restockedQuantity: 0,
+                processedAt: new Date(),
+              }
+            })
+
+            // Traiter l'impact sur le stock selon le statut
+            let restockedQuantity = 0
+
+            switch (item.returnStatus || 'GOOD') {
+              case 'GOOD':
+                // Retour en stock vendable
+                restockedQuantity = item.quantity
+                await tx.product.update({
+                  where: { id: item.productId },
+                  data: { stock: { increment: item.quantity } }
+                })
+                console.log(`✅ Stock +${item.quantity} pour produit ${item.productId}`)
+                break
+
+              case 'DEFECTIVE':
+                // Retour en stock défectueux
+                await tx.product.update({
+                  where: { id: item.productId },
+                  data: { defectiveStock: { increment: item.quantity } }
+                })
+                console.log(`⚠️ Stock défectueux +${item.quantity} pour produit ${item.productId}`)
+                break
+
+              case 'UNUSABLE':
+                // Pas de retour en stock
+                console.log(`❌ Produit ${item.productId} marqué comme inutilisable`)
+                break
+            }
+
+            // Mettre à jour la quantité restockée
+            await tx.productReturn.update({
+              where: { id: productReturn.id },
+              data: { restockedQuantity }
+            })
+          }
+        }
+      }
+
+      return createdInvoice
+    })
+
+    // Récupérer la facture créée avec toutes ses relations
+    const invoiceWithRelations = await prisma.invoice.findUnique({
+      where: { id: invoice.id },
       include: {
         customer: true,
         originalInvoice: {
@@ -285,10 +355,24 @@ export async function POST(request: NextRequest) {
             product: true,
           },
         },
+        // ✅ NOUVEAU: Inclure les retours pour les factures d'avoir
+        productReturns: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                stock: true,
+                defectiveStock: true
+              }
+            }
+          }
+        }
       },
     })
 
-    return NextResponse.json(invoice, { status: 201 })
+    return NextResponse.json(invoiceWithRelations, { status: 201 })
   } catch (error) {
     console.error('Error creating invoice:', error)
     
