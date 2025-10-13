@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FileText, Download, Eye, Trash2, Calendar, User, Euro } from 'lucide-react'
+import { FileText, Download, Eye, Trash2, Calendar, User, Euro, Edit } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -174,7 +174,17 @@ export default function InvoiceCard({ invoice, onDelete }: InvoiceCardProps) {
             <Eye className="w-4 h-4 mr-2" />
             Voir
           </Button>
-          
+
+          <Button
+            onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}/edit`}
+            variant="outline"
+            size="sm"
+            className="flex-1 border-2 border-green-200 hover:border-green-400 hover:bg-green-50 transition-all duration-300"
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            Modifier
+          </Button>
+
           <Button
             onClick={handleDownloadPDF}
             disabled={isDownloading}
@@ -184,7 +194,7 @@ export default function InvoiceCard({ invoice, onDelete }: InvoiceCardProps) {
             <Download className="w-4 h-4 mr-2" />
             {isDownloading ? 'Téléchargement...' : 'Télécharger'}
           </Button>
-          
+
           <Button
             onClick={() => onDelete(invoice.id, invoice.invoiceNumber)}
             variant="destructive"
