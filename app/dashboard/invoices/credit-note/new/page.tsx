@@ -290,11 +290,12 @@ export default function NewCreditNotePage() {
         customerEmail,
         customerAddress,
         customerTaxId,
-        subtotal,
-        discountAmount: totalDiscount,
-        taxRate,
-        taxAmount,
-        total,
+        // ✅ CORRECTION: S'assurer que tous les nombres sont bien des nombres
+        subtotal: Number(subtotal),
+        discountAmount: Number(totalDiscount),
+        taxRate: Number(taxRate),
+        taxAmount: Number(taxAmount),
+        total: Number(total),
         notes,
         terms,
         items: items.map(item => ({
@@ -302,10 +303,10 @@ export default function NewCreditNotePage() {
           productName: item.productName,
           productSku: item.productSku,
           description: item.description,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          discountAmount: item.discountAmount,
-          total: item.total,
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          discountAmount: Number(item.discountAmount),
+          total: Number(item.total),
         })),
       }
 

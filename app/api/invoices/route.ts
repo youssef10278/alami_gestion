@@ -20,7 +20,7 @@ const createInvoiceSchema = z.object({
   discountAmount: z.coerce.number().min(0).default(0),
   taxRate: z.coerce.number().min(0).max(100).default(20),
   taxAmount: z.coerce.number().min(0).default(0),
-  total: z.coerce.number().min(0),
+  total: z.coerce.number(), // ✅ CORRECTION: Permettre totaux négatifs pour factures d'avoir
   notes: z.string().optional().nullable().transform(val => val === '' ? null : val),
   terms: z.string().optional().nullable().transform(val => val === '' ? null : val),
   dueDate: z.string().optional().nullable().transform(val => val === '' ? null : val), // ISO date string
@@ -32,8 +32,18 @@ const createInvoiceSchema = z.object({
     quantity: z.coerce.number().int().min(1, 'La quantité doit être au moins 1'),
     unitPrice: z.coerce.number().min(0, 'Le prix unitaire doit être positif'),
     discountAmount: z.coerce.number().min(0).default(0),
-    total: z.coerce.number().min(0, 'Le total doit être positif'),
+    total: z.coerce.number(), // ✅ CORRECTION: Permettre totaux négatifs pour articles d'avoir
   })).min(1, 'Au moins un article est requis'),
+}).refine((data) => {
+  // ✅ VALIDATION CONDITIONNELLE: Pour factures normales, total doit être positif
+  if (data.type === 'INVOICE' && data.total < 0) {
+    return false
+  }
+  // Pour factures d'avoir, total peut être négatif
+  return true
+}, {
+  message: "Le total d'une facture normale doit être positif",
+  path: ["total"]
 })
 
 // GET - Liste des factures avec pagination et filtres
