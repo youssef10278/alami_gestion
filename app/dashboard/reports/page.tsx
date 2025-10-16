@@ -35,7 +35,6 @@ interface DashboardStats {
   topCustomers: { name: string; company: string | null; total: number; orders: number }[]
   paymentMethods: { method: string; total: number; count: number }[]
   categories: { name: string; products: number }[]
-  isDemoData?: boolean
 }
 
 const COLORS = ['#4DA6FF', '#FF6B6B', '#4ECDC4', '#FFD93D', '#A8E6CF']
@@ -167,11 +166,7 @@ export default function ReportsPage() {
                     : `Période : ${period} jours`
                   }
                 </div>
-                {stats?.isDemoData && (
-                  <div className="text-xs text-orange-200 bg-orange-500/20 px-3 py-1 rounded-lg backdrop-blur-sm border border-orange-300/30">
-                    🎭 Données de démonstration
-                  </div>
-                )}
+
               </div>
             </div>
           </div>
