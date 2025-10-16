@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { safeToFixed } from '@/lib/utils'
@@ -39,6 +40,8 @@ interface DashboardStats {
 const COLORS = ['#4DA6FF', '#FF6B6B', '#4ECDC4', '#FFD93D', '#A8E6CF']
 
 export default function ReportsPage() {
+  usePageTitle('Rapports et Statistiques')
+
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState('7')
@@ -150,7 +153,7 @@ export default function ReportsPage() {
                     dataKey="date"
                     tickFormatter={(value) => {
                       const date = new Date(value)
-                      return `${date.getDate()}/${date.getMonth() + 1}`
+                      return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`
                     }}
                   />
                   <YAxis />
