@@ -119,11 +119,17 @@ export async function GET(request: NextRequest) {
       topProductsWithDetails = []
     }
 
-    // Top clients
+    // Top clients - Version améliorée qui gère les ventes sans client
     let topCustomersWithDetails = []
     try {
-      const topCustomers = await prisma.sale.groupBy({
+      // D'abord, récupérer les ventes avec clients
+      const topCustomersWithId = await prisma.sale.groupBy({
         by: ['customerId'],
+        where: {
+          customerId: {
+            not: null
+          }
+        },
         _sum: {
           totalAmount: true,
         },
@@ -136,10 +142,22 @@ export async function GET(request: NextRequest) {
         take: 5,
       })
 
-      topCustomersWithDetails = await Promise.all(
-        topCustomers.map(async (item) => {
+      // Ensuite, récupérer les ventes sans client (ventes directes)
+      const salesWithoutCustomer = await prisma.sale.aggregate({
+        where: {
+          customerId: null
+        },
+        _sum: {
+          totalAmount: true,
+        },
+        _count: true,
+      })
+
+      // Traiter les clients avec ID
+      const customersWithDetails = await Promise.all(
+        topCustomersWithId.map(async (item) => {
           const customer = await prisma.customer.findUnique({
-            where: { id: item.customerId },
+            where: { id: item.customerId! },
             select: { name: true, company: true },
           })
           return {
@@ -150,6 +168,22 @@ export async function GET(request: NextRequest) {
           }
         })
       )
+
+      // Ajouter les ventes sans client si elles existent
+      if (salesWithoutCustomer._count > 0) {
+        customersWithDetails.push({
+          name: 'Ventes directes',
+          company: 'Sans client assigné',
+          total: Number(salesWithoutCustomer._sum.totalAmount) || 0,
+          orders: salesWithoutCustomer._count || 0,
+        })
+      }
+
+      // Trier par total et prendre les 5 premiers
+      topCustomersWithDetails = customersWithDetails
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5)
+
     } catch (error) {
       console.error('Error fetching top customers:', error)
       topCustomersWithDetails = []
