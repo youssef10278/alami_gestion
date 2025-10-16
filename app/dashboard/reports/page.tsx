@@ -27,7 +27,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { TrendingUp, Package, Users, CreditCard } from 'lucide-react'
+import { TrendingUp, Package, Users, CreditCard, DollarSign, ShoppingCart, Target, Activity } from 'lucide-react'
 
 interface DashboardStats {
   salesByDay: { date: string; total: number; count: number }[]
@@ -35,6 +35,7 @@ interface DashboardStats {
   topCustomers: { name: string; company: string | null; total: number; orders: number }[]
   paymentMethods: { method: string; total: number; count: number }[]
   categories: { name: string; products: number }[]
+  isDemoData?: boolean
 }
 
 const COLORS = ['#4DA6FF', '#FF6B6B', '#4ECDC4', '#FFD93D', '#A8E6CF']
@@ -118,6 +119,11 @@ export default function ReportsPage() {
                 <div className="text-xs text-white/80 bg-white/10 px-3 py-1 rounded-lg backdrop-blur-sm">
                   📊 Période : {period} jours
                 </div>
+                {stats?.isDemoData && (
+                  <div className="text-xs text-orange-200 bg-orange-500/20 px-3 py-1 rounded-lg backdrop-blur-sm border border-orange-300/30">
+                    🎭 Données de démonstration
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -135,8 +141,95 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {stats && stats.salesByDay && (
+      {stats && (
         <>
+          {/* KPIs - Indicateurs clés */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {/* Chiffre d'affaires total */}
+            <Card className="glass border-l-4 border-l-blue-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Chiffre d'Affaires</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {stats.salesByDay.reduce((sum, day) => sum + day.total, 0).toLocaleString('fr-FR')} DH
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {period} derniers jours
+                    </p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <DollarSign className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Nombre de ventes */}
+            <Card className="glass border-l-4 border-l-green-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Nombre de Ventes</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {stats.salesByDay.reduce((sum, day) => sum + day.count, 0)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Transactions totales
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-full">
+                    <ShoppingCart className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Panier moyen */}
+            <Card className="glass border-l-4 border-l-purple-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Panier Moyen</p>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {(() => {
+                        const totalSales = stats.salesByDay.reduce((sum, day) => sum + day.total, 0)
+                        const totalCount = stats.salesByDay.reduce((sum, day) => sum + day.count, 0)
+                        return totalCount > 0 ? (totalSales / totalCount).toFixed(0) : '0'
+                      })()} DH
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Par transaction
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-full">
+                    <Target className="w-6 h-6 text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Clients actifs */}
+            <Card className="glass border-l-4 border-l-orange-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Clients Actifs</p>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {stats.topCustomers.length}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Top clients
+                    </p>
+                  </div>
+                  <div className="p-3 bg-orange-100 rounded-full">
+                    <Activity className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Évolution des ventes */}
           <Card className="glass">
             <CardHeader>
@@ -345,6 +438,63 @@ export default function ReportsPage() {
               </Card>
             )}
           </div>
+
+          {/* Résumé Exécutif */}
+          <Card className="glass bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-indigo-700">
+                <TrendingUp className="w-5 h-5" />
+                Résumé Exécutif
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <h4 className="font-semibold text-gray-700 mb-2">Produit Star</h4>
+                  <p className="text-lg font-bold text-indigo-600">
+                    {stats.topProducts[0]?.name || 'Aucun'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {stats.topProducts[0]?.quantity || 0} unités vendues
+                  </p>
+                </div>
+
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <h4 className="font-semibold text-gray-700 mb-2">Meilleur Client</h4>
+                  <p className="text-lg font-bold text-indigo-600">
+                    {stats.topCustomers[0]?.name || 'Aucun'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {stats.topCustomers[0]?.total?.toLocaleString('fr-FR') || 0} DH
+                  </p>
+                </div>
+
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                  <h4 className="font-semibold text-gray-700 mb-2">Paiement Préféré</h4>
+                  <p className="text-lg font-bold text-indigo-600">
+                    {getPaymentMethodLabel(stats.paymentMethods[0]?.method || 'CASH')}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {stats.paymentMethods[0]?.count || 0} transactions
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 bg-indigo-100 rounded-lg">
+                <h4 className="font-semibold text-indigo-800 mb-2">💡 Insights Automatiques</h4>
+                <ul className="text-sm text-indigo-700 space-y-1">
+                  <li>• Votre chiffre d'affaires sur {period} jours représente {stats.salesByDay.reduce((sum, day) => sum + day.total, 0).toLocaleString('fr-FR')} DH</li>
+                  <li>• Le panier moyen est de {(() => {
+                    const totalSales = stats.salesByDay.reduce((sum, day) => sum + day.total, 0)
+                    const totalCount = stats.salesByDay.reduce((sum, day) => sum + day.count, 0)
+                    return totalCount > 0 ? (totalSales / totalCount).toFixed(0) : '0'
+                  })()} DH par transaction</li>
+                  <li>• {stats.topProducts.length > 0 ? `${stats.topProducts[0].name} est votre produit le plus vendu` : 'Aucune vente de produit enregistrée'}</li>
+                  <li>• {stats.categories.length > 0 ? `Vous gérez ${stats.categories.reduce((sum, cat) => sum + cat.products, 0)} produits dans ${stats.categories.length} catégories` : 'Aucune catégorie configurée'}</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Tableaux détaillés */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
