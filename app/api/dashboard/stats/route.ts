@@ -12,19 +12,38 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const days = parseInt(searchParams.get('days') || '7')
+    const startDateParam = searchParams.get('startDate')
+    const endDateParam = searchParams.get('endDate')
 
-    // Date de début
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - days)
+    // Déterminer les dates de début et fin
+    let startDate: Date
+    let endDate: Date
 
-    console.log('Fetching stats for', days, 'days from', startDate)
+    if (startDateParam && endDateParam) {
+      // Mode plage personnalisée
+      startDate = new Date(startDateParam)
+      endDate = new Date(endDateParam)
+      endDate.setHours(23, 59, 59, 999) // Fin de journée
+      console.log('Fetching stats for custom range:', startDateParam, 'to', endDateParam)
+    } else {
+      // Mode période prédéfinie
+      endDate = new Date()
+      endDate.setHours(23, 59, 59, 999)
+      startDate = new Date()
+      startDate.setDate(startDate.getDate() - days + 1) // +1 pour inclure aujourd'hui
+      startDate.setHours(0, 0, 0, 0)
+      console.log('Fetching stats for', days, 'days from', startDate, 'to', endDate)
+    }
 
-    // Ventes par jour - Version simplifiée et robuste
+    // Ventes par jour - Version robuste avec support des plages personnalisées
     const salesData = []
     try {
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
+      // Calculer le nombre de jours dans la plage
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+
+      for (let i = 0; i < daysDiff; i++) {
+        const date = new Date(startDate)
+        date.setDate(startDate.getDate() + i)
         date.setHours(0, 0, 0, 0)
 
         const nextDate = new Date(date)
@@ -52,9 +71,10 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       console.error('Error fetching sales data:', error)
       // Données de fallback
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      for (let i = 0; i < daysDiff; i++) {
+        const date = new Date(startDate)
+        date.setDate(startDate.getDate() + i)
         salesData.push({
           date: date.toISOString().split('T')[0],
           total: 0,
@@ -186,9 +206,11 @@ export async function GET(request: NextRequest) {
 
       // Données de démonstration pour les ventes
       const demoSalesData = []
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+
+      for (let i = 0; i < daysDiff; i++) {
+        const date = new Date(startDate)
+        date.setDate(startDate.getDate() + i)
         demoSalesData.push({
           date: date.toISOString().split('T')[0],
           total: Math.floor(Math.random() * 5000) + 1000,

@@ -27,7 +27,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { TrendingUp, Package, Users, CreditCard, DollarSign, ShoppingCart, Target, Activity } from 'lucide-react'
+import { TrendingUp, Package, Users, CreditCard, DollarSign, ShoppingCart, Target, Activity, Calendar, ArrowUpDown, TrendingDown } from 'lucide-react'
 
 interface DashboardStats {
   salesByDay: { date: string; total: number; count: number }[]
@@ -46,15 +46,24 @@ export default function ReportsPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState('7')
+  const [dateRange, setDateRange] = useState<{start: string, end: string} | null>(null)
+  const [viewMode, setViewMode] = useState<'preset' | 'custom'>('preset')
 
   useEffect(() => {
     fetchStats()
-  }, [period])
+  }, [period, dateRange, viewMode])
 
   const fetchStats = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/dashboard/stats?days=${period}`)
+      let url = '/api/dashboard/stats'
+      if (viewMode === 'custom' && dateRange) {
+        url += `?startDate=${dateRange.start}&endDate=${dateRange.end}`
+      } else {
+        url += `?days=${period}`
+      }
+
+      const response = await fetch(url)
       const data = await response.json()
       setStats(data)
     } catch (error) {
@@ -77,6 +86,42 @@ export default function ReportsPage() {
       default:
         return method
     }
+  }
+
+  // Fonctions utilitaires pour les dates
+  const formatDateForInput = (date: Date) => {
+    return date.toISOString().split('T')[0]
+  }
+
+  const getDateLabel = (daysAgo: number) => {
+    if (daysAgo === 0) return 'Aujourd\'hui'
+    if (daysAgo === 1) return 'Hier'
+    if (daysAgo === 2) return 'Avant-hier'
+    return `Il y a ${daysAgo} jours`
+  }
+
+  const handleDateRangeChange = (start: string, end: string) => {
+    setDateRange({ start, end })
+    setViewMode('custom')
+  }
+
+  const handlePresetChange = (newPeriod: string) => {
+    setPeriod(newPeriod)
+    setViewMode('preset')
+    setDateRange(null)
+  }
+
+  // Calculer les comparaisons jour par jour
+  const getDayComparison = (currentDay: any, previousDay: any) => {
+    if (!previousDay) return null
+
+    const currentTotal = currentDay.total || 0
+    const previousTotal = previousDay.total || 0
+
+    if (previousTotal === 0) return currentTotal > 0 ? '+100%' : '0%'
+
+    const change = ((currentTotal - previousTotal) / previousTotal) * 100
+    return change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`
   }
 
   if (loading) {
@@ -117,7 +162,10 @@ export default function ReportsPage() {
               </p>
               <div className="flex items-center gap-2 mt-2">
                 <div className="text-xs text-white/80 bg-white/10 px-3 py-1 rounded-lg backdrop-blur-sm">
-                  📊 Période : {period} jours
+                  📊 {viewMode === 'custom' && dateRange
+                    ? `Du ${new Date(dateRange.start).toLocaleDateString('fr-FR')} au ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
+                    : `Période : ${period} jours`
+                  }
                 </div>
                 {stats?.isDemoData && (
                   <div className="text-xs text-orange-200 bg-orange-500/20 px-3 py-1 rounded-lg backdrop-blur-sm border border-orange-300/30">
@@ -127,17 +175,85 @@ export default function ReportsPage() {
               </div>
             </div>
           </div>
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[200px] bg-white/20 backdrop-blur-sm border-white/30 text-white h-12 rounded-xl shadow-lg hover:bg-white/30 transition-all">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">📅 7 derniers jours</SelectItem>
-              <SelectItem value="14">📅 14 derniers jours</SelectItem>
-              <SelectItem value="30">📅 30 derniers jours</SelectItem>
-              <SelectItem value="90">📅 90 derniers jours</SelectItem>
-            </SelectContent>
-          </Select>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Sélecteur de mode */}
+            <div className="flex bg-white/10 rounded-lg p-1 backdrop-blur-sm">
+              <button
+                onClick={() => setViewMode('preset')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'preset'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Périodes prédéfinies
+              </button>
+              <button
+                onClick={() => setViewMode('custom')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'custom'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Plage personnalisée
+              </button>
+            </div>
+
+            {/* Sélecteurs conditionnels */}
+            {viewMode === 'preset' ? (
+              <Select value={period} onValueChange={handlePresetChange}>
+                <SelectTrigger className="w-[200px] bg-white/20 backdrop-blur-sm border-white/30 text-white h-12 rounded-xl shadow-lg hover:bg-white/30 transition-all">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">📅 Aujourd'hui</SelectItem>
+                  <SelectItem value="2">📅 2 derniers jours</SelectItem>
+                  <SelectItem value="7">📅 7 derniers jours</SelectItem>
+                  <SelectItem value="14">📅 14 derniers jours</SelectItem>
+                  <SelectItem value="30">📅 30 derniers jours</SelectItem>
+                  <SelectItem value="90">📅 90 derniers jours</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                  <Calendar className="w-4 h-4 text-white/80" />
+                  <span className="text-sm text-white/80">Du:</span>
+                  <input
+                    type="date"
+                    className="bg-transparent text-white text-sm border-none outline-none"
+                    onChange={(e) => {
+                      if (dateRange) {
+                        handleDateRangeChange(e.target.value, dateRange.end)
+                      } else {
+                        const today = formatDateForInput(new Date())
+                        handleDateRangeChange(e.target.value, today)
+                      }
+                    }}
+                    value={dateRange?.start || ''}
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                  <span className="text-sm text-white/80">Au:</span>
+                  <input
+                    type="date"
+                    className="bg-transparent text-white text-sm border-none outline-none"
+                    onChange={(e) => {
+                      if (dateRange) {
+                        handleDateRangeChange(dateRange.start, e.target.value)
+                      } else {
+                        const today = formatDateForInput(new Date())
+                        handleDateRangeChange(today, e.target.value)
+                      }
+                    }}
+                    value={dateRange?.end || ''}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -229,6 +345,101 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Analyse Jour par Jour */}
+          <Card className="glass bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-700">
+                <Calendar className="w-5 h-5" />
+                Analyse Jour par Jour
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {stats.salesByDay.slice().reverse().map((day, index) => {
+                  const previousDay = stats.salesByDay.slice().reverse()[index + 1]
+                  const comparison = getDayComparison(day, previousDay)
+                  const daysAgo = index
+
+                  return (
+                    <div key={day.date} className="bg-white rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-gray-700 text-sm">
+                          {getDateLabel(daysAgo)}
+                        </h4>
+                        {comparison && (
+                          <div className={`text-xs px-2 py-1 rounded-full ${
+                            comparison.startsWith('+')
+                              ? 'bg-green-100 text-green-700'
+                              : comparison.startsWith('-')
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {comparison.startsWith('+') ? (
+                              <span className="flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3" />
+                                {comparison}
+                              </span>
+                            ) : comparison.startsWith('-') ? (
+                              <span className="flex items-center gap-1">
+                                <TrendingDown className="w-3 h-3" />
+                                {comparison}
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                <ArrowUpDown className="w-3 h-3" />
+                                {comparison}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs text-gray-500">Chiffre d'affaires</p>
+                          <p className="text-lg font-bold text-blue-600">
+                            {day.total.toLocaleString('fr-FR')} DH
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs text-gray-500">Nombre de ventes</p>
+                          <p className="text-sm font-semibold text-gray-700">
+                            {day.count} transaction{day.count > 1 ? 's' : ''}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs text-gray-500">Panier moyen</p>
+                          <p className="text-sm font-semibold text-purple-600">
+                            {day.count > 0 ? (day.total / day.count).toFixed(0) : '0'} DH
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <p className="text-xs text-gray-400">
+                          {new Date(day.date).toLocaleDateString('fr-FR', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {stats.salesByDay.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>Aucune donnée disponible pour cette période</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Évolution des ventes */}
           <Card className="glass">
