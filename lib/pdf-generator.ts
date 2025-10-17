@@ -323,67 +323,113 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
   const logoX = logoPosition === 'center' ? 105 : logoPosition === 'right' ? 185 : 25
   await addCompanyLogo(doc, company, logoX, 25, logoSizeValue, headerTextColor)
 
-  // === TITRE FACTURE ===
+  // === TITRE FACTURE AMÉLIORÉ ===
   doc.setTextColor(...(headerStyle === 'minimal' ? darkGray : headerTextColor))
-  doc.setFontSize(28)
+  doc.setFontSize(24)
   doc.setFont('helvetica', 'bold')
   const title = data.type === 'CREDIT_NOTE' ? 'FACTURE D\'AVOIR' : 'FACTURE'
-  doc.text(cleanText(title), 150, 20)
+  doc.text(cleanText(title), 150, 18)
 
-  // Numéro de facture
-  doc.setFontSize(12)
+  // Numéro de facture avec encadré
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  const invoiceNumText = `N° ${data.invoiceNumber}`
+  const textWidth = doc.getTextWidth(invoiceNumText)
+
+  // Encadré pour le numéro
+  if (headerStyle !== 'minimal') {
+    doc.setFillColor(255, 255, 255, 0.9)
+    doc.roundedRect(148 - textWidth/2, 25, textWidth + 4, 8, 2, 2, 'F')
+    doc.setTextColor(...darkGray)
+  }
+  doc.text(cleanText(invoiceNumText), 150, 30, { align: 'center' })
+
+  // Date avec style amélioré
+  doc.setTextColor(...(headerStyle === 'minimal' ? darkGray : headerTextColor))
+  doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
-  doc.text(cleanText(`N° ${data.invoiceNumber}`), 150, 30)
+  const dateText = `Date: ${data.date.toLocaleDateString('fr-FR')}`
+  doc.text(cleanText(dateText), 150, 38)
 
-  // Date
-  doc.text(cleanText(`Date: ${data.date.toLocaleDateString('fr-FR')}`), 150, 37)
+  // Date d'échéance si disponible
+  if (data.dueDate) {
+    doc.text(cleanText(`Échéance: ${data.dueDate.toLocaleDateString('fr-FR')}`), 150, 44)
+  }
 
-  // === INFORMATIONS ENTREPRISE ===
+  // Référence facture originale pour les avoirs
+  if (data.type === 'CREDIT_NOTE' && data.originalInvoice) {
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'italic')
+    doc.text(cleanText(`Réf. facture: ${data.originalInvoice.invoiceNumber}`), 150, data.dueDate ? 50 : 44)
+  }
+
+  // === INFORMATIONS ENTREPRISE COMPLÈTES ===
   // Nom de l'entreprise à côté du logo
   doc.setTextColor(...(headerStyle === 'minimal' ? darkGray : headerTextColor))
-  doc.setFontSize(14)
+  doc.setFontSize(16)
   doc.setFont('helvetica', 'bold')
   doc.text(cleanText(company.name), 50, 20)
 
-  // Informations de contact sous le nom
+  // Informations de contact sous le nom - Version améliorée
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(...(headerStyle === 'minimal' ? darkGray : headerTextColor))
-  let yPos = 26
+  let yPos = 28
 
+  // Adresse complète
   if (company.address) {
     const addressLines = company.address.split('\n')
     addressLines.forEach((line: string) => {
-      doc.text(cleanText(line), 50, yPos)
-      yPos += 4
+      if (line.trim()) {
+        doc.text(cleanText(line), 50, yPos)
+        yPos += 3.5
+      }
     })
   }
 
-  // Contact sur une ligne
-  const contactInfo = []
-  if (company.phone) contactInfo.push(`Tel: ${company.phone}`)
-  if (company.email) contactInfo.push(`Email: ${company.email}`)
-  if (contactInfo.length > 0) {
-    doc.text(cleanText(contactInfo.join(' - ')), 50, yPos)
-    yPos += 4
+  // Téléphone sur une ligne séparée
+  if (company.phone) {
+    doc.text(cleanText(`Tél: ${company.phone}`), 50, yPos)
+    yPos += 3.5
   }
 
+  // Email sur une ligne séparée
+  if (company.email) {
+    doc.text(cleanText(`Email: ${company.email}`), 50, yPos)
+    yPos += 3.5
+  }
+
+  // ICE sur une ligne séparée
   if (company.ice) {
     doc.text(cleanText(`ICE: ${company.ice}`), 50, yPos)
+    yPos += 3.5
+  }
+
+  // Site web si disponible
+  if (company.website) {
+    doc.text(cleanText(`Web: ${company.website}`), 50, yPos)
+    yPos += 3.5
+  }
+
+  // ID fiscal si disponible
+  if (company.taxId) {
+    doc.text(cleanText(`ID Fiscal: ${company.taxId}`), 50, yPos)
   }
 
   // === SECTION FACTURÉ À ===
-  const clientSectionY = 60
+  // Ajuster la position selon le contenu de l'en-tête
+  const clientSectionY = Math.max(65, yPos + 8)
 
   // Fond pour "FACTURÉ À" avec couleur secondaire
   doc.setFillColor(...sectionColor)
   doc.rect(15, clientSectionY, 180, 12, 'F')
 
-  // Texte "FACTURÉ À"
+  // Texte "FACTURÉ À" ou "REMBOURSÉ À" selon le type
   doc.setTextColor(...sectionTextColor)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
-  doc.text(cleanText('FACTURE A'), 20, clientSectionY + 8)
+  const clientLabel = data.type === 'CREDIT_NOTE' ? 'REMBOURSE A' : 'FACTURE A'
+  doc.text(cleanText(clientLabel), 20, clientSectionY + 8)
 
   // Informations client
   doc.setFillColor(255, 255, 255)
