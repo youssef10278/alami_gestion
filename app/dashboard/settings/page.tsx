@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useUser } from '@/hooks/useUser'
-import { Building2, User, Shield, Bell, Palette, Paintbrush, Users, Database, HardDrive } from 'lucide-react'
+import { Building2, User, Shield, Paintbrush, Users, Database, HardDrive } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CompanySettings from '@/components/settings/CompanySettings'
@@ -39,7 +39,7 @@ export default function SettingsPage() {
       <Card className="glass">
         <CardContent className="p-6">
           <Tabs defaultValue="company" className="space-y-6">
-            <TabsList className={`grid w-full ${isOwner ? 'grid-cols-9' : 'grid-cols-8'}`}>
+            <TabsList className={`grid w-full ${isOwner ? 'grid-cols-6' : 'grid-cols-5'}`}>
               <TabsTrigger value="company" className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 Entreprise
@@ -67,14 +67,7 @@ export default function SettingsPage() {
                   Système
                 </TabsTrigger>
               )}
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="w-4 h-4" />
-                Notifications
-              </TabsTrigger>
-              <TabsTrigger value="appearance" className="flex items-center gap-2">
-                <Palette className="w-4 h-4" />
-                Apparence
-              </TabsTrigger>
+
             </TabsList>
 
             {/* Onglet Entreprise */}
@@ -142,33 +135,6 @@ export default function SettingsPage() {
               </TabsContent>
             )}
 
-            {/* Onglet Notifications */}
-            <TabsContent value="notifications">
-              <Card className="glass">
-                <CardHeader>
-                  <CardTitle>Paramètres de Notifications</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-500">
-                    Les paramètres de notifications seront disponibles prochainement.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Onglet Apparence */}
-            <TabsContent value="appearance">
-              <Card className="glass">
-                <CardHeader>
-                  <CardTitle>Paramètres d'Apparence</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-500">
-                    Les paramètres d'apparence seront disponibles prochainement.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
