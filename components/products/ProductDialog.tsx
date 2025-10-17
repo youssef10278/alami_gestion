@@ -106,25 +106,15 @@ export default function ProductDialog({
       const url = product ? `/api/products/${product.id}` : '/api/products'
       const method = product ? 'PUT' : 'POST'
 
-      // 🔍 DEBUG: Tracer l'envoi des données
-      const requestData = {
-        ...formData,
-        categoryId: formData.categoryId === 'none' ? null : formData.categoryId || null,
-      }
-
-      console.log('📤 ProductDialog - Envoi des données:')
-      console.log('   Nom:', requestData.name)
-      console.log('   Image:', requestData.image ? `${requestData.image.length} caractères` : 'null/undefined')
-      if (requestData.image) {
-        console.log('   Image format:', requestData.image.startsWith('data:image/') ? 'Base64 ✅' : 'Autre format ❌')
-      }
-
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          ...formData,
+          categoryId: formData.categoryId === 'none' ? null : formData.categoryId || null,
+        }),
       })
 
       const data = await response.json()
