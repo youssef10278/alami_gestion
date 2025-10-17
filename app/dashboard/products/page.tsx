@@ -378,16 +378,6 @@ export default function ProductsPage() {
         </Card>
       </div>
 
-
-
-
-                </button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Filters avec design amélioré - Responsive */}
       <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
         <CardContent className="pt-4 md:pt-6">
