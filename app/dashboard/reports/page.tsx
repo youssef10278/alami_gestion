@@ -371,9 +371,18 @@ export default function ReportsPage() {
                   return (
                     <div key={day.date} className="bg-white rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-gray-700 text-sm">
-                          {getDateLabel(day.date)}
-                        </h4>
+                        <div>
+                          <h4 className="font-semibold text-gray-700 text-sm">
+                            {getDateLabel(day.date)}
+                          </h4>
+                          <p className="text-xs text-gray-500">
+                            {new Date(day.date).toLocaleDateString('fr-FR', {
+                              weekday: 'long',
+                              day: 'numeric',
+                              month: 'short'
+                            })}
+                          </p>
+                        </div>
                         {comparison && (
                           <div className={`text-xs px-2 py-1 rounded-full ${
                             comparison.startsWith('+')
