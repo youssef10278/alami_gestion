@@ -507,7 +507,7 @@ export default function StockPage() {
                       <div>
                         <p className="font-medium">{movement.product.name}</p>
                         <p className="text-xs text-gray-500">
-                          {movement.reason} • {movement.user.name}
+                          {movement.reason}
                         </p>
                         <p className="text-xs text-gray-400">
                           {format(new Date(movement.createdAt), 'dd MMM yyyy HH:mm', {

@@ -37,11 +37,6 @@ export async function GET(request: NextRequest) {
               sku: true,
             },
           },
-          user: {
-            select: {
-              name: true,
-            },
-          },
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -127,18 +122,12 @@ export async function POST(request: NextRequest) {
           quantity,
           type,
           reason: reason || (type === 'IN' ? 'Ajout manuel' : 'Retrait manuel'),
-          userId: session.userId,
         },
         include: {
           product: {
             select: {
               name: true,
               sku: true,
-            },
-          },
-          user: {
-            select: {
-              name: true,
             },
           },
         },
