@@ -20,6 +20,7 @@ interface Customer {
   email: string | null
   phone: string | null
   address: string | null
+  ice: string | null
   creditLimit: number
   isBlocked: boolean
 }
@@ -45,6 +46,7 @@ export default function CustomerDialog({
     email: '',
     phone: '',
     address: '',
+    ice: '',
     creditLimit: '0',
   })
 
@@ -56,6 +58,7 @@ export default function CustomerDialog({
         email: customer.email || '',
         phone: customer.phone || '',
         address: customer.address || '',
+        ice: customer.ice || '',
         creditLimit: customer.creditLimit.toString(),
       })
     } else {
@@ -195,6 +198,20 @@ export default function CustomerDialog({
               }
               placeholder="Adresse complète"
               className="flex min-h-[80px] w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+
+          {/* ICE */}
+          <div className="space-y-2">
+            <Label htmlFor="ice">ICE (Identifiant Commun de l'Entreprise)</Label>
+            <Input
+              id="ice"
+              value={formData.ice}
+              onChange={(e) =>
+                setFormData({ ...formData, ice: e.target.value })
+              }
+              placeholder="000000000000000"
+              maxLength={15}
             />
           </div>
 

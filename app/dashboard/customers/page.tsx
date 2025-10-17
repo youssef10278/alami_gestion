@@ -16,6 +16,7 @@ interface Customer {
   email: string | null
   phone: string | null
   address: string | null
+  ice: string | null
   creditLimit: number
   creditUsed: number
   isBlocked: boolean

@@ -1,6 +1,6 @@
 'use client'
 
-import { Edit, Trash2, User, Building2, Mail, Phone, MapPin, CreditCard, ShoppingCart, Ban } from 'lucide-react'
+import { Edit, Trash2, User, Building2, Mail, Phone, MapPin, CreditCard, ShoppingCart, Ban, Hash } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,7 @@ interface Customer {
   email: string | null
   phone: string | null
   address: string | null
+  ice: string | null
   creditLimit: number
   creditUsed: number
   isBlocked: boolean
@@ -77,6 +78,12 @@ export default function CustomerCard({ customer, onEdit, onDelete }: CustomerCar
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <MapPin className="w-4 h-4" />
               <span className="line-clamp-1">{customer.address}</span>
+            </div>
+          )}
+          {customer.ice && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Hash className="w-4 h-4" />
+              <span className="font-mono">ICE: {customer.ice}</span>
             </div>
           )}
         </div>

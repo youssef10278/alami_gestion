@@ -64,7 +64,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { name, company, email, phone, address, creditLimit, isBlocked } = body
+    const { name, company, email, phone, address, ice, creditLimit, isBlocked } = body
 
     const customer = await prisma.customer.findUnique({
       where: { id: params.id },
@@ -85,6 +85,7 @@ export async function PUT(
         email: email !== undefined ? email : customer.email,
         phone: phone !== undefined ? phone : customer.phone,
         address: address !== undefined ? address : customer.address,
+        ice: ice !== undefined ? ice : customer.ice,
         creditLimit: creditLimit !== undefined ? parseFloat(creditLimit) : customer.creditLimit,
         isBlocked: isBlocked !== undefined ? isBlocked : customer.isBlocked,
       },

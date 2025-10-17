@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, company, email, phone, address, creditLimit } = body
+    const { name, company, email, phone, address, ice, creditLimit } = body
 
     if (!name) {
       return NextResponse.json(
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         email: email || null,
         phone: phone || null,
         address: address || null,
+        ice: ice || null,
         creditLimit: creditLimit ? parseFloat(creditLimit) : 0,
       },
     })
