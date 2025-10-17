@@ -3,12 +3,11 @@
 import { useState } from 'react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useUser } from '@/hooks/useUser'
-import { Building2, User, Shield, Bell, Palette, Paintbrush, FileText, Users, Database, HardDrive } from 'lucide-react'
+import { Building2, User, Shield, Bell, Palette, Paintbrush, Users, Database, HardDrive } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CompanySettings from '@/components/settings/CompanySettings'
 import InvoiceDesigner from '@/components/settings/InvoiceDesigner'
-import QuoteDesigner from '@/components/settings/QuoteDesigner'
 import UserManagement from '@/components/settings/UserManagement'
 import ProfileSettings from '@/components/settings/ProfileSettings'
 import SystemReset from '@/components/settings/SystemReset'
@@ -53,10 +52,7 @@ export default function SettingsPage() {
                 <Paintbrush className="w-4 h-4" />
                 Designer Facture
               </TabsTrigger>
-              <TabsTrigger value="quote-design" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Designer Devis
-              </TabsTrigger>
+
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Profil
@@ -94,11 +90,6 @@ export default function SettingsPage() {
             {/* Onglet Designer de Facture */}
             <TabsContent value="invoice-design">
               <InvoiceDesigner />
-            </TabsContent>
-
-            {/* Onglet Designer de Devis */}
-            <TabsContent value="quote-design">
-              <QuoteDesigner />
             </TabsContent>
 
             {/* Onglet Profil */}
