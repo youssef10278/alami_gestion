@@ -92,6 +92,8 @@ export default function PaymentDialog({
       setError('')
       setSelectedSaleIds([])
       setMode('auto')
+      // ✅ FIX: Réinitialiser l'état de chargement quand le modal s'ouvre
+      setLoading(false)
       fetchUnpaidSales()
     }
   }, [customer, open])
@@ -193,6 +195,10 @@ export default function PaymentDialog({
           paymentsCount > 1 ? 's' : ''
         } à jour)`,
       })
+
+      // ✅ FIX: Réinitialiser l'état de chargement avant de fermer le modal
+      setLoading(false)
+
       onSuccess()
     } catch (err) {
       setError("Erreur lors de l'enregistrement du paiement")

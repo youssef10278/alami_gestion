@@ -55,6 +55,8 @@ export default function StockMovementDialog({
       })
     }
     setError('')
+    // ✅ FIX: Réinitialiser l'état de chargement quand le modal s'ouvre
+    setLoading(false)
   }, [product, open])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,6 +87,9 @@ export default function StockMovementDialog({
         setLoading(false)
         return
       }
+
+      // ✅ FIX: Réinitialiser l'état de chargement avant de fermer le modal
+      setLoading(false)
 
       onSuccess()
     } catch (err) {

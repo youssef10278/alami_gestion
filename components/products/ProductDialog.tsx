@@ -28,6 +28,7 @@ interface Product {
   sku: string
   name: string
   description: string | null
+  purchasePrice: number
   price: number
   stock: number
   minStock: number
@@ -98,6 +99,8 @@ export default function ProductDialog({
       })
     }
     setError('')
+    // ✅ FIX: Réinitialiser l'état de chargement quand le modal s'ouvre
+    setLoading(false)
   }, [product, open])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,6 +130,9 @@ export default function ProductDialog({
         setLoading(false)
         return
       }
+
+      // ✅ FIX: Réinitialiser l'état de chargement avant de fermer le modal
+      setLoading(false)
 
       // Passer le produit sauvegardé et indiquer si c'est une édition
       onSaved(data, !!product)

@@ -69,6 +69,8 @@ export default function CustomerDialog({
       })
     }
     setError('')
+    // ✅ FIX: Réinitialiser l'état de chargement quand le modal s'ouvre
+    setLoading(false)
   }, [customer, open])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,6 +97,9 @@ export default function CustomerDialog({
         setLoading(false)
         return
       }
+
+      // ✅ FIX: Réinitialiser l'état de chargement avant de fermer le modal
+      setLoading(false)
 
       onSaved()
     } catch (err) {
