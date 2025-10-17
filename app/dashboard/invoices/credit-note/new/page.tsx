@@ -533,7 +533,7 @@ export default function NewCreditNotePageSecure() {
                       <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
+                  <PopoverContent className="w-[400px] p-0" align="start">
                     <Command>
                       <CommandInput placeholder="Rechercher un client..." />
                       <CommandEmpty>Aucun client trouvé.</CommandEmpty>
@@ -541,6 +541,7 @@ export default function NewCreditNotePageSecure() {
                         <CommandItem
                           value="new"
                           onSelect={() => handleCustomerChange('new')}
+                          className="cursor-pointer"
                         >
                           <Plus className="mr-2 h-4 w-4" />
                           Nouveau client
@@ -550,6 +551,7 @@ export default function NewCreditNotePageSecure() {
                             key={customer.id}
                             value={`${customer.name} ${customer.company || ''}`}
                             onSelect={() => handleCustomerChange(customer.id)}
+                            className="cursor-pointer"
                           >
                             {customer.name} {customer.company && `(${customer.company})`}
                           </CommandItem>
