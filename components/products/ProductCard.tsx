@@ -112,7 +112,7 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
                 <span className="sm:hidden">Achat</span>
               </span>
               <span className="font-semibold text-gray-700 bg-white px-2 py-0.5 rounded-md shadow-sm text-xs">
-                {safeToFixed(purchasePrice, 0)} DH
+                {safeToFixed(purchasePrice, 2)} DH
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -122,7 +122,7 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
                 <span className="sm:hidden">Vente</span>
               </span>
               <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {safeToFixed(salePrice, 0)} DH
+                {safeToFixed(salePrice, 2)} DH
               </span>
             </div>
             <div className="pt-2 border-t-2 border-white/50">
@@ -143,7 +143,7 @@ export default function ProductCard({ product, onEdit, onDelete }: ProductCardPr
                     {safeToFixed(marginPercentage, 1)}%
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    +{safeToFixed(marginAmount, 0)} DH
+                    +{safeToFixed(marginAmount, 2)} DH
                   </div>
                 </div>
               </div>
