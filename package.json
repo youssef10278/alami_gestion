@@ -20,7 +20,6 @@
     "db:fix": "node scripts/emergency-fix-settings.js",
     "deploy:check": "node scripts/deploy-check.js",
     "test:quote-api": "node scripts/test-quote-design-api.js",
-    "postinstall": "prisma generate",
     "railway:deploy": "node scripts/deploy-fix.js && prisma migrate deploy && npm run build",
     "fix:migration": "node scripts/deploy-fix.js"
   },
