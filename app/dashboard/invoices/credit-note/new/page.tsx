@@ -14,6 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -147,6 +159,10 @@ export default function NewCreditNotePageSecure() {
   const [notes, setNotes] = useState('')
   const [items, setItems] = useState<SafeInvoiceItem[]>([])
   const [searchProduct, setSearchProduct] = useState('')
+
+  // États pour la recherche client
+  const [openCustomerSelect, setOpenCustomerSelect] = useState(false)
+  const [customerSearchValue, setCustomerSearchValue] = useState('')
   
   // Totaux
   const [subtotal, setSubtotal] = useState(0)
@@ -288,6 +304,7 @@ export default function NewCreditNotePageSecure() {
       setCustomerEmail('')
       setCustomerAddress('')
       setCustomerTaxId('')
+      setCustomerSearchValue('Nouveau client')
     } else {
       // Client existant - remplir automatiquement les champs
       const customer = customers.find(c => c.id === selectedCustomerId)
@@ -298,18 +315,27 @@ export default function NewCreditNotePageSecure() {
         setCustomerEmail(customer.email || '')
         setCustomerAddress(customer.address || '')
         setCustomerTaxId(customer.ice || '')
+        setCustomerSearchValue(`${customer.name}${customer.company ? ` (${customer.company})` : ''}`)
       }
     }
+    setOpenCustomerSelect(false)
   }
 
   // Calcul sécurisé des totaux
   useEffect(() => {
     const newSubtotal = items.reduce((sum, item) => sum + safeNumber(item.total), 0)
     const newTotal = -newSubtotal // Négatif pour facture d'avoir
-    
+
     setSubtotal(newSubtotal)
     setTotal(newTotal)
   }, [items])
+
+  // Initialisation de la valeur de recherche client
+  useEffect(() => {
+    if (!customerId) {
+      setCustomerSearchValue('Nouveau client')
+    }
+  }, [customerId])
 
   // Ajout sécurisé de produit
   const addProduct = (product: SafeProduct) => {
@@ -495,19 +521,43 @@ export default function NewCreditNotePageSecure() {
               </div>
               <div>
                 <Label htmlFor="customer">Client</Label>
-                <Select value={customerId || 'new'} onValueChange={handleCustomerChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">Nouveau client</SelectItem>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name} {customer.company && `(${customer.company})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={openCustomerSelect} onOpenChange={setOpenCustomerSelect}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openCustomerSelect}
+                      className="w-full justify-between"
+                    >
+                      {customerSearchValue || "Sélectionner un client..."}
+                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Rechercher un client..." />
+                      <CommandEmpty>Aucun client trouvé.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="new"
+                          onSelect={() => handleCustomerChange('new')}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Nouveau client
+                        </CommandItem>
+                        {customers.map((customer) => (
+                          <CommandItem
+                            key={customer.id}
+                            value={`${customer.name} ${customer.company || ''}`}
+                            onSelect={() => handleCustomerChange(customer.id)}
+                          >
+                            {customer.name} {customer.company && `(${customer.company})`}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
