@@ -21,7 +21,7 @@ interface Customer {
   email?: string
   phone?: string
   address?: string
-  taxId?: string
+  ice?: string
 }
 
 interface Product {
@@ -205,7 +205,7 @@ export default function NewInvoicePage() {
           customerPhone: customer.phone || '',
           customerEmail: customer.email || '',
           customerAddress: customer.address || '',
-          customerTaxId: customer.taxId || '',
+          customerTaxId: customer.ice || '',
         }))
       }
     }
