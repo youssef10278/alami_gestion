@@ -161,7 +161,7 @@ export default function CustomersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
-              {safeToFixed(totalCredit, 0)} DH
+              {safeToFixed(totalCredit, 2)} DH
             </div>
             <p className="text-xs text-orange-600 mt-2 font-medium">
               💳 Crédit utilisé
