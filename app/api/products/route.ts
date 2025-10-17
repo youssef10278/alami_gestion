@@ -95,6 +95,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { sku, name, description, purchasePrice, price, stock, minStock, categoryId, image } = body
 
+    // 🔍 DEBUG: Tracer les données reçues
+    console.log('📤 Création produit - Données reçues:')
+    console.log('   SKU:', sku)
+    console.log('   Nom:', name)
+    console.log('   Image:', image ? `${image.length} caractères` : 'null/undefined')
+    if (image) {
+      console.log('   Image format:', image.startsWith('data:image/') ? 'Base64 ✅' : 'Autre format ❌')
+      console.log('   Image preview:', image.substring(0, 50) + '...')
+    }
+
     // Validation
     if (!sku || !name || !price) {
       return NextResponse.json(
@@ -140,6 +150,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 🔍 DEBUG: Tracer la sauvegarde
+    console.log('💾 Sauvegarde en BDD avec image:', image ? 'OUI' : 'NON')
+
     // Créer le produit
     const product = await prisma.product.create({
       data: {
@@ -157,6 +170,10 @@ export async function POST(request: NextRequest) {
         category: true,
       },
     })
+
+    // 🔍 DEBUG: Vérifier le produit créé
+    console.log('✅ Produit créé avec ID:', product.id)
+    console.log('   Image sauvegardée:', product.image ? `${product.image.length} caractères` : 'null')
 
     // Créer un mouvement de stock initial si stock > 0
     if (parseInt(stock) > 0) {
