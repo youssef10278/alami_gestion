@@ -328,10 +328,10 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
   doc.setFont('helvetica', 'bold')
   const title = data.type === 'CREDIT_NOTE' ? 'FACTURE D\'AVOIR' : 'FACTURE'
 
-  // Ajuster la taille de police selon la longueur du titre
+  // Ajuster la taille de police et position selon la longueur du titre
   if (data.type === 'CREDIT_NOTE') {
-    doc.setFontSize(24) // Plus petit pour "FACTURE D'AVOIR"
-    doc.text(cleanText(title), 105, 20, { align: 'center' }) // Centré
+    doc.setFontSize(22) // Plus petit pour "FACTURE D'AVOIR"
+    doc.text(cleanText(title), 195, 20, { align: 'right' }) // Aligné à droite
   } else {
     doc.setFontSize(28) // Taille normale pour "FACTURE"
     doc.text(cleanText(title), 150, 20)
@@ -341,9 +341,9 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
   doc.setFontSize(12)
   doc.setFont('helvetica', 'normal')
   if (data.type === 'CREDIT_NOTE') {
-    doc.text(cleanText(`N° ${data.invoiceNumber}`), 105, 30, { align: 'center' })
+    doc.text(cleanText(`N° ${data.invoiceNumber}`), 195, 30, { align: 'right' })
     // Date
-    doc.text(cleanText(`Date: ${data.date.toLocaleDateString('fr-FR')}`), 105, 37, { align: 'center' })
+    doc.text(cleanText(`Date: ${data.date.toLocaleDateString('fr-FR')}`), 195, 37, { align: 'right' })
   } else {
     doc.text(cleanText(`N° ${data.invoiceNumber}`), 150, 30)
     // Date
