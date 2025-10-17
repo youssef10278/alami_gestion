@@ -14,18 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -161,8 +149,10 @@ export default function NewCreditNotePageSecure() {
   const [searchProduct, setSearchProduct] = useState('')
 
   // États pour la recherche client
-  const [openCustomerSelect, setOpenCustomerSelect] = useState(false)
-  const [customerSearchValue, setCustomerSearchValue] = useState('')
+  const [customerSearchInput, setCustomerSearchInput] = useState('')
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false)
+  const [filteredCustomers, setFilteredCustomers] = useState<SafeCustomer[]>([])
+  const [selectedCustomerIndex, setSelectedCustomerIndex] = useState(-1)
   
   // Totaux
   const [subtotal, setSubtotal] = useState(0)
@@ -295,30 +285,57 @@ export default function NewCreditNotePageSecure() {
   }, [searchProduct, products, dataLoaded])
 
   // Gestion de la sélection de client
-  const handleCustomerChange = (selectedCustomerId: string) => {
-    if (selectedCustomerId === 'new') {
-      // Nouveau client - vider tous les champs
-      setCustomerId('')
-      setCustomerName('')
-      setCustomerPhone('')
-      setCustomerEmail('')
-      setCustomerAddress('')
-      setCustomerTaxId('')
-      setCustomerSearchValue('Nouveau client')
-    } else {
-      // Client existant - remplir automatiquement les champs
-      const customer = customers.find(c => c.id === selectedCustomerId)
-      if (customer) {
-        setCustomerId(customer.id)
-        setCustomerName(customer.name)
-        setCustomerPhone(customer.phone || '')
-        setCustomerEmail(customer.email || '')
-        setCustomerAddress(customer.address || '')
-        setCustomerTaxId(customer.ice || '')
-        setCustomerSearchValue(`${customer.name}${customer.company ? ` (${customer.company})` : ''}`)
-      }
+  const handleCustomerSelect = (customer: SafeCustomer) => {
+    setCustomerId(customer.id)
+    setCustomerName(customer.name)
+    setCustomerPhone(customer.phone || '')
+    setCustomerEmail(customer.email || '')
+    setCustomerAddress(customer.address || '')
+    setCustomerTaxId(customer.ice || '')
+    setCustomerSearchInput(`${customer.name}${customer.company ? ` (${customer.company})` : ''}`)
+    setShowCustomerDropdown(false)
+    setSelectedCustomerIndex(-1)
+  }
+
+  // Gestion du nouveau client
+  const handleNewCustomer = () => {
+    setCustomerId('')
+    setCustomerName('')
+    setCustomerPhone('')
+    setCustomerEmail('')
+    setCustomerAddress('')
+    setCustomerTaxId('')
+    setCustomerSearchInput('')
+    setShowCustomerDropdown(false)
+    setSelectedCustomerIndex(-1)
+  }
+
+  // Gestion des touches clavier
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showCustomerDropdown) return
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedCustomerIndex(prev =>
+          prev < filteredCustomers.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedCustomerIndex(prev => prev > 0 ? prev - 1 : -1)
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (selectedCustomerIndex >= 0 && selectedCustomerIndex < filteredCustomers.length) {
+          handleCustomerSelect(filteredCustomers[selectedCustomerIndex])
+        }
+        break
+      case 'Escape':
+        setShowCustomerDropdown(false)
+        setSelectedCustomerIndex(-1)
+        break
     }
-    setOpenCustomerSelect(false)
   }
 
   // Calcul sécurisé des totaux
@@ -330,12 +347,37 @@ export default function NewCreditNotePageSecure() {
     setTotal(newTotal)
   }, [items])
 
-  // Initialisation de la valeur de recherche client
+  // Filtrage des clients en temps réel
   useEffect(() => {
-    if (!customerId) {
-      setCustomerSearchValue('Nouveau client')
+    if (!customerSearchInput.trim()) {
+      setFilteredCustomers([])
+      setShowCustomerDropdown(false)
+      return
     }
-  }, [customerId])
+
+    const filtered = customers.filter(customer =>
+      customer.name.toLowerCase().includes(customerSearchInput.toLowerCase()) ||
+      (customer.company && customer.company.toLowerCase().includes(customerSearchInput.toLowerCase()))
+    ).slice(0, 10) // Limiter à 10 résultats
+
+    setFilteredCustomers(filtered)
+    setShowCustomerDropdown(filtered.length > 0)
+    setSelectedCustomerIndex(-1)
+  }, [customerSearchInput, customers])
+
+  // Fermer le dropdown quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.customer-search-container')) {
+        setShowCustomerDropdown(false)
+        setSelectedCustomerIndex(-1)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Ajout sécurisé de produit
   const addProduct = (product: SafeProduct) => {
@@ -519,47 +561,60 @@ export default function NewCreditNotePageSecure() {
                   placeholder="FAV-00000001"
                 />
               </div>
-              <div>
+              <div className="relative customer-search-container">
                 <Label htmlFor="customer">Client</Label>
-                <Popover open={openCustomerSelect} onOpenChange={setOpenCustomerSelect}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openCustomerSelect}
-                      className="w-full justify-between"
-                    >
-                      {customerSearchValue || "Sélectionner un client..."}
-                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[400px] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Rechercher un client..." />
-                      <CommandEmpty>Aucun client trouvé.</CommandEmpty>
-                      <CommandGroup>
-                        <CommandItem
-                          value="new"
-                          onSelect={() => handleCustomerChange('new')}
-                          className="cursor-pointer"
+                <div className="relative">
+                  <Input
+                    id="customer"
+                    value={customerSearchInput}
+                    onChange={(e) => setCustomerSearchInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => {
+                      if (customerSearchInput.trim()) {
+                        setShowCustomerDropdown(filteredCustomers.length > 0)
+                      }
+                    }}
+                    placeholder="Rechercher un client ou taper pour nouveau..."
+                    className="pr-10"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+
+                  {/* Dropdown des résultats */}
+                  {showCustomerDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                      {/* Option Nouveau client */}
+                      <div
+                        onClick={handleNewCustomer}
+                        className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100"
+                      >
+                        <Plus className="mr-2 h-4 w-4 text-green-600" />
+                        <span className="text-green-600 font-medium">Nouveau client</span>
+                      </div>
+
+                      {/* Liste des clients filtrés */}
+                      {filteredCustomers.map((customer, index) => (
+                        <div
+                          key={customer.id}
+                          onClick={() => handleCustomerSelect(customer)}
+                          className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
+                            index === selectedCustomerIndex ? 'bg-blue-50 border-l-2 border-blue-500' : ''
+                          }`}
                         >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Nouveau client
-                        </CommandItem>
-                        {customers.map((customer) => (
-                          <CommandItem
-                            key={customer.id}
-                            value={`${customer.name} ${customer.company || ''}`}
-                            onSelect={() => handleCustomerChange(customer.id)}
-                            className="cursor-pointer"
-                          >
-                            {customer.name} {customer.company && `(${customer.company})`}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                          <div className="font-medium">{customer.name}</div>
+                          {customer.company && (
+                            <div className="text-sm text-gray-500">{customer.company}</div>
+                          )}
+                        </div>
+                      ))}
+
+                      {filteredCustomers.length === 0 && customerSearchInput.trim() && (
+                        <div className="px-3 py-2 text-gray-500 text-center">
+                          Aucun client trouvé
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
