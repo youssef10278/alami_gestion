@@ -195,6 +195,11 @@ export async function POST(request: NextRequest) {
 
     const validatedData = validationResult.data
 
+    console.log('✅ === DONNÉES VALIDÉES AVEC SUCCÈS ===')
+    console.log('Type validé:', validatedData.type)
+    console.log('Total validé:', validatedData.total)
+    console.log('Items validés:', validatedData.items.length)
+
     // Récupérer les paramètres de l'entreprise pour les préfixes
     const companySettings = await prisma.companySettings.findFirst()
 
@@ -238,6 +243,10 @@ export async function POST(request: NextRequest) {
     // ✅ NOUVEAU: Créer la facture avec traitement automatique des retours
     const invoice = await prisma.$transaction(async (tx) => {
       // Créer la facture
+      console.log('💾 === CRÉATION EN BASE DE DONNÉES ===')
+      console.log('Numéro:', invoiceNumber)
+      console.log('Type à sauvegarder:', validatedData.type)
+
       const createdInvoice = await tx.invoice.create({
         data: {
           invoiceNumber,
@@ -272,6 +281,12 @@ export async function POST(request: NextRequest) {
           },
         },
       })
+
+      console.log('✅ === FACTURE CRÉÉE EN BASE ===')
+      console.log('ID:', createdInvoice.id)
+      console.log('Numéro:', createdInvoice.invoiceNumber)
+      console.log('Type final:', createdInvoice.type)
+      console.log('Total final:', createdInvoice.total)
 
       // ✅ NOUVEAU: Si c'est une facture d'avoir, traiter automatiquement les retours
       if (validatedData.type === 'CREDIT_NOTE') {
