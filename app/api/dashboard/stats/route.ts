@@ -26,13 +26,11 @@ export async function GET(request: NextRequest) {
       endDate.setHours(23, 59, 59, 999) // Fin de journée
       console.log('Fetching stats for custom range:', startDateParam, 'to', endDateParam)
     } else {
-      // Mode période prédéfinie
-      endDate = new Date()
-      endDate.setHours(23, 59, 59, 999)
-      startDate = new Date()
-      startDate.setDate(startDate.getDate() - days + 1) // +1 pour inclure aujourd'hui
-      startDate.setHours(0, 0, 0, 0)
-      console.log('Fetching stats for', days, 'days from', startDate, 'to', endDate)
+      // Mode période prédéfinie - Correction du décalage de date
+      const today = new Date()
+      endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999)
+      startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - days + 1, 0, 0, 0, 0)
+      console.log('Fetching stats for', days, 'days from', startDate.toLocaleDateString('fr-FR'), 'to', endDate.toLocaleDateString('fr-FR'))
     }
 
     // Ventes par jour - Version robuste avec support des plages personnalisées
@@ -42,12 +40,11 @@ export async function GET(request: NextRequest) {
       const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
       for (let i = 0; i < daysDiff; i++) {
-        const date = new Date(startDate)
-        date.setDate(startDate.getDate() + i)
-        date.setHours(0, 0, 0, 0)
+        // Créer la date en utilisant les composants pour éviter les problèmes de fuseau horaire
+        const baseDate = new Date(startDate)
+        const date = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + i, 0, 0, 0, 0)
 
-        const nextDate = new Date(date)
-        nextDate.setDate(nextDate.getDate() + 1)
+        const nextDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, 0, 0, 0, 0)
 
         const daySales = await prisma.sale.aggregate({
           where: {

@@ -92,11 +92,24 @@ export default function ReportsPage() {
     return date.toISOString().split('T')[0]
   }
 
-  const getDateLabel = (daysAgo: number) => {
-    if (daysAgo === 0) return 'Aujourd\'hui'
-    if (daysAgo === 1) return 'Hier'
-    if (daysAgo === 2) return 'Avant-hier'
-    return `Il y a ${daysAgo} jours`
+  const getDateLabel = (dateString: string) => {
+    const date = new Date(dateString)
+    const today = new Date()
+
+    // Normaliser les dates pour comparer seulement jour/mois/année
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+
+    const diffTime = todayOnly.getTime() - dateOnly.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 0) return 'Aujourd\'hui'
+    if (diffDays === 1) return 'Hier'
+    if (diffDays === 2) return 'Avant-hier'
+    if (diffDays > 0) return `Il y a ${diffDays} jours`
+
+    // Si la date est dans le futur (ne devrait pas arriver)
+    return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })
   }
 
   const handleDateRangeChange = (start: string, end: string) => {
@@ -354,13 +367,12 @@ export default function ReportsPage() {
                 {stats.salesByDay.slice().reverse().map((day, index) => {
                   const previousDay = stats.salesByDay.slice().reverse()[index + 1]
                   const comparison = getDayComparison(day, previousDay)
-                  const daysAgo = index
 
                   return (
                     <div key={day.date} className="bg-white rounded-lg p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-semibold text-gray-700 text-sm">
-                          {getDateLabel(daysAgo)}
+                          {getDateLabel(day.date)}
                         </h4>
                         {comparison && (
                           <div className={`text-xs px-2 py-1 rounded-full ${
