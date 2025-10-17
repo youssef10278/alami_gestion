@@ -12,13 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+
 import { BarcodeInput } from '@/components/ui/barcode-input'
 import { ImageUpload } from '@/components/ui/image-upload'
 import { CategoryCombobox } from '@/components/ui/category-combobox'
@@ -79,9 +73,9 @@ export default function ProductDialog({
         name: product.name,
         description: product.description || '',
         purchasePrice: product.purchasePrice?.toString() || '0',
-        price: product.price.toString(),
-        stock: product.stock.toString(),
-        minStock: product.minStock.toString(),
+        price: product.price?.toString() || '0',
+        stock: product.stock?.toString() || '0',
+        minStock: product.minStock?.toString() || '0',
         categoryId: product.categoryId || 'none',
         image: product.image || '',
       })

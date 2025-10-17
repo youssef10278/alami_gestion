@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MoreVertical } from 'lucide-react'
+import { safeToFixed } from '@/lib/utils'
 
 interface Product {
   id: string
@@ -163,14 +164,14 @@ export default function ProductTable({
                   {/* Prix d'achat */}
                   <td className="px-4 py-4 text-right">
                     <span className="text-sm text-gray-700">
-                      {Number(product.purchasePrice).toFixed(2)} DH
+                      {safeToFixed(product.purchasePrice)} DH
                     </span>
                   </td>
 
                   {/* Prix de vente */}
                   <td className="px-4 py-4 text-right">
                     <span className="text-sm font-semibold text-blue-600">
-                      {Number(product.price).toFixed(2)} DH
+                      {safeToFixed(product.price)} DH
                     </span>
                   </td>
 
@@ -178,10 +179,10 @@ export default function ProductTable({
                   <td className="px-4 py-4 text-right">
                     <div className="flex flex-col items-end">
                       <span className={`text-sm font-bold ${getMarginColor(margin)}`}>
-                        {margin.toFixed(1)}%
+                        {safeToFixed(margin, 1)}%
                       </span>
                       <span className="text-xs text-gray-500">
-                        {marginAmount.toFixed(2)} DH
+                        {safeToFixed(marginAmount)} DH
                       </span>
                     </div>
                   </td>

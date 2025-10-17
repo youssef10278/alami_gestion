@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Check, ChevronsUpDown, Search, Package } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, safeToFixed } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -119,7 +119,7 @@ export default function ProductSelector({
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                           <span className="font-medium text-green-600">
-                            {product.price.toFixed(2)} DH
+                            {safeToFixed(product.price)} DH
                           </span>
                           {product.category && (
                             <>
