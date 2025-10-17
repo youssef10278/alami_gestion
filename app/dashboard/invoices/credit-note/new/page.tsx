@@ -42,6 +42,7 @@ interface SafeCustomer {
   email: string
   address: string
   company: string
+  ice: string
 }
 
 interface SafeInvoiceItem {
@@ -117,7 +118,8 @@ const validateCustomer = (customer: any): SafeCustomer | null => {
     phone: safeString(customer.phone),
     email: safeString(customer.email),
     address: safeString(customer.address),
-    company: safeString(customer.company)
+    company: safeString(customer.company),
+    ice: safeString(customer.ice)
   }
 }
 
@@ -136,9 +138,12 @@ export default function NewCreditNotePageSecure() {
   
   // Formulaire
   const [invoiceNumber, setInvoiceNumber] = useState('')
+  const [customerId, setCustomerId] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
+  const [customerAddress, setCustomerAddress] = useState('')
+  const [customerTaxId, setCustomerTaxId] = useState('')
   const [notes, setNotes] = useState('')
   const [items, setItems] = useState<SafeInvoiceItem[]>([])
   const [searchProduct, setSearchProduct] = useState('')
@@ -262,16 +267,40 @@ export default function NewCreditNotePageSecure() {
       setFilteredProducts([])
       return
     }
-    
+
     const searchTerm = searchProduct.toLowerCase()
     const filtered = products.filter(product => {
       const name = safeString(product.name).toLowerCase()
       const sku = safeString(product.sku).toLowerCase()
       return name.includes(searchTerm) || sku.includes(searchTerm)
     })
-    
+
     setFilteredProducts(filtered.slice(0, 10))
   }, [searchProduct, products, dataLoaded])
+
+  // Gestion de la sélection de client
+  const handleCustomerChange = (selectedCustomerId: string) => {
+    if (selectedCustomerId === 'new') {
+      // Nouveau client - vider tous les champs
+      setCustomerId('')
+      setCustomerName('')
+      setCustomerPhone('')
+      setCustomerEmail('')
+      setCustomerAddress('')
+      setCustomerTaxId('')
+    } else {
+      // Client existant - remplir automatiquement les champs
+      const customer = customers.find(c => c.id === selectedCustomerId)
+      if (customer) {
+        setCustomerId(customer.id)
+        setCustomerName(customer.name)
+        setCustomerPhone(customer.phone || '')
+        setCustomerEmail(customer.email || '')
+        setCustomerAddress(customer.address || '')
+        setCustomerTaxId(customer.ice || '')
+      }
+    }
+  }
 
   // Calcul sécurisé des totaux
   useEffect(() => {
@@ -351,9 +380,12 @@ export default function NewCreditNotePageSecure() {
       const invoiceData = {
         type: 'CREDIT_NOTE',
         invoiceNumber,
+        customerId: customerId || null,
         customerName: safeString(customerName),
         customerPhone: safeString(customerPhone),
         customerEmail: safeString(customerEmail),
+        customerAddress: safeString(customerAddress),
+        customerTaxId: safeString(customerTaxId),
         subtotal: safeNumber(subtotal),
         discountAmount: 0,
         taxRate: 20,
@@ -462,6 +494,25 @@ export default function NewCreditNotePageSecure() {
                 />
               </div>
               <div>
+                <Label htmlFor="customer">Client</Label>
+                <Select value={customerId || 'new'} onValueChange={handleCustomerChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">Nouveau client</SelectItem>
+                    {customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name} {customer.company && `(${customer.company})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
                 <Label htmlFor="customerName">Nom du Client *</Label>
                 <Input
                   id="customerName"
@@ -469,6 +520,15 @@ export default function NewCreditNotePageSecure() {
                   onChange={(e) => setCustomerName(safeString(e.target.value))}
                   placeholder="Nom du client"
                   required
+                />
+              </div>
+              <div>
+                <Label htmlFor="customerTaxId">N° Fiscal</Label>
+                <Input
+                  id="customerTaxId"
+                  value={customerTaxId}
+                  onChange={(e) => setCustomerTaxId(safeString(e.target.value))}
+                  placeholder="ICE du client"
                 />
               </div>
             </div>
@@ -493,6 +553,16 @@ export default function NewCreditNotePageSecure() {
                   placeholder="Email du client"
                 />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="customerAddress">Adresse</Label>
+              <Input
+                id="customerAddress"
+                value={customerAddress}
+                onChange={(e) => setCustomerAddress(safeString(e.target.value))}
+                placeholder="Adresse du client"
+              />
             </div>
           </CardContent>
         </Card>
