@@ -111,24 +111,24 @@ export default function InvoicePreview({ settings, companyName = "Votre Entrepri
 
   return (
     <div className="relative">
-      <Card 
-        className="w-full max-w-2xl mx-auto shadow-lg overflow-hidden"
-        style={{ 
+      <Card
+        className="w-full max-w-sm sm:max-w-lg lg:max-w-2xl mx-auto shadow-lg overflow-hidden"
+        style={{
           backgroundColor,
           fontFamily: getFontFamily(),
           borderRadius: borderRadius === 'none' ? '0' : borderRadius === 'full' ? '1rem' : '0.5rem'
         }}
       >
-        {/* En-tête */}
+        {/* En-tête - Responsive */}
         <div style={getHeaderStyle()}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             {/* Logo et informations entreprise */}
-            <div className={`flex items-center gap-4 ${logoPosition === 'center' ? 'mx-auto' : logoPosition === 'right' ? 'ml-auto' : ''}`}>
+            <div className={`flex items-center gap-2 sm:gap-4 ${logoPosition === 'center' ? 'mx-auto' : logoPosition === 'right' ? 'ml-auto' : ''} flex-1 min-w-0`}>
               {/* Logo simulé */}
-              <div 
-                className="rounded-full flex items-center justify-center font-bold text-white"
-                style={{ 
-                  width: logoSizeValue, 
+              <div
+                className="rounded-full flex items-center justify-center font-bold text-white flex-shrink-0"
+                style={{
+                  width: logoSizeValue,
                   height: logoSizeValue,
                   backgroundColor: headerStyle === 'minimal' ? primaryColor : 'rgba(255,255,255,0.2)',
                   fontSize: `calc(${logoSizeValue} * 0.4)`
@@ -136,10 +136,10 @@ export default function InvoicePreview({ settings, companyName = "Votre Entrepri
               >
                 {companyName.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase()}
               </div>
-              
-              <div>
+
+              <div className="flex-1 min-w-0">
                 <h1
-                  className="font-bold"
+                  className="font-bold truncate"
                   style={{
                     fontSize: fontSizes.header,
                     color: headerTextColor
@@ -148,7 +148,7 @@ export default function InvoicePreview({ settings, companyName = "Votre Entrepri
                   {companyName}
                 </h1>
                 <p
-                  className="opacity-90"
+                  className="opacity-90 text-xs sm:text-sm truncate"
                   style={{
                     fontSize: fontSizes.base,
                     color: headerTextColor
@@ -160,7 +160,7 @@ export default function InvoicePreview({ settings, companyName = "Votre Entrepri
             </div>
 
             {/* Titre FACTURE */}
-            <div className="text-right">
+            <div className="text-center sm:text-right flex-shrink-0">
               <h2
                 className="font-bold"
                 style={{

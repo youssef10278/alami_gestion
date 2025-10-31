@@ -417,4 +417,71 @@ body {
       display: none;
     }
   }
+
+  /* === RESPONSIVE DESIGN FIXES === */
+
+  /* Prévention du débordement horizontal */
+  .prevent-overflow {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  /* Conteneur responsive pour les boutons */
+  .responsive-button-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  @media (max-width: 640px) {
+    .responsive-button-container {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .responsive-button-container > * {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  /* Amélioration des cartes sur mobile */
+  .mobile-card-fix {
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+
+  @media (max-width: 640px) {
+    .mobile-card-fix {
+      padding: 0.75rem;
+      margin: 0.25rem 0;
+    }
+  }
+
+  /* Texte responsive */
+  .responsive-text {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .responsive-text {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+  }
+
+  /* Grille responsive pour les paramètres */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 1280px) {
+    .settings-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
 }

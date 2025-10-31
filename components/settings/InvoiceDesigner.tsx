@@ -233,16 +233,18 @@ export default function InvoiceDesigner() {
   }
 
   return (
-    <div className="space-y-6 mt-8">
-      {/* Header avec actions */}
+    <div className="space-y-4 sm:space-y-6 mt-6 sm:mt-8 prevent-overflow">
+      {/* Header avec actions - Responsive */}
       <Card className="glass">
-        <CardHeader className="pt-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Palette className="w-5 h-5" />
-              <CardTitle>Designer de Facture</CardTitle>
+        <CardHeader className="pt-6 sm:pt-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Palette className="w-5 h-5 flex-shrink-0" />
+              <CardTitle className="truncate">Designer de Facture</CardTitle>
             </div>
-            <div className="flex items-center gap-2">
+
+            {/* Actions sur desktop */}
+            <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
               <Button
                 variant="outline"
                 size="sm"
@@ -270,24 +272,69 @@ export default function InvoiceDesigner() {
                 {saving ? 'Sauvegarde...' : 'Sauvegarder'}
               </Button>
             </div>
+
+            {/* Actions sur mobile */}
+            <div className="sm:hidden flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreview}
+                  className="flex-1 flex items-center justify-center gap-2 text-xs"
+                >
+                  <Download className="w-4 h-4" />
+                  PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReset}
+                  className="flex-1 flex items-center justify-center gap-2 text-xs"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Reset
+                </Button>
+              </div>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="w-full flex items-center justify-center gap-2 text-xs"
+                size="sm"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+              </Button>
+            </div>
           </div>
         </CardHeader>
       </Card>
 
-      {/* Layout principal avec aperçu */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Layout principal avec aperçu - Responsive */}
+      <div className="settings-grid gap-4 sm:gap-6">
         {/* Panneau de configuration */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6 order-2 xl:order-1">
 
-          {/* Onglets de configuration */}
+          {/* Onglets de configuration - Responsive */}
           <Card className="glass">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <Tabs defaultValue="theme" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="theme">Thème</TabsTrigger>
-              <TabsTrigger value="colors">Couleurs</TabsTrigger>
-              <TabsTrigger value="layout">Mise en page</TabsTrigger>
-              <TabsTrigger value="advanced">Avancé</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1">
+              <TabsTrigger value="theme" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+                <span className="hidden sm:inline">Thème</span>
+                <span className="sm:hidden">Thème</span>
+              </TabsTrigger>
+              <TabsTrigger value="colors" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+                <span className="hidden sm:inline">Couleurs</span>
+                <span className="sm:hidden">Couleurs</span>
+              </TabsTrigger>
+              <TabsTrigger value="layout" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+                <span className="hidden sm:inline">Mise en page</span>
+                <span className="sm:hidden">Layout</span>
+              </TabsTrigger>
+              <TabsTrigger value="advanced" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+                <span className="hidden sm:inline">Avancé</span>
+                <span className="sm:hidden">Avancé</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* Onglet Thème */}
@@ -628,55 +675,63 @@ export default function InvoiceDesigner() {
       </Card>
         </div>
 
-        {/* Panneau d'aperçu en temps réel */}
-        <div className="space-y-6">
+        {/* Panneau d'aperçu en temps réel - Responsive */}
+        <div className="space-y-4 sm:space-y-6 order-1 xl:order-2">
           <Card className="glass">
-            <CardHeader>
+            <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
-                <Eye className="w-5 h-5" />
-                <CardTitle>Aperçu en Temps Réel</CardTitle>
+                <Eye className="w-5 h-5 flex-shrink-0" />
+                <CardTitle className="text-base sm:text-lg">Aperçu en Temps Réel</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                  Visualisez instantanément l'effet de vos modifications sur le design de la facture.
+                <p className="text-xs sm:text-sm text-gray-600">
+                  <span className="hidden sm:inline">Visualisez instantanément l'effet de vos modifications sur le design de la facture.</span>
+                  <span className="sm:hidden">Aperçu de vos modifications en temps réel.</span>
                 </p>
 
-                {/* Aperçu de la facture */}
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <InvoicePreview
-                    settings={settings}
-                    companyName={companyName}
-                  />
+                {/* Aperçu de la facture - Responsive */}
+                <div className="border rounded-lg p-2 sm:p-4 bg-gray-50 overflow-hidden">
+                  <div className="transform scale-75 sm:scale-90 lg:scale-100 origin-top-left">
+                    <InvoicePreview
+                      settings={settings}
+                      companyName={companyName}
+                    />
+                  </div>
                 </div>
 
-                {/* Informations sur l'aperçu */}
+                {/* Informations sur l'aperçu - Responsive */}
                 <div className="text-xs text-gray-500 space-y-1">
-                  <p>• L'aperçu se met à jour automatiquement lors de vos modifications</p>
-                  <p>• Utilisez "Télécharger PDF" pour voir le rendu final</p>
-                  <p>• Les couleurs peuvent légèrement varier entre l'aperçu et le PDF</p>
+                  <p className="hidden sm:block">• L'aperçu se met à jour automatiquement lors de vos modifications</p>
+                  <p className="hidden sm:block">• Utilisez "Télécharger PDF" pour voir le rendu final</p>
+                  <p className="hidden sm:block">• Les couleurs peuvent légèrement varier entre l'aperçu et le PDF</p>
+                  <p className="sm:hidden">• Aperçu automatique • PDF pour rendu final</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Raccourcis rapides */}
+          {/* Raccourcis rapides - Responsive */}
           <Card className="glass">
-            <CardHeader>
-              <CardTitle className="text-sm">Raccourcis Rapides</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm sm:text-base">
+                <span className="hidden sm:inline">Raccourcis Rapides</span>
+                <span className="sm:hidden">Raccourcis</span>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 gap-2">
+            <CardContent className="p-3 sm:p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     setSettings(prev => ({ ...prev, invoiceTheme: 'modern', primaryColor: '#2563EB', tableHeaderColor: '#10B981', sectionColor: '#10B981' }))
                   }}
-                  className="text-xs"
+                  className="text-xs sm:text-sm py-2 px-3 h-auto"
                 >
-                  Thème Moderne
+                  <span className="hidden sm:inline">Thème Moderne</span>
+                  <span className="sm:hidden">Moderne</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -684,9 +739,10 @@ export default function InvoiceDesigner() {
                   onClick={() => {
                     setSettings(prev => ({ ...prev, invoiceTheme: 'classic', primaryColor: '#1F2937', tableHeaderColor: '#374151', sectionColor: '#374151' }))
                   }}
-                  className="text-xs"
+                  className="text-xs sm:text-sm py-2 px-3 h-auto"
                 >
-                  Thème Classique
+                  <span className="hidden sm:inline">Thème Classique</span>
+                  <span className="sm:hidden">Classique</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -694,9 +750,10 @@ export default function InvoiceDesigner() {
                   onClick={() => {
                     setSettings(prev => ({ ...prev, invoiceTheme: 'minimal', primaryColor: '#6B7280', tableHeaderColor: '#9CA3AF', sectionColor: '#9CA3AF' }))
                   }}
-                  className="text-xs"
+                  className="text-xs sm:text-sm py-2 px-3 h-auto"
                 >
-                  Thème Minimal
+                  <span className="hidden sm:inline">Thème Minimal</span>
+                  <span className="sm:hidden">Minimal</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -704,9 +761,10 @@ export default function InvoiceDesigner() {
                   onClick={() => {
                     setSettings(prev => ({ ...prev, invoiceTheme: 'colorful', primaryColor: '#7C3AED', tableHeaderColor: '#EC4899', sectionColor: '#EC4899' }))
                   }}
-                  className="text-xs"
+                  className="text-xs sm:text-sm py-2 px-3 h-auto"
                 >
-                  Thème Coloré
+                  <span className="hidden sm:inline">Thème Coloré</span>
+                  <span className="sm:hidden">Coloré</span>
                 </Button>
               </div>
             </CardContent>
