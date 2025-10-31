@@ -155,10 +155,10 @@ export default function ProfileSettings() {
   }
 
   return (
-    <div className="space-y-6 mt-4">
+    <div className="space-y-6 mt-8">
       {/* Informations du profil */}
       <Card className="glass">
-        <CardHeader className="pt-6">
+        <CardHeader className="pt-8">
           <div className="flex items-center gap-3">
             <User className="w-6 h-6 text-blue-600" />
             <div>

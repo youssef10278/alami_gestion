@@ -133,10 +133,10 @@ export default function CompanySettings() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+    <form onSubmit={handleSubmit} className="space-y-6 mt-8">
       {/* Informations générales */}
       <Card className="glass">
-        <CardHeader className="pt-6">
+        <CardHeader className="pt-8">
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5" />
             Informations de l'Entreprise

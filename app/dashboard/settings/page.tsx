@@ -39,41 +39,41 @@ export default function SettingsPage() {
       {/* Onglets de paramètres - Responsive */}
       <Card className="glass">
         <CardContent className="p-4 sm:p-6">
-          <Tabs defaultValue="company" className="space-y-6 sm:space-y-8">
+          <Tabs defaultValue="company" className="space-y-8 sm:space-y-10">
             <TabsList className={`grid w-full ${
               isOwner
-                ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
-                : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
-            } gap-1 sm:gap-0 mb-6 sm:mb-8`}>
-              <TabsTrigger value="company" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+                ? 'grid-cols-3 sm:grid-cols-3 lg:grid-cols-6'
+                : 'grid-cols-3 sm:grid-cols-3 lg:grid-cols-5'
+            } gap-1 sm:gap-0 mb-8 sm:mb-12 h-auto py-2`}>
+              <TabsTrigger value="company" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-3 sm:p-3 h-12 sm:h-auto">
                 <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Entreprise</span>
                 <span className="sm:hidden">Ent.</span>
               </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-3 sm:p-3 h-12 sm:h-auto">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Utilisateurs</span>
                 <span className="sm:hidden">Users</span>
               </TabsTrigger>
-              <TabsTrigger value="invoice-design" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <TabsTrigger value="invoice-design" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-3 sm:p-3 h-12 sm:h-auto">
                 <Paintbrush className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden lg:inline">Designer Facture</span>
                 <span className="lg:hidden hidden sm:inline">Designer</span>
                 <span className="sm:hidden">Design</span>
               </TabsTrigger>
 
-              <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-3 sm:p-3 h-12 sm:h-auto">
                 <User className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Profil</span>
                 <span className="sm:hidden">Prof.</span>
               </TabsTrigger>
-              <TabsTrigger value="backup" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+              <TabsTrigger value="backup" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-3 sm:p-3 h-12 sm:h-auto">
                 <HardDrive className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Sauvegarde</span>
                 <span className="sm:hidden">Save</span>
               </TabsTrigger>
               {isOwner && (
-                <TabsTrigger value="system" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+                <TabsTrigger value="system" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-3 sm:p-3 h-12 sm:h-auto">
                   <Database className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Système</span>
                   <span className="sm:hidden">Sys.</span>
@@ -104,7 +104,7 @@ export default function SettingsPage() {
 
             {/* Onglet Sauvegarde - Responsive */}
             <TabsContent value="backup">
-              <div className="space-y-4">
+              <div className="space-y-4 mt-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base sm:text-lg font-semibold">

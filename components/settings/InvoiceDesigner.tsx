@@ -233,10 +233,10 @@ export default function InvoiceDesigner() {
   }
 
   return (
-    <div className="space-y-6 mt-4">
+    <div className="space-y-6 mt-8">
       {/* Header avec actions */}
       <Card className="glass">
-        <CardHeader className="pt-6">
+        <CardHeader className="pt-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Palette className="w-5 h-5" />
