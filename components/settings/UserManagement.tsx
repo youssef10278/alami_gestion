@@ -385,14 +385,14 @@ export default function UserManagement() {
         ) : (
           <div className="space-y-4">
             {users.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg bg-white/50">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+              <div key={user.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg bg-white/50 gap-4">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{user.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-medium truncate">{user.name}</h3>
                       {getRoleBadge(user.role)}
                       {!user.isActive && (
                         <Badge variant="destructive">
@@ -401,20 +401,22 @@ export default function UserManagement() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">{user.email}</p>
+                    <p className="text-sm text-gray-600 truncate">{user.email}</p>
                     {user.company && (
-                      <p className="text-xs text-gray-500">{user.company}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.company}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => toggleUserStatus(user)}
+                    className="text-xs sm:text-sm"
                   >
-                    {user.isActive ? 'Désactiver' : 'Activer'}
+                    <span className="hidden sm:inline">{user.isActive ? 'Désactiver' : 'Activer'}</span>
+                    <span className="sm:hidden">{user.isActive ? 'Désact.' : 'Act.'}</span>
                   </Button>
                   <PasswordSettings
                     userId={user.id}
@@ -425,6 +427,7 @@ export default function UserManagement() {
                     variant="outline"
                     size="sm"
                     onClick={() => openEditDialog(user)}
+                    className="p-2"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -432,7 +435,7 @@ export default function UserManagement() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDeleteUser(user.id)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-600 hover:text-red-700 p-2"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
