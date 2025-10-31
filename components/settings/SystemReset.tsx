@@ -166,8 +166,8 @@ export default function SystemReset() {
   }
 
   return (
-    <Card className="glass border-red-200">
-      <CardHeader>
+    <Card className="glass border-red-200 mt-4">
+      <CardHeader className="pt-6">
         <div className="flex items-center gap-3">
           <AlertTriangle className="w-6 h-6 text-red-600" />
           <div>

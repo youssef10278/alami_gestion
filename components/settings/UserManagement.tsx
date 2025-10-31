@@ -255,8 +255,8 @@ export default function UserManagement() {
   }
 
   return (
-    <Card className="glass">
-      <CardHeader>
+    <Card className="glass mt-4">
+      <CardHeader className="pt-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Users className="w-6 h-6 text-blue-600" />

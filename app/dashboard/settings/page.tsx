@@ -39,12 +39,12 @@ export default function SettingsPage() {
       {/* Onglets de paramètres - Responsive */}
       <Card className="glass">
         <CardContent className="p-4 sm:p-6">
-          <Tabs defaultValue="company" className="space-y-4 sm:space-y-6">
+          <Tabs defaultValue="company" className="space-y-6 sm:space-y-8">
             <TabsList className={`grid w-full ${
               isOwner
                 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
                 : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
-            } gap-1 sm:gap-0`}>
+            } gap-1 sm:gap-0 mb-6 sm:mb-8`}>
               <TabsTrigger value="company" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
                 <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Entreprise</span>
