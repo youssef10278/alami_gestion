@@ -610,8 +610,9 @@ export default function SalesHistoryPage() {
           </CardContent>
         </Card>
       ) : (
-        {/* Desktop Table */}
-        <Card className="glass hidden lg:block">
+        <>
+          {/* Desktop Table */}
+          <Card className="glass hidden lg:block">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -823,6 +824,7 @@ export default function SalesHistoryPage() {
             </Card>
           ))}
         </div>
+        </>
       )}
 
       {/* Sale Details Modal - Responsive */}
