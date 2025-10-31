@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   UserPlus,
   Users,
@@ -18,7 +19,8 @@ import {
   Crown,
   ShoppingCart,
   AlertTriangle,
-  Key
+  Key,
+  MoreVertical
 } from 'lucide-react'
 import { toast } from 'sonner'
 import PasswordSettings from './PasswordSettings'
@@ -408,15 +410,14 @@ export default function UserManagement() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Actions sur desktop */}
+                <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => toggleUserStatus(user)}
-                    className="text-xs sm:text-sm"
                   >
-                    <span className="hidden sm:inline">{user.isActive ? 'Désactiver' : 'Activer'}</span>
-                    <span className="sm:hidden">{user.isActive ? 'Désact.' : 'Act.'}</span>
+                    {user.isActive ? 'Désactiver' : 'Activer'}
                   </Button>
                   <PasswordSettings
                     userId={user.id}
@@ -427,7 +428,6 @@ export default function UserManagement() {
                     variant="outline"
                     size="sm"
                     onClick={() => openEditDialog(user)}
-                    className="p-2"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -435,10 +435,47 @@ export default function UserManagement() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDeleteUser(user.id)}
-                    className="text-red-600 hover:text-red-700 p-2"
+                    className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
+                </div>
+
+                {/* Actions sur mobile - Menu dropdown */}
+                <div className="sm:hidden flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleUserStatus(user)}
+                    className="text-xs px-2"
+                  >
+                    {user.isActive ? 'Désact.' : 'Act.'}
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="p-2">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openEditDialog(user)}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Modifier
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Supprimer
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <PasswordSettings
+                    userId={user.id}
+                    userName={user.name}
+                    isAdminMode={true}
+                  />
                 </div>
               </div>
             ))}
