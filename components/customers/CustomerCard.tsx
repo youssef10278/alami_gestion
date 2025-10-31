@@ -34,86 +34,88 @@ export default function CustomerCard({ customer, onEdit, onDelete }: CustomerCar
     : 0
 
   return (
-    <Card className={`glass hover:shadow-lg transition-all duration-200 ${customer.isBlocked ? 'border-red-300' : ''}`}>
-      <CardContent className="pt-6">
-        {/* Header */}
+    <Card className={`glass hover:shadow-lg transition-all duration-200 ${customer.isBlocked ? 'border-red-300' : ''} h-full flex flex-col`}>
+      <CardContent className="p-4 sm:p-6 flex-1">
+        {/* Header - Responsive */}
         <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-blue-600" />
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             </div>
-            <div>
-              <h3 className="font-semibold text-lg">{customer.name}</h3>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-base sm:text-lg truncate">{customer.name}</h3>
               {customer.company && (
-                <p className="text-sm text-gray-500 flex items-center gap-1">
-                  <Building2 className="w-3 h-3" />
-                  {customer.company}
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1 truncate">
+                  <Building2 className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{customer.company}</span>
                 </p>
               )}
             </div>
           </div>
           {customer.isBlocked && (
-            <Badge variant="destructive" className="gap-1">
+            <Badge variant="destructive" className="gap-1 text-xs flex-shrink-0 ml-2">
               <Ban className="w-3 h-3" />
-              Bloqué
+              <span className="hidden sm:inline">Bloqué</span>
             </Badge>
           )}
         </div>
 
-        {/* Contact Info */}
+        {/* Contact Info - Responsive */}
         <div className="space-y-2 mb-4">
           {customer.email && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Mail className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 min-w-0">
+              <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="truncate">{customer.email}</span>
             </div>
           )}
           {customer.phone && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Phone className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+              <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
               <span>{customer.phone}</span>
             </div>
           )}
           {customer.address && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <MapPin className="w-4 h-4" />
-              <span className="line-clamp-1">{customer.address}</span>
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 min-w-0">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="line-clamp-2 sm:line-clamp-1">{customer.address}</span>
             </div>
           )}
           {customer.ice && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Hash className="w-4 h-4" />
-              <span className="font-mono">ICE: {customer.ice}</span>
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 min-w-0">
+              <Hash className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="font-mono truncate">ICE: {customer.ice}</span>
             </div>
           )}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+        {/* Stats - Responsive */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
           <div>
             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
               <ShoppingCart className="w-3 h-3" />
-              Ventes
+              <span className="hidden sm:inline">Ventes</span>
+              <span className="sm:hidden">V.</span>
             </div>
-            <div className="text-lg font-bold">{customer._count.sales}</div>
+            <div className="text-base sm:text-lg font-bold">{customer._count.sales}</div>
           </div>
           <div>
             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
               <CreditCard className="w-3 h-3" />
-              Crédit
+              <span className="hidden sm:inline">Crédit</span>
+              <span className="sm:hidden">C.</span>
             </div>
-            <div className={`text-lg font-bold ${creditPercentage > 80 ? 'text-red-600' : 'text-green-600'}`}>
-              {Number(customer.creditUsed).toFixed(2)} DH
+            <div className={`text-sm sm:text-lg font-bold ${creditPercentage > 80 ? 'text-red-600' : 'text-green-600'}`}>
+              {Number(customer.creditUsed).toFixed(0)} DH
             </div>
           </div>
         </div>
 
-        {/* Credit Progress */}
+        {/* Credit Progress - Responsive */}
         {customer.creditLimit > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-1 mb-4">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Limite de crédit</span>
-              <span className="font-semibold">{Number(customer.creditLimit).toFixed(2)} DH</span>
+              <span className="text-gray-600">Limite</span>
+              <span className="font-semibold">{Number(customer.creditLimit).toFixed(0)} DH</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
@@ -126,29 +128,30 @@ export default function CustomerCard({ customer, onEdit, onDelete }: CustomerCar
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-600">Disponible</span>
               <span className={`font-semibold ${creditAvailable < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                {creditAvailable.toFixed(2)} DH
+                {creditAvailable.toFixed(0)} DH
               </span>
             </div>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="flex gap-2 pt-0">
+      <CardFooter className="flex gap-2 p-4 sm:p-6 pt-0">
         <Button
           variant="outline"
           size="sm"
-          className="flex-1"
+          className="flex-1 h-8 sm:h-9"
           onClick={() => onEdit(customer)}
         >
-          <Edit className="w-4 h-4 mr-2" />
-          Modifier
+          <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+          <span className="text-xs sm:text-sm">Modifier</span>
         </Button>
         <Button
           variant="destructive"
           size="sm"
+          className="h-8 sm:h-9 px-2 sm:px-3"
           onClick={() => onDelete(customer.id)}
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
         </Button>
       </CardFooter>
     </Card>

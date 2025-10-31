@@ -421,32 +421,28 @@ export default function SalesHistoryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Debug Info */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
-        <strong>Debug Info:</strong> Role: {userRole || 'Non défini'} | User ID: {userId || 'Non défini'}
-      </div>
+    <div className="space-y-4 sm:space-y-6">
 
-      {/* Header Premium */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-600 via-rose-600 to-red-600 p-8 shadow-2xl">
+      {/* Header Premium - Responsive */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-600 via-rose-600 to-red-600 p-4 sm:p-6 lg:p-8 shadow-2xl">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-pink-400/20 to-red-400/20 backdrop-blur-3xl"></div>
 
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg">
-              <Calendar className="w-8 h-8 text-white" />
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg">
+              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-white mb-1 drop-shadow-lg">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg">
                 Historique des Ventes
               </h1>
-              <p className="text-pink-100 text-sm">
+              <p className="text-pink-100 text-xs sm:text-sm">
                 Consultez toutes les ventes effectuées
               </p>
               <div className="flex items-center gap-2 mt-2">
-                <div className="text-xs text-white/80 bg-white/10 px-3 py-1 rounded-lg backdrop-blur-sm">
-                  📋 {sales.length} ventes
+                <div className="text-xs text-white/80 bg-white/10 px-2 sm:px-3 py-1 rounded-lg backdrop-blur-sm">
+                  📋 {sales.length} vente{sales.length > 1 ? 's' : ''}
                 </div>
               </div>
             </div>
@@ -454,13 +450,13 @@ export default function SalesHistoryPage() {
         </div>
       </div>
 
-      {/* Filtres */}
+      {/* Filtres - Responsive */}
       <Card className="glass">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Recherche */}
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <div className="sm:col-span-2 lg:col-span-1">
+              <label className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">
                 🔍 Rechercher
               </label>
               <input
@@ -468,19 +464,19 @@ export default function SalesHistoryPage() {
                 placeholder="Client, N° vente..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               />
             </div>
 
             {/* Filtre Statut */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <label className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">
                 📊 Statut
               </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               >
                 <option value="ALL">Tous</option>
                 <option value="COMPLETED">Complétée</option>
@@ -491,13 +487,13 @@ export default function SalesHistoryPage() {
 
             {/* Filtre Paiement */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <label className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">
                 💳 Paiement
               </label>
               <select
                 value={filterPayment}
                 onChange={(e) => setFilterPayment(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               >
                 <option value="ALL">Tous</option>
                 <option value="CASH">Espèces</option>
@@ -508,7 +504,7 @@ export default function SalesHistoryPage() {
             </div>
 
             {/* Bouton Reset */}
-            <div className="flex items-end">
+            <div className="flex items-end sm:col-span-2 lg:col-span-1">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -516,30 +512,30 @@ export default function SalesHistoryPage() {
                   setFilterStatus('ALL')
                   setFilterPayment('ALL')
                 }}
-                className="w-full"
+                className="w-full h-10 text-sm"
               >
-                🔄 Réinitialiser
+                🔄 <span className="hidden sm:inline ml-1">Réinitialiser</span>
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Stats avec design premium */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stats avec design premium - Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Total Ventes */}
         <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-pink-50 to-rose-100/50">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full -mr-16 -mt-16"></div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-pink-900">
+          <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-pink-500/10 rounded-full -mr-12 sm:-mr-16 -mt-12 sm:-mt-16"></div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-semibold text-pink-900">
               Total Ventes
             </CardTitle>
-            <div className="p-3 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl shadow-lg">
-              <Calendar className="w-5 h-5 text-white" />
+            <div className="p-2 sm:p-3 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl shadow-lg">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-rose-500 bg-clip-text text-transparent">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-pink-600 to-rose-500 bg-clip-text text-transparent">
               {filteredSales.length}
             </div>
             <p className="text-xs text-pink-600 mt-2 font-medium">
@@ -550,17 +546,18 @@ export default function SalesHistoryPage() {
 
         {/* Chiffre d'Affaires */}
         <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 to-emerald-100/50">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16"></div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-green-900">
-              Chiffre d'Affaires
+          <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-green-500/10 rounded-full -mr-12 sm:-mr-16 -mt-12 sm:-mt-16"></div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-semibold text-green-900">
+              <span className="hidden sm:inline">Chiffre d'Affaires</span>
+              <span className="sm:hidden">CA</span>
             </CardTitle>
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
-              <DollarSign className="w-5 h-5 text-white" />
+            <div className="p-2 sm:p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
               {safeToFixed(filteredSales.reduce((sum, s) => sum + safeNumber(s.totalAmount), 0), 0)} DH
             </div>
             <p className="text-xs text-green-600 mt-2 font-medium">
@@ -570,18 +567,19 @@ export default function SalesHistoryPage() {
         </Card>
 
         {/* Montant Payé */}
-        <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-indigo-100/50">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16"></div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-semibold text-blue-900">
-              Montant Payé
+        <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-indigo-100/50 sm:col-span-2 lg:col-span-1">
+          <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-500/10 rounded-full -mr-12 sm:-mr-16 -mt-12 sm:-mt-16"></div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-semibold text-blue-900">
+              <span className="hidden sm:inline">Montant Payé</span>
+              <span className="sm:hidden">Payé</span>
             </CardTitle>
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-              <DollarSign className="w-5 h-5 text-white" />
+            <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
               {safeToFixed(filteredSales.reduce((sum, s) => sum + safeNumber(s.paidAmount), 0), 0)} DH
             </div>
             <p className="text-xs text-blue-600 mt-2 font-medium">
@@ -591,22 +589,29 @@ export default function SalesHistoryPage() {
         </Card>
       </div>
 
-      {/* Sales List */}
+      {/* Sales List - Responsive */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Chargement...</p>
+        <div className="text-center py-8 sm:py-12">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-pink-600"></div>
+          <p className="mt-2 text-gray-600 text-sm sm:text-base">Chargement...</p>
         </div>
       ) : filteredSales.length === 0 ? (
         <Card className="glass">
-          <CardContent className="py-12 text-center">
-            <p className="text-gray-600">
+          <CardContent className="py-8 sm:py-12 text-center px-4">
+            <Calendar className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 text-sm sm:text-base">
               {sales.length === 0 ? 'Aucune vente trouvée' : 'Aucune vente ne correspond aux filtres'}
             </p>
+            {sales.length === 0 && (
+              <p className="text-gray-500 text-xs sm:text-sm mt-2">
+                Les ventes apparaîtront ici une fois effectuées
+              </p>
+            )}
           </CardContent>
         </Card>
       ) : (
-        <Card className="glass">
+        {/* Desktop Table */}
+        <Card className="glass hidden lg:block">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -732,74 +737,160 @@ export default function SalesHistoryPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Mobile Cards */}
+        <div className="lg:hidden space-y-4">
+          {filteredSales.map((sale) => (
+            <Card key={sale.id} className="glass hover:shadow-lg transition-all duration-200">
+              <CardContent className="p-4">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-sm text-gray-600 truncate">
+                        {format(new Date(sale.createdAt), 'dd MMM yyyy HH:mm', { locale: fr })}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 truncate">
+                      {sale.customer ? sale.customer.name : '🚶 Client de passage'}
+                    </h3>
+                    {sale.customer?.company && (
+                      <p className="text-xs text-gray-500 truncate">{sale.customer.company}</p>
+                    )}
+                  </div>
+                  <div className="flex-shrink-0 ml-2">
+                    {getStatusBadge(sale.status)}
+                  </div>
+                </div>
+
+                {/* Info Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                  <div>
+                    <span className="text-gray-500">Vendeur:</span>
+                    <p className="font-medium truncate">{sale.seller.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Méthode:</span>
+                    <p className="font-medium">{getPaymentMethodLabel(sale.paymentMethod)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Total:</span>
+                    <p className="font-bold text-gray-900">{safeToFixed(sale.totalAmount, 2)} DH</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Payé:</span>
+                    <p className="font-bold text-green-600">{safeToFixed(sale.paidAmount, 2)} DH</p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-3 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedSale(sale)}
+                    className="flex-1"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Voir
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingSale(sale)}
+                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => printReceipt(sale)}
+                  >
+                    <Printer className="w-4 h-4" />
+                  </Button>
+                  {sale.status === 'COMPLETED' && (
+                    <DeliveryNoteButton
+                      saleId={sale.id}
+                      saleNumber={sale.saleNumber}
+                      isGenerated={sale.deliveryNoteGenerated}
+                      className="p-2"
+                    />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
-      {/* Sale Details Modal */}
+      {/* Sale Details Modal - Responsive */}
       {selectedSale && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4"
           onClick={() => setSelectedSale(null)}
         >
           <Card
-            className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <CardHeader>
-              <CardTitle>Détails de la vente</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl">Détails de la vente</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Date</p>
-                  <p className="font-medium">
+                  <p className="text-xs sm:text-sm text-gray-500">Date</p>
+                  <p className="font-medium text-sm sm:text-base">
                     {format(new Date(selectedSale.createdAt), 'dd MMMM yyyy à HH:mm', { locale: fr })}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Statut</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Statut</p>
                   {getStatusBadge(selectedSale.status)}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Client</p>
-                  <p className="font-medium">
+                  <p className="text-xs sm:text-sm text-gray-500">Client</p>
+                  <p className="font-medium text-sm sm:text-base">
                     {selectedSale.customer ? selectedSale.customer.name : '🚶 Client de passage'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Vendeur</p>
-                  <p className="font-medium">{selectedSale.seller.name}</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Vendeur</p>
+                  <p className="font-medium text-sm sm:text-base">{selectedSale.seller.name}</p>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <h4 className="font-semibold mb-3">Articles</h4>
+                <h4 className="font-semibold mb-3 text-sm sm:text-base">Articles</h4>
                 <div className="space-y-2">
                   {selectedSale.items.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                      <div>
-                        <p className="font-medium">{item.product.name}</p>
-                        <p className="text-sm text-gray-500">
+                    <div key={item.id} className="flex justify-between items-center p-2 sm:p-3 bg-gray-50 rounded">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm sm:text-base truncate">{item.product.name}</p>
+                        <p className="text-xs sm:text-sm text-gray-500">
                           {item.quantity} × {safeToFixed(item.unitPrice, 2)} DH
                         </p>
                       </div>
-                      <p className="font-semibold">{safeToFixed(item.total, 2)} DH</p>
+                      <p className="font-semibold text-sm sm:text-base ml-2">{safeToFixed(item.total, 2)} DH</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="border-t pt-4 space-y-2">
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm sm:text-base">
                   <span>Total:</span>
                   <span className="font-bold">{safeToFixed(selectedSale.totalAmount, 2)} DH</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm sm:text-base">
                   <span>Payé:</span>
                   <span className="text-green-600 font-semibold">
                     {safeToFixed(selectedSale.paidAmount, 2)} DH
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm sm:text-base">
                   <span>Reste:</span>
                   <span className="text-orange-600 font-semibold">
                     {safeToFixed(selectedSale.creditAmount, 2)} DH
@@ -807,13 +898,13 @@ export default function SalesHistoryPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 sm:space-y-3">
                 <Button
                   onClick={() => {
                     printReceipt(selectedSale)
                     setSelectedSale(null)
                   }}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700 h-10 sm:h-11 text-sm sm:text-base"
                 >
                   <Printer className="w-4 h-4 mr-2" />
                   Imprimer le Reçu
@@ -824,14 +915,14 @@ export default function SalesHistoryPage() {
                     saleId={selectedSale.id}
                     saleNumber={selectedSale.saleNumber}
                     isGenerated={selectedSale.deliveryNoteGenerated}
-                    className="w-full"
+                    className="w-full h-10 sm:h-11"
                   />
                 )}
 
                 <Button
                   onClick={() => setSelectedSale(null)}
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-10 sm:h-11 text-sm sm:text-base"
                 >
                   Fermer
                 </Button>
