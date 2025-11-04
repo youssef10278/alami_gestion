@@ -18,7 +18,8 @@ import {
   Receipt,
   ChevronLeft,
   ChevronRight,
-  CheckSquare
+  CheckSquare,
+  Wallet
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -58,6 +59,7 @@ export default function Sidebar({ user, collapsed = false, onToggleCollapse }: S
     { href: '/dashboard/quotes', label: 'Devis', icon: FileCheck, roles: ['OWNER', 'SELLER'] },
     { href: '/dashboard/invoices', label: 'Factures', icon: Receipt, roles: ['OWNER'] },
     { href: '/dashboard/suppliers', label: 'Fournisseurs', icon: Truck, roles: ['OWNER', 'SELLER'] },
+    { href: '/dashboard/expenses', label: 'Dépenses', icon: Wallet, roles: ['OWNER'] },
     { href: '/dashboard/credit', label: 'Crédit', icon: CreditCard, roles: ['OWNER'] },
     { href: '/dashboard/reports', label: 'Rapports', icon: BarChart3, roles: ['OWNER'] },
     { href: '/dashboard/documents', label: 'Documents', icon: FileText, roles: ['OWNER'] },
@@ -73,6 +75,7 @@ export default function Sidebar({ user, collapsed = false, onToggleCollapse }: S
     if (href.includes('/quotes')) return 'var(--color-quotes)'
     if (href.includes('/stock') || href.includes('/products')) return 'var(--color-stock)'
     if (href.includes('/customers') || href.includes('/suppliers')) return 'var(--color-customers)'
+    if (href.includes('/expenses')) return '#a855f7' // Purple pour les dépenses
     if (href.includes('/reports') || href.includes('/credit')) return 'var(--color-reports)'
     return 'var(--color-business-blue)' // Couleur par défaut
   }

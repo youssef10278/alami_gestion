@@ -20,6 +20,7 @@ model User {
   documents Document[]
   invoices  Invoice[]
   sales     Sale[]
+  expenses  Expense[]
 
   @@index([email])
   @@index([role])
@@ -543,4 +544,42 @@ enum ReturnStatus {
   GOOD
   DEFECTIVE
   UNUSABLE
+}
+
+model ExpenseCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  color       String?   @default("#3b82f6") // Couleur pour l'UI
+  icon        String?   @default("💰") // Emoji ou icon name
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  expenses    Expense[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model Expense {
+  id          String           @id @default(cuid())
+  amount      Decimal          @db.Decimal(10, 2)
+  description String
+  date        DateTime         @default(now())
+  categoryId  String
+  category    ExpenseCategory  @relation(fields: [categoryId], references: [id])
+  paymentMethod PaymentMethod  @default(CASH)
+  reference   String?          // Numéro de facture, reçu, etc.
+  receipt     String?          // URL du reçu/facture (Cloudinary)
+  notes       String?
+  userId      String
+  user        User             @relation(fields: [userId], references: [id])
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([userId])
+  @@index([date])
+  @@index([isActive])
 }
