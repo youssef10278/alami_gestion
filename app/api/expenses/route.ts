@@ -62,8 +62,14 @@ export async function GET(request: NextRequest) {
       prisma.expense.count({ where })
     ]);
 
+    // Convertir les Decimal en nombres
+    const expensesWithNumbers = expenses.map(expense => ({
+      ...expense,
+      amount: Number(expense.amount)
+    }));
+
     return NextResponse.json({
-      expenses,
+      expenses: expensesWithNumbers,
       pagination: {
         total,
         page,
@@ -158,7 +164,13 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(expense, { status: 201 });
+    // Convertir le Decimal en nombre
+    const expenseWithNumber = {
+      ...expense,
+      amount: Number(expense.amount)
+    };
+
+    return NextResponse.json(expenseWithNumber, { status: 201 });
   } catch (error) {
     console.error('Erreur lors de la création de la dépense:', error);
     return NextResponse.json(
@@ -240,7 +252,13 @@ export async function PUT(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(expense);
+    // Convertir le Decimal en nombre
+    const expenseWithNumber = {
+      ...expense,
+      amount: Number(expense.amount)
+    };
+
+    return NextResponse.json(expenseWithNumber);
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la dépense:', error);
     return NextResponse.json(

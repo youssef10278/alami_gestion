@@ -56,14 +56,14 @@ export async function GET(request: NextRequest) {
         });
         return {
           category,
-          total: item._sum.amount || 0,
+          total: Number(item._sum.amount || 0),
           count: item._count
         };
       })
     );
 
     // Dépenses par méthode de paiement
-    const expensesByPaymentMethod = await prisma.expense.groupBy({
+    const expensesByPaymentMethodRaw = await prisma.expense.groupBy({
       by: ['paymentMethod'],
       where: {
         isActive: true,
@@ -77,6 +77,14 @@ export async function GET(request: NextRequest) {
       },
       _count: true
     });
+
+    // Convertir les Decimal en nombres
+    const expensesByPaymentMethod = expensesByPaymentMethodRaw.map(item => ({
+      ...item,
+      _sum: {
+        amount: Number(item._sum.amount || 0)
+      }
+    }));
 
     // Évolution mensuelle (6 derniers mois)
     const sixMonthsAgo = new Date();
@@ -99,7 +107,7 @@ export async function GET(request: NextRequest) {
     `;
 
     // Top 5 des dépenses récentes
-    const recentExpenses = await prisma.expense.findMany({
+    const recentExpensesRaw = await prisma.expense.findMany({
       where: {
         isActive: true,
         date: {
@@ -118,6 +126,12 @@ export async function GET(request: NextRequest) {
         }
       }
     });
+
+    // Convertir les Decimal en nombres
+    const recentExpenses = recentExpensesRaw.map(expense => ({
+      ...expense,
+      amount: Number(expense.amount)
+    }));
 
     // Comparaison avec le mois précédent
     const previousMonthStart = new Date(start);
@@ -138,10 +152,10 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    const currentTotal = totalExpenses._sum.amount || 0;
-    const previousTotal = previousMonthTotal._sum.amount || 0;
-    const percentageChange = previousTotal > 0 
-      ? ((Number(currentTotal) - Number(previousTotal)) / Number(previousTotal)) * 100 
+    const currentTotal = Number(totalExpenses._sum.amount || 0);
+    const previousTotal = Number(previousMonthTotal._sum.amount || 0);
+    const percentageChange = previousTotal > 0
+      ? ((currentTotal - previousTotal) / previousTotal) * 100
       : 0;
 
     return NextResponse.json({
