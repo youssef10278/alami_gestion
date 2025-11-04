@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAuth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 // GET - Récupérer toutes les catégories de dépenses
 export async function GET(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
@@ -36,13 +36,13 @@ export async function GET(request: NextRequest) {
 // POST - Créer une nouvelle catégorie
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     // Seul le propriétaire peut créer des catégories
-    if (user.role !== 'OWNER') {
+    if (session.role !== 'OWNER') {
       return NextResponse.json(
         { error: 'Accès refusé. Seul le propriétaire peut créer des catégories.' },
         { status: 403 }
@@ -93,12 +93,12 @@ export async function POST(request: NextRequest) {
 // PUT - Mettre à jour une catégorie
 export async function PUT(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    if (user.role !== 'OWNER') {
+    if (session.role !== 'OWNER') {
       return NextResponse.json(
         { error: 'Accès refusé. Seul le propriétaire peut modifier des catégories.' },
         { status: 403 }
@@ -156,12 +156,12 @@ export async function PUT(request: NextRequest) {
 // DELETE - Supprimer (désactiver) une catégorie
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    if (user.role !== 'OWNER') {
+    if (session.role !== 'OWNER') {
       return NextResponse.json(
         { error: 'Accès refusé. Seul le propriétaire peut supprimer des catégories.' },
         { status: 403 }
