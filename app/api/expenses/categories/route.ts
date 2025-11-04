@@ -50,9 +50,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('📝 Données reçues pour création de catégorie:', body);
     const { name, description, color, icon } = body;
 
-    if (!name) {
+    if (!name || name.trim() === '') {
+      console.log('❌ Nom de catégorie manquant ou vide');
       return NextResponse.json(
         { error: 'Le nom de la catégorie est requis' },
         { status: 400 }
@@ -61,25 +63,29 @@ export async function POST(request: NextRequest) {
 
     // Vérifier si la catégorie existe déjà
     const existingCategory = await prisma.expenseCategory.findUnique({
-      where: { name }
+      where: { name: name.trim() }
     });
 
     if (existingCategory) {
+      console.log('❌ Catégorie déjà existante:', name);
       return NextResponse.json(
         { error: 'Une catégorie avec ce nom existe déjà' },
         { status: 400 }
       );
     }
 
+    console.log('✅ Création de la catégorie:', { name, description, color, icon });
+
     const category = await prisma.expenseCategory.create({
       data: {
-        name,
-        description,
+        name: name.trim(),
+        description: description?.trim() || null,
         color: color || '#3b82f6',
         icon: icon || '💰'
       }
     });
 
+    console.log('✅ Catégorie créée avec succès:', category.id);
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
     console.error('Erreur lors de la création de la catégorie:', error);
