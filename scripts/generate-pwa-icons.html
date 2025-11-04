@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur d'Icônes PWA - Alami Gestion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .preview-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+            border-radius: 15px;
+            min-height: 200px;
+        }
+
+        canvas {
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .controls {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="color"],
+        select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #4DA6FF;
+        }
+
+        input[type="color"] {
+            height: 50px;
+            cursor: pointer;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .info {
+            background: #E3F2FD;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #1565C0;
+        }
+
+        .info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .sizes-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .size-badge {
+            background: #4DA6FF;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Générateur d'Icônes PWA</h1>
+        <p class="subtitle">Créez toutes les icônes nécessaires pour votre PWA Alami Gestion</p>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="text">Texte de l'icône</label>
+                <input type="text" id="text" value="AG" maxlength="3">
+            </div>
+
+            <div class="control-group">
+                <label for="emoji">Ou utilisez un emoji</label>
+                <select id="emoji">
+                    <option value="">-- Choisir un emoji --</option>
+                    <option value="💼">💼 Porte-documents</option>
+                    <option value="📊">📊 Graphique</option>
+                    <option value="💰">💰 Argent</option>
+                    <option value="🏢">🏢 Entreprise</option>
+                    <option value="📈">📈 Croissance</option>
+                    <option value="🎯">🎯 Cible</option>
+                    <option value="✨">✨ Étoiles</option>
+                    <option value="🚀">🚀 Fusée</option>
+                </select>
+            </div>
+
+            <div class="color-grid">
+                <div class="control-group">
+                    <label for="bgColor">Couleur de fond</label>
+                    <input type="color" id="bgColor" value="#4DA6FF">
+                </div>
+
+                <div class="control-group">
+                    <label for="textColor">Couleur du texte</label>
+                    <input type="color" id="textColor" value="#FFFFFF">
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-container">
+            <canvas id="canvas" width="512" height="512"></canvas>
+        </div>
+
+        <button class="btn" onclick="generateAllIcons()">📥 Télécharger Toutes les Icônes</button>
+
+        <div class="info">
+            <strong>📋 Tailles générées :</strong>
+            <div class="sizes-list">
+                <span class="size-badge">72x72</span>
+                <span class="size-badge">96x96</span>
+                <span class="size-badge">128x128</span>
+                <span class="size-badge">144x144</span>
+                <span class="size-badge">152x152</span>
+                <span class="size-badge">192x192</span>
+                <span class="size-badge">384x384</span>
+                <span class="size-badge">512x512</span>
+            </div>
+            <p style="margin-top: 10px;">
+                Les icônes seront téléchargées dans votre dossier de téléchargements. 
+                Déplacez-les ensuite dans <code>public/icons/</code>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const textInput = document.getElementById('text');
+        const emojiSelect = document.getElementById('emoji');
+        const bgColorInput = document.getElementById('bgColor');
+        const textColorInput = document.getElementById('textColor');
+
+        function drawIcon() {
+            const bgColor = bgColorInput.value;
+            const textColor = textColorInput.value;
+            const text = emojiSelect.value || textInput.value;
+
+            // Fond
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Texte
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Taille de police adaptée
+            if (emojiSelect.value) {
+                ctx.font = 'bold 300px Arial';
+            } else {
+                ctx.font = 'bold 250px Arial';
+            }
+            
+            ctx.fillText(text, 256, 256);
+        }
+
+        function downloadIcon(size, maskable = false) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = size;
+            tempCanvas.height = size;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            if (maskable) {
+                // Pour les icônes maskable, ajouter un padding de 10%
+                const padding = size * 0.1;
+                tempCtx.fillStyle = bgColorInput.value;
+                tempCtx.fillRect(0, 0, size, size);
+                tempCtx.drawImage(canvas, padding, padding, size - padding * 2, size - padding * 2);
+            } else {
+                tempCtx.drawImage(canvas, 0, 0, size, size);
+            }
+
+            const link = document.createElement('a');
+            const filename = maskable ? `icon-${size}x${size}-maskable.png` : `icon-${size}x${size}.png`;
+            link.download = filename;
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function generateAllIcons() {
+            const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            
+            sizes.forEach((size, index) => {
+                setTimeout(() => {
+                    downloadIcon(size);
+                }, index * 200);
+            });
+
+            // Icônes maskable
+            setTimeout(() => {
+                downloadIcon(192, true);
+            }, sizes.length * 200);
+
+            setTimeout(() => {
+                downloadIcon(512, true);
+            }, (sizes.length + 1) * 200);
+
+            alert('✅ Génération des icônes en cours...\n\nToutes les icônes seront téléchargées dans quelques secondes.\n\nDéplacez-les ensuite dans le dossier public/icons/');
+        }
+
+        // Événements
+        textInput.addEventListener('input', drawIcon);
+        emojiSelect.addEventListener('change', () => {
+            if (emojiSelect.value) {
+                textInput.value = '';
+            }
+            drawIcon();
+        });
+        bgColorInput.addEventListener('input', drawIcon);
+        textColorInput.addEventListener('input', drawIcon);
+
+        // Dessiner l'icône initiale
+        drawIcon();
+    </script>
+</body>
+</html>
+

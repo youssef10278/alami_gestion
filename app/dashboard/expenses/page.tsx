@@ -189,74 +189,74 @@ export default function ExpensesPage() {
   const percentageChange = stats?.comparison.percentageChange || 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               💸 Gestion des Dépenses
             </h1>
-            <p className="text-gray-600 mt-2">Suivez et analysez vos dépenses</p>
+            <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Suivez et analysez vos dépenses</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
               onClick={() => setIsCategoryDialogOpen(true)}
               variant="outline"
-              className="bg-white/80 backdrop-blur-sm hover:bg-white"
+              className="flex-1 sm:flex-none bg-white/80 backdrop-blur-sm hover:bg-white text-sm md:text-base"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Catégorie
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Catégorie</span>
             </Button>
             <Button
               onClick={() => setIsExpenseDialogOpen(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-sm md:text-base"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Nouvelle Dépense
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nouvelle Dépense</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <Card className="bg-white/80 backdrop-blur-sm border-purple-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
                 Total des Dépenses
               </CardTitle>
-              <DollarSign className="w-5 h-5 text-purple-600" />
+              <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-600">
+              <div className="text-2xl md:text-3xl font-bold text-purple-600">
                 {totalExpenses.toFixed(2)} DH
               </div>
-              <div className="flex items-center mt-2 text-sm">
+              <div className="flex items-center mt-2 text-xs md:text-sm">
                 {percentageChange >= 0 ? (
-                  <TrendingUp className="w-4 h-4 text-red-500 mr-1" />
+                  <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-red-500 mr-1" />
                 ) : (
-                  <TrendingDown className="w-4 h-4 text-green-500 mr-1" />
+                  <TrendingDown className="w-3 h-3 md:w-4 md:h-4 text-green-500 mr-1" />
                 )}
                 <span className={percentageChange >= 0 ? 'text-red-500' : 'text-green-500'}>
                   {Math.abs(percentageChange).toFixed(1)}%
                 </span>
-                <span className="text-gray-500 ml-1">vs mois dernier</span>
+                <span className="text-gray-500 ml-1 hidden sm:inline">vs mois dernier</span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-white/80 backdrop-blur-sm border-pink-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
                 Nombre de Dépenses
               </CardTitle>
-              <Receipt className="w-5 h-5 text-pink-600" />
+              <Receipt className="w-4 h-4 md:w-5 md:h-5 text-pink-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-pink-600">
+              <div className="text-2xl md:text-3xl font-bold text-pink-600">
                 {stats?.count || 0}
               </div>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-xs md:text-sm text-gray-500 mt-2">
                 Dépenses enregistrées
               </p>
             </CardContent>
@@ -264,16 +264,16 @@ export default function ExpensesPage() {
 
           <Card className="bg-white/80 backdrop-blur-sm border-blue-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
                 Catégories Actives
               </CardTitle>
-              <Filter className="w-5 h-5 text-blue-600" />
+              <Filter className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">
+              <div className="text-2xl md:text-3xl font-bold text-blue-600">
                 {categories.length}
               </div>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-xs md:text-sm text-gray-500 mt-2">
                 Catégories disponibles
               </p>
             </CardContent>
@@ -282,19 +282,19 @@ export default function ExpensesPage() {
 
         {/* Filters */}
         <Card className="bg-white/80 backdrop-blur-sm">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <CardContent className="pt-4 md:pt-6">
+            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-4 md:gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-2.5 md:top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Rechercher..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-10 md:h-auto text-sm md:text-base"
                 />
               </div>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10 md:h-auto text-sm md:text-base">
                   <SelectValue placeholder="Toutes les catégories" />
                 </SelectTrigger>
                 <SelectContent>
@@ -311,12 +311,14 @@ export default function ExpensesPage() {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 placeholder="Date début"
+                className="h-10 md:h-auto text-sm md:text-base"
               />
               <Input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 placeholder="Date fin"
+                className="h-10 md:h-auto text-sm md:text-base"
               />
             </div>
           </CardContent>
@@ -325,16 +327,16 @@ export default function ExpensesPage() {
         {/* Expenses List */}
         <Card className="bg-white/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Receipt className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <Receipt className="w-4 h-4 md:w-5 md:h-5" />
               Liste des Dépenses
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-gray-500">Chargement...</div>
+              <div className="text-center py-8 text-sm md:text-base text-gray-500">Chargement...</div>
             ) : expenses.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-sm md:text-base text-gray-500">
                 Aucune dépense trouvée
               </div>
             ) : (
@@ -342,22 +344,22 @@ export default function ExpensesPage() {
                 {expenses.map((expense) => (
                   <div
                     key={expense.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50/50 transition-all"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 md:p-4 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50/50 transition-all gap-3 sm:gap-4"
                   >
-                    <div className="flex items-center gap-4 flex-1">
+                    <div className="flex items-start sm:items-center gap-3 md:gap-4 flex-1">
                       <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+                        className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-xl md:text-2xl flex-shrink-0"
                         style={{ backgroundColor: `${expense.category.color}20` }}
                       >
                         {expense.category.icon}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <h3 className="font-semibold text-sm md:text-base text-gray-900 truncate">
                             {expense.description}
                           </h3>
                           <span
-                            className="px-2 py-1 rounded-full text-xs font-medium"
+                            className="px-2 py-1 rounded-full text-xs font-medium w-fit"
                             style={{
                               backgroundColor: `${expense.category.color}20`,
                               color: expense.category.color
@@ -366,49 +368,49 @@ export default function ExpensesPage() {
                             {expense.category.name}
                           </span>
                         </div>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                        <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1 text-xs md:text-sm text-gray-500">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {format(new Date(expense.date), 'dd MMM yyyy', { locale: fr })}
                           </span>
-                          <span>•</span>
+                          <span className="hidden sm:inline">•</span>
                           <span>{getPaymentMethodLabel(expense.paymentMethod)}</span>
                           {expense.reference && (
                             <>
-                              <span>•</span>
-                              <span>Réf: {expense.reference}</span>
+                              <span className="hidden md:inline">•</span>
+                              <span className="hidden md:inline">Réf: {expense.reference}</span>
                             </>
                           )}
-                          <span>•</span>
-                          <span>Par {expense.user.name}</span>
+                          <span className="hidden md:inline">•</span>
+                          <span className="hidden md:inline">Par {expense.user.name}</span>
                         </div>
                         {expense.notes && (
-                          <p className="text-sm text-gray-600 mt-1">{expense.notes}</p>
+                          <p className="text-xs md:text-sm text-gray-600 mt-1 line-clamp-2">{expense.notes}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-purple-600">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                      <div className="text-left sm:text-right">
+                        <div className="text-xl md:text-2xl font-bold text-purple-600">
                           {Number(expense.amount).toFixed(2)} DH
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1 md:gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEditExpense(expense)}
-                          className="hover:bg-blue-50"
+                          className="hover:bg-blue-50 h-8 w-8 md:h-9 md:w-9 p-0"
                         >
-                          <Edit className="w-4 h-4 text-blue-600" />
+                          <Edit className="w-3 h-3 md:w-4 md:h-4 text-blue-600" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteExpense(expense.id)}
-                          className="hover:bg-red-50"
+                          className="hover:bg-red-50 h-8 w-8 md:h-9 md:w-9 p-0"
                         >
-                          <Trash2 className="w-4 h-4 text-red-600" />
+                          <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-600" />
                         </Button>
                       </div>
                     </div>
@@ -423,30 +425,30 @@ export default function ExpensesPage() {
         {stats && stats.byCategory.length > 0 && (
           <Card className="bg-white/80 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <Filter className="w-4 h-4 md:w-5 md:h-5" />
                 Dépenses par Catégorie
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {stats.byCategory.map((item) => {
                   const percentage = (Number(item.total) / Number(stats.total)) * 100
                   return (
                     <div key={item.category.id} className="space-y-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl">{item.category.icon}</span>
-                          <span className="font-medium">{item.category.name}</span>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-lg md:text-xl">{item.category.icon}</span>
+                          <span className="font-medium text-sm md:text-base">{item.category.name}</span>
+                          <span className="text-xs md:text-sm text-gray-500">
                             ({item.count} dépense{item.count > 1 ? 's' : ''})
                           </span>
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-gray-900">
+                        <div className="text-left sm:text-right">
+                          <div className="font-bold text-sm md:text-base text-gray-900">
                             {Number(item.total).toFixed(2)} DH
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-xs md:text-sm text-gray-500">
                             {percentage.toFixed(1)}%
                           </div>
                         </div>
