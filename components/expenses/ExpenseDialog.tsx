@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -21,7 +20,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Upload } from 'lucide-react'
 
 interface ExpenseCategory {
   id: string
@@ -62,11 +60,7 @@ export function ExpenseDialog({
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
-    categoryId: '',
-    paymentMethod: 'CASH',
-    reference: '',
-    receipt: '',
-    notes: ''
+    categoryId: ''
   })
 
   useEffect(() => {
@@ -75,22 +69,14 @@ export function ExpenseDialog({
         amount: expense.amount.toString(),
         description: expense.description,
         date: new Date(expense.date).toISOString().split('T')[0],
-        categoryId: expense.categoryId,
-        paymentMethod: expense.paymentMethod,
-        reference: expense.reference || '',
-        receipt: expense.receipt || '',
-        notes: expense.notes || ''
+        categoryId: expense.categoryId
       })
     } else {
       setFormData({
         amount: '',
         description: '',
         date: new Date().toISOString().split('T')[0],
-        categoryId: '',
-        paymentMethod: 'CASH',
-        reference: '',
-        receipt: '',
-        notes: ''
+        categoryId: ''
       })
     }
   }, [expense, open])
@@ -112,10 +98,10 @@ export function ExpenseDialog({
           description: formData.description,
           date: formData.date,
           categoryId: formData.categoryId,
-          paymentMethod: formData.paymentMethod,
-          reference: formData.reference || null,
-          receipt: formData.receipt || null,
-          notes: formData.notes || null
+          paymentMethod: 'CASH', // Valeur par défaut
+          reference: null,
+          receipt: null,
+          notes: null
         })
       })
 
@@ -131,32 +117,6 @@ export function ExpenseDialog({
       toast.error('Erreur lors de l\'enregistrement')
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setFormData(prev => ({ ...prev, receipt: data.url }))
-        toast.success('Reçu téléchargé')
-      } else {
-        toast.error('Erreur lors du téléchargement')
-      }
-    } catch (error) {
-      console.error('Erreur:', error)
-      toast.error('Erreur lors du téléchargement')
     }
   }
 
@@ -211,96 +171,24 @@ export function ExpenseDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Catégorie *</Label>
-              <Select
-                value={formData.categoryId}
-                onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une catégorie" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="paymentMethod">Mode de paiement *</Label>
-              <Select
-                value={formData.paymentMethod}
-                onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CASH">💵 Espèces</SelectItem>
-                  <SelectItem value="CARD">💳 Carte</SelectItem>
-                  <SelectItem value="TRANSFER">🏦 Virement</SelectItem>
-                  <SelectItem value="CHECK">📝 Chèque</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="reference">Référence (Facture, Reçu...)</Label>
-            <Input
-              id="reference"
-              value={formData.reference}
-              onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
-              placeholder="Ex: FAC-2024-001"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="receipt">Reçu / Facture (Image)</Label>
-            <div className="flex gap-2">
-              <Input
-                id="receipt-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => document.getElementById('receipt-upload')?.click()}
-                className="w-full"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Télécharger un reçu
-              </Button>
-            </div>
-            {formData.receipt && (
-              <div className="mt-2">
-                <img
-                  src={formData.receipt}
-                  alt="Reçu"
-                  className="max-h-40 rounded border"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Notes additionnelles..."
-              rows={3}
-            />
+            <Label htmlFor="category">Catégorie *</Label>
+            <Select
+              value={formData.categoryId}
+              onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.icon} {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter>
