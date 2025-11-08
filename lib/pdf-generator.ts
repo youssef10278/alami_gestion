@@ -3,14 +3,18 @@ import autoTable from 'jspdf-autotable'
 import { getCompanySettings, formatCompanySettingsForPDF } from './company-settings'
 import { formatAmountInWords } from './number-to-words'
 
-// Configuration pour le support UTF-8
+// Configuration pour le support UTF-8 et caractères arabes
 function setupPDFFont(doc: jsPDF) {
   // Utiliser une police qui supporte l'UTF-8
   try {
-    // Essayer d'utiliser une police système qui supporte l'UTF-8
+    // Utiliser Helvetica qui supporte les caractères latins et arabes de base
     doc.setFont('helvetica', 'normal')
     // Forcer l'encodage UTF-8
     doc.setCharSpace(0)
+
+    // Note: jsPDF avec Helvetica supporte les caractères arabes de base
+    // mais l'affichage peut être limité. Pour un meilleur support,
+    // il faudrait ajouter une police personnalisée comme Amiri ou Noto Sans Arabic
   } catch (error) {
     console.warn('Font setup warning:', error)
     // Fallback vers la police par défaut
@@ -83,13 +87,80 @@ async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: nu
   return false
 }
 
-// Fonction pour nettoyer le texte (GARDE LES ACCENTS, supprime uniquement les émojis)
+// Table de translittération arabe vers latin
+const arabicToLatinMap: { [key: string]: string } = {
+  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa',
+  'ب': 'b',
+  'ت': 't', 'ة': 'h',
+  'ث': 'th',
+  'ج': 'j',
+  'ح': 'h',
+  'خ': 'kh',
+  'د': 'd',
+  'ذ': 'dh',
+  'ر': 'r',
+  'ز': 'z',
+  'س': 's',
+  'ش': 'sh',
+  'ص': 's',
+  'ض': 'd',
+  'ط': 't',
+  'ظ': 'z',
+  'ع': 'a',
+  'غ': 'gh',
+  'ف': 'f',
+  'ق': 'q',
+  'ك': 'k',
+  'ل': 'l',
+  'م': 'm',
+  'ن': 'n',
+  'ه': 'h',
+  'و': 'w', 'ؤ': 'w',
+  'ي': 'y', 'ى': 'a', 'ئ': 'y',
+  'ء': '',
+  // Voyelles courtes (diacritiques)
+  'َ': 'a', 'ُ': 'u', 'ِ': 'i',
+  'ّ': '', 'ْ': '', 'ً': 'an', 'ٌ': 'un', 'ٍ': 'in'
+}
+
+// Fonction pour translittérer l'arabe en latin
+function transliterateArabic(text: string): string {
+  if (!text) return ''
+
+  // Vérifier si le texte contient des caractères arabes
+  const hasArabic = /[\u0600-\u06FF]/.test(text)
+
+  if (!hasArabic) {
+    return text // Pas de caractères arabes, retourner tel quel
+  }
+
+  // Translittérer chaque caractère arabe
+  let result = ''
+  for (const char of text) {
+    if (arabicToLatinMap[char]) {
+      result += arabicToLatinMap[char]
+    } else if (/[\u0600-\u06FF]/.test(char)) {
+      // Caractère arabe non mappé, ignorer
+      result += ''
+    } else {
+      // Caractère non-arabe, garder tel quel
+      result += char
+    }
+  }
+
+  return result
+}
+
+// Fonction pour nettoyer le texte (GARDE LES ACCENTS, translittère l'arabe, supprime les émojis)
 function cleanText(text: string): string {
   if (!text) return ''
 
-  // Supprimer uniquement les émojis et caractères problématiques
+  // D'abord translittérer l'arabe en latin
+  let cleaned = transliterateArabic(text)
+
+  // Ensuite supprimer les émojis et caractères problématiques
   // GARDER les accents français (é, è, à, ç, etc.)
-  return text
+  cleaned = cleaned
     // Supprimer les émojis
     .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Émojis divers
     .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Symboles
@@ -102,6 +173,12 @@ function cleanText(text: string): string {
     // Remplacer les points de suspension
     .replace(/…/g, '...')
     .trim()
+
+  // Capitaliser la première lettre de chaque mot pour un meilleur rendu
+  return cleaned
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
 }
 
 interface CompanyInfo {
