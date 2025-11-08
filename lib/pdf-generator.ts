@@ -2,17 +2,24 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { getCompanySettings, formatCompanySettingsForPDF } from './company-settings'
 import { formatAmountInWords } from './number-to-words'
+import { amiriFont, amiriFontName } from './fonts/amiri-font'
+
+// Variable globale pour savoir si une police arabe est chargée
+let arabicFontLoaded = false
 
 // Configuration pour le support UTF-8 et caractères arabes
 function setupPDFFont(doc: jsPDF) {
-  // Utiliser Helvetica par défaut (supporte les caractères latins et arabes Unicode)
   try {
-    doc.setFont('helvetica', 'normal')
-    // Forcer l'encodage UTF-8
-    doc.setCharSpace(0)
+    // Ajouter la police arabe Amiri
+    doc.addFileToVFS('Amiri-Regular.ttf', amiriFont)
+    doc.addFont('Amiri-Regular.ttf', amiriFontName, 'normal')
+    doc.setFont(amiriFontName, 'normal')
+    arabicFontLoaded = true
+    console.log('✅ Police arabe Amiri chargée avec succès')
   } catch (error) {
-    console.warn('Font setup warning:', error)
+    console.warn('⚠️ Erreur lors du chargement de la police arabe, utilisation de Helvetica:', error)
     doc.setFont('helvetica', 'normal')
+    arabicFontLoaded = false
   }
 }
 
@@ -81,58 +88,106 @@ async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: nu
   return false
 }
 
-// Fonction pour détecter si un texte contient de l'arabe
-function hasArabic(text: string): boolean {
-  return /[\u0600-\u06FF]/.test(text)
+// Table de translittération arabe vers latin (solution de secours pour jsPDF)
+const arabicToLatinMap: { [key: string]: string } = {
+  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa',
+  'ب': 'b',
+  'ت': 't', 'ة': 'h',
+  'ث': 'th',
+  'ج': 'j',
+  'ح': 'h',
+  'خ': 'kh',
+  'د': 'd',
+  'ذ': 'dh',
+  'ر': 'r',
+  'ز': 'z',
+  'س': 's',
+  'ش': 'sh',
+  'ص': 's',
+  'ض': 'd',
+  'ط': 't',
+  'ظ': 'dh',
+  'ع': 'a',
+  'غ': 'gh',
+  'ف': 'f',
+  'ق': 'q',
+  'ك': 'k',
+  'ل': 'l',
+  'م': 'm',
+  'ن': 'n',
+  'ه': 'h',
+  'و': 'w', 'ؤ': 'w',
+  'ي': 'y', 'ى': 'a', 'ئ': 'y',
+  'ء': '',
+  // Voyelles courtes
+  'َ': '', 'ُ': '', 'ِ': '',
+  'ّ': '', 'ْ': '', 'ً': '', 'ٌ': '', 'ٍ': ''
 }
 
-// Fonction pour inverser le texte arabe (RTL)
-// L'arabe s'écrit de droite à gauche, mais jsPDF l'affiche de gauche à droite
-// Donc nous devons inverser l'ordre des caractères pour un affichage correct
-function reverseArabicText(text: string): string {
-  if (!text || !hasArabic(text)) return text
+// Fonction pour translittérer l'arabe en latin
+function transliterateArabic(text: string): string {
+  if (!text) return ''
 
-  // Séparer le texte en mots
-  const words = text.split(' ')
+  // Vérifier si le texte contient des caractères arabes
+  const hasArabic = /[\u0600-\u06FF]/.test(text)
 
-  // Inverser chaque mot qui contient de l'arabe
-  const reversedWords = words.map(word => {
-    if (hasArabic(word)) {
-      // Inverser l'ordre des caractères du mot arabe
-      return word.split('').reverse().join('')
+  if (!hasArabic) {
+    return text
+  }
+
+  // Translittérer chaque caractère
+  let result = ''
+  for (const char of text) {
+    if (arabicToLatinMap[char] !== undefined) {
+      result += arabicToLatinMap[char]
+    } else if (/[\u0600-\u06FF]/.test(char)) {
+      // Caractère arabe non mappé, ignorer
+      continue
+    } else {
+      // Caractère non-arabe, garder
+      result += char
     }
-    return word
-  })
+  }
 
-  // Inverser l'ordre des mots pour l'affichage RTL
-  return reversedWords.reverse().join(' ')
+  // Capitaliser chaque mot
+  return result
+    .split(' ')
+    .filter(word => word.length > 0)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
 }
 
-// Fonction pour nettoyer le texte (GARDE LES ACCENTS ET L'ARABE, supprime uniquement les émojis)
+// Fonction pour nettoyer le texte
 function cleanText(text: string): string {
   if (!text) return ''
 
-  // Supprimer uniquement les émojis et caractères problématiques
-  // GARDER les accents français (é, è, à, ç, etc.)
-  // GARDER les caractères arabes (ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه و ي)
-  let cleaned = text
-    // Supprimer les émojis
-    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Émojis divers
-    .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Symboles
-    .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
-    // Remplacer les guillemets typographiques
+  // Si la police arabe est chargée, garder les caractères arabes
+  if (arabicFontLoaded) {
+    // Garder l'arabe, supprimer uniquement les émojis
+    return text
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Émojis
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Symboles
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+      .replace(/[""]/g, '"')
+      .replace(/['']/g, "'")
+      .replace(/[–—]/g, '-')
+      .replace(/…/g, '...')
+      .trim()
+  }
+
+  // Sinon, translittérer l'arabe en latin
+  let cleaned = transliterateArabic(text)
+
+  // Supprimer les émojis et caractères problématiques
+  cleaned = cleaned
+    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')
     .replace(/[""]/g, '"')
     .replace(/['']/g, "'")
-    // Remplacer les tirets longs
     .replace(/[–—]/g, '-')
-    // Remplacer les points de suspension
     .replace(/…/g, '...')
     .trim()
-
-  // Si le texte contient de l'arabe, inverser pour affichage RTL
-  if (hasArabic(cleaned)) {
-    cleaned = reverseArabicText(cleaned)
-  }
 
   return cleaned
 }
