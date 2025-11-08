@@ -5,19 +5,13 @@ import { formatAmountInWords } from './number-to-words'
 
 // Configuration pour le support UTF-8 et caractères arabes
 function setupPDFFont(doc: jsPDF) {
-  // Utiliser une police qui supporte l'UTF-8
+  // Utiliser Helvetica par défaut (supporte les caractères latins et arabes Unicode)
   try {
-    // Utiliser Helvetica qui supporte les caractères latins et arabes de base
     doc.setFont('helvetica', 'normal')
     // Forcer l'encodage UTF-8
     doc.setCharSpace(0)
-
-    // Note: jsPDF avec Helvetica supporte les caractères arabes de base
-    // mais l'affichage peut être limité. Pour un meilleur support,
-    // il faudrait ajouter une police personnalisée comme Amiri ou Noto Sans Arabic
   } catch (error) {
     console.warn('Font setup warning:', error)
-    // Fallback vers la police par défaut
     doc.setFont('helvetica', 'normal')
   }
 }
@@ -87,80 +81,41 @@ async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: nu
   return false
 }
 
-// Table de translittération arabe vers latin
-const arabicToLatinMap: { [key: string]: string } = {
-  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa',
-  'ب': 'b',
-  'ت': 't', 'ة': 'h',
-  'ث': 'th',
-  'ج': 'j',
-  'ح': 'h',
-  'خ': 'kh',
-  'د': 'd',
-  'ذ': 'dh',
-  'ر': 'r',
-  'ز': 'z',
-  'س': 's',
-  'ش': 'sh',
-  'ص': 's',
-  'ض': 'd',
-  'ط': 't',
-  'ظ': 'z',
-  'ع': 'a',
-  'غ': 'gh',
-  'ف': 'f',
-  'ق': 'q',
-  'ك': 'k',
-  'ل': 'l',
-  'م': 'm',
-  'ن': 'n',
-  'ه': 'h',
-  'و': 'w', 'ؤ': 'w',
-  'ي': 'y', 'ى': 'a', 'ئ': 'y',
-  'ء': '',
-  // Voyelles courtes (diacritiques)
-  'َ': 'a', 'ُ': 'u', 'ِ': 'i',
-  'ّ': '', 'ْ': '', 'ً': 'an', 'ٌ': 'un', 'ٍ': 'in'
+// Fonction pour détecter si un texte contient de l'arabe
+function hasArabic(text: string): boolean {
+  return /[\u0600-\u06FF]/.test(text)
 }
 
-// Fonction pour translittérer l'arabe en latin
-function transliterateArabic(text: string): string {
-  if (!text) return ''
+// Fonction pour inverser le texte arabe (RTL)
+// L'arabe s'écrit de droite à gauche, mais jsPDF l'affiche de gauche à droite
+// Donc nous devons inverser l'ordre des caractères pour un affichage correct
+function reverseArabicText(text: string): string {
+  if (!text || !hasArabic(text)) return text
 
-  // Vérifier si le texte contient des caractères arabes
-  const hasArabic = /[\u0600-\u06FF]/.test(text)
+  // Séparer le texte en mots
+  const words = text.split(' ')
 
-  if (!hasArabic) {
-    return text // Pas de caractères arabes, retourner tel quel
-  }
-
-  // Translittérer chaque caractère arabe
-  let result = ''
-  for (const char of text) {
-    if (arabicToLatinMap[char]) {
-      result += arabicToLatinMap[char]
-    } else if (/[\u0600-\u06FF]/.test(char)) {
-      // Caractère arabe non mappé, ignorer
-      result += ''
-    } else {
-      // Caractère non-arabe, garder tel quel
-      result += char
+  // Inverser chaque mot qui contient de l'arabe
+  const reversedWords = words.map(word => {
+    if (hasArabic(word)) {
+      // Inverser l'ordre des caractères du mot arabe
+      return word.split('').reverse().join('')
     }
-  }
+    return word
+  })
 
-  return result
+  // Inverser l'ordre des mots pour l'affichage RTL
+  return reversedWords.reverse().join(' ')
 }
 
-// Fonction pour nettoyer le texte (GARDE LES ACCENTS, translittère l'arabe, supprime les émojis)
+// Fonction pour nettoyer le texte (GARDE LES ACCENTS ET L'ARABE, supprime uniquement les émojis)
 function cleanText(text: string): string {
   if (!text) return ''
 
-  // D'abord translittérer l'arabe en latin
-  let cleaned = transliterateArabic(text)
-
-  // Ensuite supprimer les émojis et caractères problématiques
+  // Supprimer uniquement les émojis et caractères problématiques
   // GARDER les accents français (é, è, à, ç, etc.)
-  cleaned = cleaned
+  // GARDER les caractères arabes (ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه و ي)
+  let cleaned = text
     // Supprimer les émojis
     .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Émojis divers
     .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Symboles
@@ -174,11 +129,12 @@ function cleanText(text: string): string {
     .replace(/…/g, '...')
     .trim()
 
-  // Capitaliser la première lettre de chaque mot pour un meilleur rendu
+  // Si le texte contient de l'arabe, inverser pour affichage RTL
+  if (hasArabic(cleaned)) {
+    cleaned = reverseArabicText(cleaned)
+  }
+
   return cleaned
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
 }
 
 interface CompanyInfo {
