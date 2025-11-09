@@ -122,11 +122,13 @@ autoTable(doc, {
 
 ## 🎯 Résultat
 
-Maintenant, **tous les textes** (y compris les noms de clients en arabe) utilisent la police **Amiri** qui supporte parfaitement l'arabe :
+Maintenant, **tous les textes** (y compris les noms de clients et produits en arabe) utilisent la police **Amiri** qui supporte parfaitement l'arabe :
 
 - ✅ Noms de clients en arabe
+- ✅ **Noms de produits en arabe dans les tableaux** ← **CORRIGÉ**
 - ✅ Adresses en arabe
 - ✅ Notes en arabe
+- ✅ En-têtes de tableaux en arabe
 - ✅ Tous les autres textes arabes
 
 ## 📝 Fichiers Modifiés

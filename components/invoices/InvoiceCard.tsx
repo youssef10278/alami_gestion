@@ -174,21 +174,20 @@ export default function InvoiceCard({ invoice, onDelete }: InvoiceCardProps) {
             onClick={handleViewPDF}
             variant="outline"
             size="sm"
-            className="w-full border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 h-8 sm:h-9 text-xs sm:text-sm"
+            className="w-full border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4"
           >
-            <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-            Voir
+            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+            <span className="truncate">Voir</span>
           </Button>
 
           <Button
             onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}/edit`}
             variant="outline"
             size="sm"
-            className="w-full border-2 border-green-200 hover:border-green-400 hover:bg-green-50 transition-all duration-300 h-8 sm:h-9 text-xs sm:text-sm"
+            className="w-full border-2 border-green-200 hover:border-green-400 hover:bg-green-50 transition-all duration-300 h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4"
           >
-            <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-            <span className="hidden xs:inline">Modifier</span>
-            <span className="xs:hidden">Edit</span>
+            <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+            <span className="truncate">Modifier</span>
           </Button>
 
           {/* Deuxième ligne */}
@@ -196,22 +195,20 @@ export default function InvoiceCard({ invoice, onDelete }: InvoiceCardProps) {
             onClick={handleDownloadPDF}
             disabled={isDownloading}
             size="sm"
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-8 sm:h-9 text-xs sm:text-sm"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4"
           >
-            <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-            <span className="hidden sm:inline">{isDownloading ? 'Téléch...' : 'Télécharger'}</span>
-            <span className="sm:hidden">{isDownloading ? '...' : 'PDF'}</span>
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+            <span className="truncate">{isDownloading ? 'Téléch...' : 'Télécharger'}</span>
           </Button>
 
           <Button
             onClick={() => onDelete(invoice.id, invoice.invoiceNumber)}
             variant="destructive"
             size="sm"
-            className="w-full bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 shadow-md hover:shadow-lg transition-all duration-300 h-8 sm:h-9 text-xs sm:text-sm"
+            className="w-full bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 shadow-md hover:shadow-lg transition-all duration-300 h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4"
           >
-            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-            <span className="hidden xs:inline">Supprimer</span>
-            <span className="xs:hidden">Del</span>
+            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+            <span className="truncate">Supprimer</span>
           </Button>
         </div>
 
