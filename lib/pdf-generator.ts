@@ -81,7 +81,7 @@ async function addCompanyLogo(doc: jsPDF, company: CompanyInfo, x: number, y: nu
   // Initiales avec couleur du texte d'en-tête
   doc.setTextColor(...textColor)
   doc.setFontSize(size/2)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   const initials = company.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase()
   doc.text(cleanText(initials), x, y + size/8, { align: 'center' })
 
@@ -155,6 +155,16 @@ function transliterateArabic(text: string): string {
     .filter(word => word.length > 0)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
+}
+
+// Fonction helper pour définir la police (Amiri si arabe chargé, sinon Helvetica)
+function setDocFont(doc: jsPDF, style: 'normal' | 'bold' = 'normal') {
+  if (arabicFontLoaded) {
+    // Amiri ne supporte que le style 'normal', on utilise toujours 'normal'
+    doc.setFont(amiriFontName, 'normal')
+  } else {
+    doc.setFont('helvetica', style)
+  }
 }
 
 // Fonction pour nettoyer le texte
@@ -413,7 +423,7 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
 
   // === TITRE FACTURE ===
   doc.setTextColor(...(headerStyle === 'minimal' ? darkGray : headerTextColor))
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   const title = data.type === 'CREDIT_NOTE' ? 'FACTURE D\'AVOIR' : 'FACTURE'
 
   // Ajuster la taille de police et position selon la longueur du titre
@@ -427,7 +437,7 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
 
   // Numéro de facture
   doc.setFontSize(12)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   if (data.type === 'CREDIT_NOTE') {
     doc.text(cleanText(`N° ${data.invoiceNumber}`), 195, 30, { align: 'right' })
     // Date
@@ -442,12 +452,12 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
   // Nom de l'entreprise à côté du logo
   doc.setTextColor(...(headerStyle === 'minimal' ? darkGray : headerTextColor))
   doc.setFontSize(14)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text(cleanText(company.name), 50, 20)
 
   // Informations de contact sous le nom
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(...(headerStyle === 'minimal' ? darkGray : headerTextColor))
   let yPos = 26
 
@@ -482,7 +492,7 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
   // Texte "FACTURÉ À"
   doc.setTextColor(...sectionTextColor)
   doc.setFontSize(10)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text(cleanText('FACTURE A'), 20, clientSectionY + 8)
 
   // Informations client
@@ -491,11 +501,11 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
 
   doc.setTextColor(...darkGray)
   doc.setFontSize(11)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text(cleanText(data.customer.name), 20, clientSectionY + 22)
 
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   let clientY = clientSectionY + 28
 
   if (data.customer.address) {
@@ -570,7 +580,7 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
   let currentY = finalY
 
   doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(...darkGray)
 
   // Sous-total HT
@@ -591,7 +601,7 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
   doc.rect(totalsX - 5, currentY - 5, 85, 12, 'F')
 
   doc.setTextColor(...sectionTextColor)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setFontSize(10)
   const totalLabel = data.type === 'CREDIT_NOTE' ? 'Total a rembourser:' : 'TOTAL TTC'
   doc.text(cleanText(totalLabel), totalsX, currentY + 3)
@@ -613,7 +623,7 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
 
   // Texte du montant en lettres
   doc.setTextColor(...darkGray)
-  doc.setFont('helvetica', 'italic')
+  setDocFont(doc, 'normal')
   doc.setFontSize(9)
   const amountInWords = formatAmountInWords(Math.abs(displayTotal))
   const wordsLines = doc.splitTextToSize(cleanText(amountInWords), 170)
@@ -629,7 +639,7 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
     doc.rect(15, notesY, 180, 20, 'S')
 
     doc.setTextColor(...darkGray)
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setFontSize(9)
     const noteLines = doc.splitTextToSize(cleanText(data.notes), 170)
     doc.text(noteLines, 20, notesY + 8)
@@ -647,7 +657,7 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
   // Informations légales centrées
   doc.setTextColor(...darkGray)
   doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.text(cleanText('Siret pour votre confiance'), 105, pageHeight - 30, { align: 'center' })
   doc.text(cleanText('Conditions de paiement: 30 jours'), 105, pageHeight - 25, { align: 'center' })
 
@@ -676,7 +686,7 @@ function addWatermark(doc: jsPDF, watermarkText: string) {
   // Configurer le filigrane
   doc.setTextColor(200, 200, 200, 0.3) // Gris très clair avec transparence
   doc.setFontSize(60)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
 
   // Rotation de 45 degrés
   const angle = -45 * Math.PI / 180
@@ -816,12 +826,12 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   // Nom de l'entreprise
   doc.setTextColor(...(headerStyle === 'minimal' ? primaryColor : headerTextColor))
   doc.setFontSize(18)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text(cleanText(company.name), 45, 18)
 
   // Informations de contact
   doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(...(headerStyle === 'minimal' ? textColor : headerTextColor))
   let contactY = 25
   if (company.address) {
@@ -854,7 +864,7 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   // Texte du badge
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(14)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text(cleanText(title), badgeX + badgeWidth / 2, badgeY + 8, { align: 'center' })
 
   // Numéro et date dans un encadré élégant
@@ -865,17 +875,17 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
   doc.roundedRect(155, infoBoxY, 40, 15, 1, 1, 'FD')
 
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...primaryColor)
   doc.text(cleanText('N°'), 158, infoBoxY + 5)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(...textColor)
   doc.text(cleanText(data.documentNumber), 165, infoBoxY + 5)
 
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...primaryColor)
   doc.text(cleanText('Date'), 158, infoBoxY + 11)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(...textColor)
   doc.text(cleanText(data.date.toLocaleDateString('fr-FR')), 165, infoBoxY + 11)
 
@@ -892,7 +902,7 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
   // Titre "CLIENT"
   doc.setFontSize(10)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...primaryColor)
   doc.text(cleanText('INFORMATIONS CLIENT'), 22, clientY + 7)
 
@@ -903,12 +913,12 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
   // Informations du client
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...textColor)
   let yPos = clientY + 15
   doc.text(cleanText(data.customer.name), 22, yPos)
 
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
 
@@ -938,7 +948,7 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
   // Titre de la section
   doc.setFontSize(11)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...primaryColor)
   doc.text(cleanText('DÉTAIL DES PRESTATIONS'), 15, tableStartY - 5)
 
@@ -1004,25 +1014,25 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
   // Titre "MONTANTS"
   doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(255, 255, 255)
   doc.text(cleanText('MONTANTS'), 157.5, totalsY - 1, { align: 'center' })
 
   // Total HT
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(...textColor)
   doc.text(cleanText('Total HT'), 125, totalsY + 7)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...primaryColor)
   doc.text(`${data.totalAmount.toFixed(2)} DH`, 190, totalsY + 7, { align: 'right' })
 
   if (type === 'invoice') {
     // Payé
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setTextColor(...textColor)
     doc.text(cleanText('Payé'), 125, totalsY + 14)
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setTextColor(16, 185, 129) // Vert
     doc.text(`${data.paidAmount.toFixed(2)} DH`, 190, totalsY + 14, { align: 'right' })
 
@@ -1030,7 +1040,7 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
     doc.setFillColor(255, 250, 240)
     doc.roundedRect(120, totalsY + 18, 75, 10, 1, 1, 'F')
 
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setFontSize(10)
     doc.setTextColor(...accentColor)
     doc.text(cleanText('RESTE À PAYER'), 125, totalsY + 24)
@@ -1049,13 +1059,13 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
   // Titre
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...primaryColor)
   doc.text(cleanText('MONTANT EN LETTRES'), 20, amountInWordsY + 1)
 
   // Montant en lettres
   doc.setTextColor(...textColor)
-  doc.setFont('helvetica', 'italic')
+  setDocFont(doc, 'normal')
   doc.setFontSize(9)
   const amountInWords = formatAmountInWords(data.totalAmount)
   const wordsLines = doc.splitTextToSize(cleanText(amountInWords), 170)
@@ -1067,12 +1077,12 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
     doc.setFillColor(255, 250, 240)
     doc.roundedRect(15, paymentY - 3, 85, 10, 1, 1, 'F')
 
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setFontSize(8)
     doc.setTextColor(...accentColor)
     doc.text(cleanText('MODE DE PAIEMENT'), 20, paymentY + 2)
 
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setTextColor(...textColor)
     const paymentMethodLabel = getPaymentMethodLabel(data.paymentMethod)
     doc.text(cleanText(paymentMethodLabel), 20, paymentY + 6)
@@ -1085,11 +1095,11 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
     doc.roundedRect(15, currentY - 3, 180, 15, 2, 2, 'F')
 
     doc.setFontSize(9)
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setTextColor(...accentColor)
     doc.text(cleanText('NOTES'), 20, currentY + 2)
 
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setTextColor(...textColor)
     doc.setFontSize(8)
     const splitNotes = doc.splitTextToSize(cleanText(data.notes), 170)
@@ -1115,12 +1125,12 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
       // Titre
       doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
+      setDocFont(doc, 'bold')
       doc.setTextColor(...sectionColor)
       doc.text(cleanText('VALIDITÉ DU DEVIS'), 23, currentY + 3)
 
       // Texte de validité
-      doc.setFont('helvetica', 'normal')
+      setDocFont(doc, 'normal')
       doc.setFontSize(8)
       doc.setTextColor(...textColor)
       const splitValidity = doc.splitTextToSize(cleanText(designSettings.validityPeriodText), 165)
@@ -1144,12 +1154,12 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
       // Titre
       doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
+      setDocFont(doc, 'bold')
       doc.setTextColor(...accentColor)
       doc.text(cleanText('CONDITIONS GÉNÉRALES'), 23, currentY + 3)
 
       // Texte des conditions
-      doc.setFont('helvetica', 'normal')
+      setDocFont(doc, 'normal')
       doc.setFontSize(8)
       doc.setTextColor(...textColor)
       const splitTerms = doc.splitTextToSize(cleanText(designSettings.termsAndConditionsText), 165)
@@ -1169,13 +1179,13 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
 
   // Message de remerciement
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...primaryColor)
   doc.text(cleanText('Merci pour votre confiance !'), 105, footerY, { align: 'center' })
 
   // Informations de contact
   doc.setFontSize(7)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(100, 100, 100)
   const footerParts = []
   if (company.name) footerParts.push(company.name)
@@ -1264,7 +1274,7 @@ function generateSimpleQuotePDF(
       doc.circle(margin + 7.5, yPos + 2.5, 7.5, 'F')
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
+      setDocFont(doc, 'bold')
       const initial = company.name ? company.name.charAt(0).toUpperCase() : 'D'
       doc.text(initial, margin + 7.5, yPos + 4.5, { align: 'center' })
     }
@@ -1274,7 +1284,7 @@ function generateSimpleQuotePDF(
     doc.circle(margin + 7.5, yPos + 2.5, 7.5, 'F')
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(12)
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     const initial = company.name ? company.name.charAt(0).toUpperCase() : 'D'
     doc.text(initial, margin + 7.5, yPos + 4.5, { align: 'center' })
   }
@@ -1282,13 +1292,13 @@ function generateSimpleQuotePDF(
   // Nom de l'entreprise en bleu
   doc.setTextColor(...primaryColor)
   doc.setFontSize(14)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text(cleanText(company.name || 'Société de test'), margin + 20, yPos)
 
   // Informations entreprise en gris
   doc.setTextColor(100, 100, 100)
   doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   yPos += 5
   if (company.address) {
     const addressLines = company.address.split('\n')
@@ -1306,13 +1316,13 @@ function generateSimpleQuotePDF(
   // "DEVIS" en gros à droite
   doc.setTextColor(...primaryColor)
   doc.setFontSize(24)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text('DEVIS', pageWidth - margin, 20, { align: 'right' })
 
   // Numéro de devis encadré
   const quoteNumber = data.invoiceNumber || 'DEV-20251007-0001'
   doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   const quoteNumWidth = doc.getTextWidth(quoteNumber) + 8
   doc.setDrawColor(...primaryColor)
   doc.setLineWidth(0.5)
@@ -1338,12 +1348,12 @@ function generateSimpleQuotePDF(
   // Colonne Client
   doc.setTextColor(...primaryColor)
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text('Client:', margin + 3, yPos)
 
   doc.setTextColor(...textColor)
   doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   yPos += 5
   doc.text(cleanText(data.customer.name || 'Ahmed'), margin + 3, yPos)
 
@@ -1351,12 +1361,12 @@ function generateSimpleQuotePDF(
   let infoY = yPos - 5
   doc.setTextColor(...primaryColor)
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text('Informations:', margin + colWidth + 8, infoY)
 
   doc.setTextColor(...textColor)
   doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   infoY += 5
 
   const quoteDate = data.date ? new Date(data.date).toLocaleDateString('fr-FR') : '07/10/2025'
@@ -1442,13 +1452,13 @@ function generateSimpleQuotePDF(
 
   // Sous-total
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(...textColor)
   doc.text('Sous-total', totalBoxX + 3, totalBoxY + 6)
   doc.text(`${data.totalAmount.toFixed(2)} MAD`, totalBoxX + totalBoxWidth - 3, totalBoxY + 6, { align: 'right' })
 
   // TOTAL en gras
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setFontSize(10)
   doc.setTextColor(...secondaryColor)
   doc.text('TOTAL', totalBoxX + 3, totalBoxY + 14)
@@ -1458,12 +1468,12 @@ function generateSimpleQuotePDF(
   yPos = totalBoxY + totalBoxHeight + 10
 
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setTextColor(...primaryColor)
   doc.text('Conditions de vente:', margin, yPos)
 
   doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.setTextColor(...textColor)
   yPos += 5
 
@@ -1494,13 +1504,13 @@ function generateSimpleQuotePDF(
   // Icône warning
   doc.setTextColor(255, 152, 0) // Orange
   doc.setFontSize(10)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.text('⚠', margin + 3, yPos + 3)
 
   // Texte de validité
   doc.setTextColor(100, 100, 100)
   doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
   doc.text(cleanText(validityText), margin + 10, yPos + 3)
 
   // === SIGNATURES ===
@@ -1543,7 +1553,7 @@ function generateSimpleQuotePDF(
   // Texte du footer
   doc.setFontSize(7)
   doc.setTextColor(150, 150, 150)
-  doc.setFont('helvetica', 'normal')
+  setDocFont(doc, 'normal')
 
   // Nom de l'entreprise à gauche
   doc.text(cleanText(company.name || 'Alami Gestion'), margin, footerY)
