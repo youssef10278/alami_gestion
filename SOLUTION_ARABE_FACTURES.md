@@ -53,7 +53,36 @@ Remplacement de **TOUS** les appels `doc.setFont('helvetica', ...)` par `setDocF
 - ✅ `addCompanyLogo()` - Ajout du logo de l'entreprise
 - ✅ `addWatermark()` - Ajout du filigrane
 
-### 3. Exemple de Changement
+### 3. Configuration de la Police dans les Tableaux `autoTable`
+
+**IMPORTANT** : Les tableaux générés par `jspdf-autotable` ont leurs propres paramètres de police.
+
+Ajout du paramètre `font: arabicFontLoaded ? amiriFontName : 'helvetica'` dans :
+
+- ✅ `headStyles` - En-têtes des tableaux
+- ✅ `bodyStyles` ou `styles` - Corps des tableaux
+
+**Exemple** :
+```typescript
+autoTable(doc, {
+  // ...
+  headStyles: {
+    fillColor: tableHeaderColor,
+    fontSize: 10,
+    font: arabicFontLoaded ? amiriFontName : 'helvetica'  // ← AJOUTÉ
+  },
+  bodyStyles: {
+    fontSize: 9,
+    font: arabicFontLoaded ? amiriFontName : 'helvetica'  // ← AJOUTÉ
+  }
+})
+```
+
+Cela garantit que **les noms de produits en arabe** dans les tableaux s'affichent correctement.
+
+### 4. Exemples de Changements
+
+#### Exemple 1 : Texte Normal
 
 **Avant** :
 ```typescript
@@ -65,6 +94,30 @@ doc.text(cleanText(data.customer.name), 20, clientSectionY + 22)
 ```typescript
 setDocFont(doc, 'bold')
 doc.text(cleanText(data.customer.name), 20, clientSectionY + 22)
+```
+
+#### Exemple 2 : Tableaux
+
+**Avant** :
+```typescript
+autoTable(doc, {
+  headStyles: {
+    fontSize: 10,
+    fontStyle: 'bold'
+    // Pas de paramètre 'font' → utilise Helvetica par défaut
+  }
+})
+```
+
+**Après** :
+```typescript
+autoTable(doc, {
+  headStyles: {
+    fontSize: 10,
+    fontStyle: 'bold',
+    font: arabicFontLoaded ? amiriFontName : 'helvetica'  // ← AJOUTÉ
+  }
+})
 ```
 
 ## 🎯 Résultat

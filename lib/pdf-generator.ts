@@ -547,14 +547,16 @@ export async function generateManualInvoicePDF(data: ManualInvoiceData, companyI
       fontSize: 10,
       fontStyle: 'bold',
       halign: 'center',
-      cellPadding: 6
+      cellPadding: 6,
+      font: arabicFontLoaded ? amiriFontName : 'helvetica'
     },
     bodyStyles: {
       fontSize: 9,
       textColor: darkGray,
       cellPadding: 3,
       lineColor: [200, 200, 200],
-      lineWidth: 0.5
+      lineWidth: 0.5,
+      font: arabicFontLoaded ? amiriFontName : 'helvetica'
     },
     alternateRowStyles: {
       fillColor: [249, 249, 249]
@@ -978,12 +980,14 @@ export async function generateInvoicePDF(data: InvoiceData, type: 'invoice' | 'q
       fontSize: 9,
       halign: 'center',
       cellPadding: 4,
+      font: arabicFontLoaded ? amiriFontName : 'helvetica'
     },
     styles: {
       fontSize: 9,
       cellPadding: 3,
       lineColor: [220, 220, 220],
       lineWidth: 0.1,
+      font: arabicFontLoaded ? amiriFontName : 'helvetica'
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252]
@@ -1414,13 +1418,15 @@ function generateSimpleQuotePDF(
       fontSize: 8,
       halign: 'center',
       lineWidth: 0.5,
-      lineColor: [200, 200, 200]
+      lineColor: [200, 200, 200],
+      font: arabicFontLoaded ? amiriFontName : 'helvetica'
     },
     bodyStyles: {
       fontSize: 8,
       textColor: textColor,
       lineWidth: 0.5,
-      lineColor: [200, 200, 200]
+      lineColor: [200, 200, 200],
+      font: arabicFontLoaded ? amiriFontName : 'helvetica'
     },
     columnStyles: {
       0: { cellWidth: 60, halign: 'left' },
