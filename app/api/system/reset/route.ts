@@ -48,6 +48,8 @@ export async function POST(request: NextRequest) {
         products: 0,
         categories: 0,
         customers: 0,
+        expenses: 0,
+        expenseCategories: 0,
         users: 0,
         companySettings: 0
       }
@@ -116,7 +118,15 @@ export async function POST(request: NextRequest) {
       const deletedCustomers = await tx.customer.deleteMany({})
       deletionResults.customers = deletedCustomers.count
 
-      // 17. Supprimer les utilisateurs (sauf l'utilisateur actuel si demandé)
+      // 17. Supprimer les dépenses
+      const deletedExpenses = await tx.expense.deleteMany({})
+      deletionResults.expenses = deletedExpenses.count
+
+      // 18. Supprimer les catégories de dépenses
+      const deletedExpenseCategories = await tx.expenseCategory.deleteMany({})
+      deletionResults.expenseCategories = deletedExpenseCategories.count
+
+      // 19. Supprimer les utilisateurs (sauf l'utilisateur actuel si demandé)
       if (keepCurrentUser) {
         const deletedUsers = await tx.user.deleteMany({
           where: {
@@ -131,7 +141,7 @@ export async function POST(request: NextRequest) {
         deletionResults.users = deletedUsers.count
       }
 
-      // 18. Réinitialiser les paramètres de l'entreprise
+      // 20. Réinitialiser les paramètres de l'entreprise
       const deletedCompanySettings = await tx.companySettings.deleteMany({})
       deletionResults.companySettings = deletedCompanySettings.count
 
@@ -213,7 +223,9 @@ export async function GET() {
         invoicesCount,
         quotesCount,
         stockMovementsCount,
-        documentsCount
+        documentsCount,
+        expensesCount,
+        expenseCategoriesCount
       ] = await Promise.all([
         tx.user.count(),
         tx.category.count(),
@@ -224,7 +236,9 @@ export async function GET() {
         tx.invoice.count(),
         tx.quote.count(),
         tx.stockMovement.count(),
-        tx.document.count()
+        tx.document.count(),
+        tx.expense.count(),
+        tx.expenseCategory.count()
       ])
 
       return {
@@ -237,7 +251,9 @@ export async function GET() {
         invoices: invoicesCount,
         quotes: quotesCount,
         stockMovements: stockMovementsCount,
-        documents: documentsCount
+        documents: documentsCount,
+        expenses: expensesCount,
+        expenseCategories: expenseCategoriesCount
       }
     })
 

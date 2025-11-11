@@ -7,11 +7,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
-import { 
-  AlertTriangle, 
-  Database, 
-  Trash2, 
-  RefreshCw, 
+import {
+  AlertTriangle,
+  Database,
+  Trash2,
+  RefreshCw,
   Shield,
   Users,
   Package,
@@ -20,7 +20,9 @@ import {
   TrendingUp,
   Loader2,
   CheckCircle,
-  XCircle
+  XCircle,
+  Receipt,
+  Tag
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -35,6 +37,8 @@ interface SystemStats {
   quotes: number
   stockMovements: number
   documents: number
+  expenses: number
+  expenseCategories: number
 }
 
 interface SystemInfo {
@@ -132,7 +136,9 @@ export default function SystemReset() {
       invoices: FileText,
       quotes: FileText,
       stockMovements: TrendingUp,
-      documents: FileText
+      documents: FileText,
+      expenses: Receipt,
+      expenseCategories: Tag
     }
     return icons[key] || Database
   }
@@ -148,7 +154,9 @@ export default function SystemReset() {
       invoices: 'Factures',
       quotes: 'Devis',
       stockMovements: 'Mouvements Stock',
-      documents: 'Documents'
+      documents: 'Documents',
+      expenses: 'Dépenses',
+      expenseCategories: 'Catégories Dépenses'
     }
     return labels[key] || key
   }
@@ -220,6 +228,7 @@ export default function SystemReset() {
                 <ul className="text-sm text-red-700 mt-2 space-y-1">
                   <li>• Toutes les ventes, factures et devis seront supprimés</li>
                   <li>• Tous les produits, clients et fournisseurs seront effacés</li>
+                  <li>• Toutes les dépenses et leurs catégories seront supprimées</li>
                   <li>• L'historique des mouvements de stock sera perdu</li>
                   <li>• Les documents générés seront supprimés</li>
                   <li>• Cette action ne peut pas être annulée</li>

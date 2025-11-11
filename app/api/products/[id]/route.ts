@@ -182,11 +182,11 @@ export async function DELETE(
     })
 
     return NextResponse.json({ success: true, product })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Delete product error:', error)
 
     // Gestion spécifique de l'erreur P2025 (enregistrement non trouvé)
-    if (error.code === 'P2025') {
+    if (error?.code === 'P2025') {
       return NextResponse.json(
         { error: 'Produit non trouvé ou déjà supprimé' },
         { status: 404 }

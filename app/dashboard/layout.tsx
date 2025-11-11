@@ -3,7 +3,6 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import DashboardWrapper from '@/components/dashboard/DashboardLayout'
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
-import ProductsPreloader from '@/components/ProductsPreloader'
 
 export default async function DashboardLayout({
   children,
@@ -36,7 +35,6 @@ export default async function DashboardLayout({
         {children}
       </DashboardWrapper>
       <InstallPrompt />
-      <ProductsPreloader />
     </>
   )
 }

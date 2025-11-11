@@ -162,7 +162,7 @@ export default function NewCreditNotePageSecure() {
   const loadProducts = async (): Promise<SafeProduct[]> => {
     try {
       console.log('🔄 Chargement sécurisé des produits...')
-      const response = await fetch('/api/products/fast?limit=all&cache=true')
+      const response = await fetch('/api/products?limit=1000')
       
       if (!response.ok) {
         console.error('❌ Erreur API produits:', response.status)

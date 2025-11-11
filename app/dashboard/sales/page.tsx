@@ -24,7 +24,6 @@ import {
 
 import { toast } from 'sonner'
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner'
-import { useProductsCache } from '@/hooks/useProductsCache'
 import DeliveryNoteButton from '@/components/sales/DeliveryNoteButton'
 import { Scan } from 'lucide-react'
 import { safeToFixed, safeNumber } from '@/lib/utils'
@@ -55,15 +54,9 @@ interface CartItem {
 }
 
 export default function SalesPage() {
-  // ✅ OPTIMISATION: Utilisation du cache des produits
-  const {
-    products,
-    loading: loadingProducts,
-    error: productsError,
-    cacheAge,
-    updateProductStock,
-    refresh: refreshProducts
-  } = useProductsCache()
+  // État des produits (sans cache)
+  const [products, setProducts] = useState<Product[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
 
   const [customers, setCustomers] = useState<Customer[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
@@ -120,9 +113,25 @@ export default function SalesPage() {
   })
 
   useEffect(() => {
-    // ✅ OPTIMISATION: Plus besoin de fetchProducts, géré par useProductsCache
+    fetchProducts()
     fetchCustomers()
   }, [])
+
+  const fetchProducts = async () => {
+    try {
+      setLoadingProducts(true)
+      const response = await fetch('/api/products?limit=1000')
+      if (response.ok) {
+        const data = await response.json()
+        setProducts(data.products || [])
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      toast.error('Erreur lors du chargement des produits')
+    } finally {
+      setLoadingProducts(false)
+    }
+  }
 
   const fetchCustomers = async () => {
     try {
@@ -631,12 +640,18 @@ export default function SalesPage() {
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
 
-      // ✅ OPTIMISATION: Mise à jour intelligente du stock sans recharger tous les produits
-      cart.forEach(item => {
-        const newStock = item.product.stock - item.quantity
-        updateProductStock(item.product.id, newStock)
-        console.log(`📦 Stock mis à jour: ${item.product.name} ${item.product.stock} → ${newStock}`)
-      })
+      // Mettre à jour le stock localement
+      setProducts(prevProducts =>
+        prevProducts.map(p => {
+          const cartItem = cart.find(item => item.product.id === p.id)
+          if (cartItem) {
+            const newStock = p.stock - cartItem.quantity
+            console.log(`📦 Stock mis à jour: ${p.name} ${p.stock} → ${newStock}`)
+            return { ...p, stock: newStock }
+          }
+          return p
+        })
+      )
 
       // Rafraîchir seulement les clients
       fetchCustomers()
@@ -733,47 +748,6 @@ export default function SalesPage() {
                   </div>
                 </div>
               )}
-
-              {/* Indicateur d'erreur */}
-              {productsError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="text-red-500">❌</div>
-                    <div>
-                      <h3 className="font-medium text-red-800">Erreur de chargement des produits</h3>
-                      <p className="text-sm text-red-600 mt-1">{productsError}</p>
-                      <button
-                        onClick={refreshProducts}
-                        className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200"
-                      >
-                        Réessayer
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Indicateur de cache */}
-              {!loadingProducts && !productsError && cacheAge > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-green-700">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium">
-                        ⚡ Chargement ultra-rapide (cache: {Math.round(cacheAge / 60)}min)
-                      </span>
-                    </div>
-                    <button
-                      onClick={refreshProducts}
-                      className="text-xs text-green-600 hover:text-green-800 underline"
-                    >
-                      Actualiser
-                    </button>
-                  </div>
-                </div>
-              )}
-
-
 
               {/* Recherche et Scanner - Design amélioré */}
               {!loadingProducts && (
