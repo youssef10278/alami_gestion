@@ -771,7 +771,6 @@ export default function SalesPage() {
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-sm font-medium">
                       {products.length} produits disponibles
-                      {cacheAge > 0 && ` (cache: ${Math.round(cacheAge / 60)}min)`}
                     </span>
                   </div>
                   {filteredProducts.length !== products.length && (

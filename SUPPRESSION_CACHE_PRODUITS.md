@@ -88,6 +88,7 @@ const fetchProducts = async () => {
 - ✅ Ajout de `fetchProducts()` pour charger depuis l'API standard
 - ✅ Mise à jour locale du stock après vente (au lieu de `updateProductStock`)
 - ✅ Suppression des indicateurs de cache et d'erreur
+- ✅ Suppression de l'affichage de l'âge du cache (`cacheAge`)
 
 ---
 
