@@ -230,11 +230,10 @@ function getImageFormat(base64: string): 'PNG' | 'JPEG' | 'GIF' | 'WEBP' {
   return 'PNG'
 }
 
-// Fonction pour nettoyer le texte et éviter les erreurs d'encodage
+// Fonction pour nettoyer le texte (SANS supprimer les caractères arabes)
 function cleanText(text: string): string {
   if (!text) return ''
   return text
-    .replace(/[^\x00-\x7F]/g, '') // Supprimer les caractères non-ASCII
     .replace(/[""]/g, '"')        // Remplacer les guillemets courbes
     .replace(/['']/g, "'")        // Remplacer les apostrophes courbes
     .replace(/[–—]/g, '-')        // Remplacer les tirets longs
