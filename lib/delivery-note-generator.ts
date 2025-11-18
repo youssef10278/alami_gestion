@@ -1,6 +1,36 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { getCompanySettings } from '@/lib/company-settings'
+import { amiriFont, amiriFontName } from './fonts/amiri-font'
+
+// Variable globale pour tracker si la police arabe est chargée
+let arabicFontLoaded = false
+
+// Configuration pour le support UTF-8 et caractères arabes
+function setupPDFFont(doc: jsPDF) {
+  try {
+    // Ajouter la police arabe Amiri
+    doc.addFileToVFS('Amiri-Regular.ttf', amiriFont)
+    doc.addFont('Amiri-Regular.ttf', amiriFontName, 'normal')
+    doc.setFont(amiriFontName, 'normal')
+    arabicFontLoaded = true
+    console.log('✅ Police arabe Amiri chargée avec succès pour bon de livraison')
+  } catch (error) {
+    console.warn('⚠️ Erreur lors du chargement de la police arabe, utilisation de Helvetica:', error)
+    doc.setFont('helvetica', 'normal')
+    arabicFontLoaded = false
+  }
+}
+
+// Fonction helper pour définir la police (Amiri si arabe chargé, sinon Helvetica)
+function setDocFont(doc: jsPDF, style: 'normal' | 'bold' = 'normal') {
+  if (arabicFontLoaded) {
+    // Amiri ne supporte que le style 'normal', on utilise toujours 'normal'
+    doc.setFont(amiriFontName, 'normal')
+  } else {
+    doc.setFont('helvetica', style)
+  }
+}
 
 // Types pour les paramètres de l'entreprise
 interface CompanyInfo {
@@ -155,7 +185,7 @@ async function createFallbackLogo(doc: jsPDF, initial: string, x: number, y: num
 
   // Texte de l'initiale
   doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
+  setDocFont(doc, 'bold')
   doc.setFontSize(size * 0.6)
   doc.text(initial, x, y + size * 0.15, { align: 'center' })
 
@@ -259,6 +289,10 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
     })
 
     const doc = new jsPDF()
+
+    // Configurer la police pour le support UTF-8 et arabe
+    setupPDFFont(doc)
+
     const pageWidth = doc.internal.pageSize.width
     const pageHeight = doc.internal.pageSize.height
     let currentY = 20
@@ -333,7 +367,7 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
 
     // Titre "BON DE LIVRAISON" à droite avec style amélioré
     doc.setTextColor(...darkGray)
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setFontSize(20)
     doc.text('BON DE LIVRAISON', pageWidth - 20, 25, { align: 'right' })
 
@@ -343,7 +377,7 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
     doc.line(pageWidth - 120, 30, pageWidth - 20, 30)
 
     // Numéro et date avec style amélioré
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setFontSize(11)
     doc.setTextColor(...darkGray)
     doc.text(`N° ${data.saleNumber}`, pageWidth - 20, 40, { align: 'right' })
@@ -353,12 +387,12 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
 
     // === INFORMATIONS ENTREPRISE (gauche) ===
     doc.setTextColor(...darkGray)
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setFontSize(11)
     doc.text(cleanText(company.name), 15, currentY)
-    
+
     currentY += 6
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setFontSize(9)
 
     if (company.address) {
@@ -390,38 +424,38 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
 
     // Informations générales (gauche)
     doc.setTextColor(...darkGray)
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setFontSize(11)
     doc.text('Informations générales', leftColumnX, currentY)
 
     let leftY = currentY + 8
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setFontSize(9)
-    
-    doc.setFont('helvetica', 'bold')
+
+    setDocFont(doc, 'bold')
     doc.text('Type:', leftColumnX, leftY)
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.text('Sortie', leftColumnX + 20, leftY)
     leftY += 6
 
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.text('Date:', leftColumnX, leftY)
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.text(data.createdAt.toLocaleDateString('fr-FR'), leftColumnX + 20, leftY)
     leftY += 6
 
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.text('Statut:', leftColumnX, leftY)
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.text('Confirmé', leftColumnX + 20, leftY)
 
     // Client (droite)
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setFontSize(11)
     doc.text('Client', rightColumnX, currentY)
 
     let rightY = currentY + 8
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setFontSize(9)
     doc.text(cleanText(data.customerName), rightColumnX, rightY)
     
@@ -438,7 +472,7 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
     currentY += 50
 
     // === TABLEAU ARTICLES ===
-    doc.setFont('helvetica', 'bold')
+    setDocFont(doc, 'bold')
     doc.setFontSize(11)
     doc.text('Articles', 15, currentY)
     currentY += 10
@@ -472,11 +506,16 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
         fillColor: [240, 240, 240],
         textColor: [64, 64, 64],
         fontSize: 10,
-        fontStyle: 'bold'
+        fontStyle: 'bold',
+        font: arabicFontLoaded ? amiriFontName : 'helvetica'
       },
       bodyStyles: {
         fontSize: 9,
-        textColor: [64, 64, 64]
+        textColor: [64, 64, 64],
+        font: arabicFontLoaded ? amiriFontName : 'helvetica'
+      },
+      styles: {
+        font: arabicFontLoaded ? amiriFontName : 'helvetica'
       },
       columnStyles: {
         0: { cellWidth: 80 },
@@ -492,23 +531,23 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
 
     // === NOTES ===
     if (data.notes) {
-      doc.setFont('helvetica', 'bold')
+      setDocFont(doc, 'bold')
       doc.setFontSize(11)
       doc.text('Notes', 15, currentY)
       currentY += 8
 
-      doc.setFont('helvetica', 'normal')
+      setDocFont(doc, 'normal')
       doc.setFontSize(9)
       const notesLines = doc.splitTextToSize(cleanText(data.notes), pageWidth - 30)
       doc.text(notesLines, 15, currentY)
       currentY += notesLines.length * 5 + 10
     } else {
-      doc.setFont('helvetica', 'bold')
+      setDocFont(doc, 'bold')
       doc.setFontSize(11)
       doc.text('Notes', 15, currentY)
       currentY += 8
 
-      doc.setFont('helvetica', 'normal')
+      setDocFont(doc, 'normal')
       doc.setFontSize(9)
       doc.text('Livraison urgente', 15, currentY)
       currentY += 20
@@ -516,21 +555,21 @@ export async function generateDeliveryNotePDF(data: DeliveryNoteData): Promise<U
 
     // === SIGNATURES ===
     const signatureY = Math.max(currentY, pageHeight - 60)
-    
+
     // Signature Client
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setFontSize(9)
     doc.text('Signature Client', 40, signatureY)
-    
+
     // Signature Responsable
     doc.text('Signature Responsable', 140, signatureY)
 
     // === FOOTER ===
     const footerY = pageHeight - 20
     doc.setTextColor(...lightGray)
-    doc.setFont('helvetica', 'normal')
+    setDocFont(doc, 'normal')
     doc.setFontSize(8)
-    doc.text(`Document généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 
+    doc.text(`Document généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`,
              pageWidth / 2, footerY, { align: 'center' })
 
     console.log('✅ PDF généré avec succès')
