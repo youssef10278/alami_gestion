@@ -186,18 +186,26 @@ export default function DeliveryNoteButton({
         }
 
       } else {
-        // MÉTHODE 2 : Upload Cloudinary + Lien WhatsApp (Desktop)
+        // MÉTHODE 2 : Téléchargement + Message WhatsApp (Desktop)
 
-        // Upload le PDF sur Cloudinary
-        const uploadResponse = await fetch(`/api/sales/${saleId}/delivery-note/share`, {
-          method: 'POST'
-        })
+        // Générer le PDF
+        const response = await fetch(`/api/sales/${saleId}/delivery-note`)
 
-        if (!uploadResponse.ok) {
-          throw new Error('Erreur lors de l\'upload du PDF')
+        if (!response.ok) {
+          throw new Error('Erreur lors de la génération du PDF')
         }
 
-        const { url: pdfUrl, publicId } = await uploadResponse.json()
+        const blob = await response.blob()
+
+        // Créer un lien de téléchargement temporaire
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `bon-livraison-${saleNumber}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
 
         // Marquer comme généré
         setGenerated(true)
@@ -206,8 +214,8 @@ export default function DeliveryNoteButton({
         // Nettoyer le numéro de téléphone
         const cleanPhone = customerPhone.replace(/[\s\-\(\)]/g, '')
 
-        // Créer le message WhatsApp avec le lien
-        const message = `Bonjour ${customerName || 'cher client'},\n\nVoici votre bon de livraison N° ${saleNumber} :\n\n${pdfUrl}\n\nMerci pour votre confiance !`
+        // Créer le message WhatsApp
+        const message = `Bonjour ${customerName || 'cher client'},\n\nVoici votre bon de livraison N° ${saleNumber}.\n\nLe fichier PDF a été téléchargé sur votre ordinateur. Veuillez le joindre manuellement à ce message.\n\nMerci pour votre confiance !`
 
         // Encoder le message pour l'URL
         const encodedMessage = encodeURIComponent(message)
@@ -218,10 +226,7 @@ export default function DeliveryNoteButton({
         // Ouvrir WhatsApp
         window.open(whatsappUrl, '_blank')
 
-        toast.success('Lien du bon de livraison envoyé sur WhatsApp !')
-
-        // Optionnel : Supprimer le PDF de Cloudinary après 24h
-        // (vous pouvez implémenter un cron job pour nettoyer les vieux fichiers)
+        toast.success('PDF téléchargé ! WhatsApp ouvert - veuillez joindre le fichier manuellement')
       }
 
     } catch (error) {

@@ -62,14 +62,21 @@ export async function uploadPDF(
   folder: string = 'alami-gestion/delivery-notes'
 ): Promise<{ url: string; publicId: string }> {
   try {
-    // Upload vers Cloudinary
+    // Convertir le buffer en base64 data URL
+    const base64 = buffer.toString('base64')
+    const dataUrl = `data:application/pdf;base64,${base64}`
+
+    // Upload vers Cloudinary avec data URL
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
+      cloudinary.uploader.upload(
+        dataUrl,
         {
           folder,
-          resource_type: 'raw', // Pour les fichiers non-image (PDF, etc.)
+          resource_type: 'raw',
           public_id: filename.replace('.pdf', ''),
-          format: 'pdf'
+          format: 'pdf',
+          type: 'upload',
+          access_mode: 'public'
         },
         (error, result) => {
           if (error) {
@@ -84,7 +91,7 @@ export async function uploadPDF(
             reject(new Error('Upload failed: no result'))
           }
         }
-      ).end(buffer)
+      )
     })
   } catch (error) {
     console.error('Error uploading PDF to Cloudinary:', error)
