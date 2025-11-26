@@ -239,7 +239,7 @@ export default function DeliveryNoteButton({
 
   if (generated) {
     return (
-      <div className={`flex gap-2 ${className}`}>
+      <div className={`flex flex-wrap gap-2 ${className}`}>
         <Button
           variant="outline"
           size="sm"
@@ -247,8 +247,8 @@ export default function DeliveryNoteButton({
           disabled={isGenerating}
           className="text-green-600 border-green-200 hover:bg-green-50"
         >
-          <Download className="w-4 h-4 mr-2" />
-          Télécharger BL
+          <Download className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Télécharger BL</span>
         </Button>
 
         <Button
@@ -258,8 +258,8 @@ export default function DeliveryNoteButton({
           disabled={isGenerating}
           className="text-blue-600 border-blue-200 hover:bg-blue-50"
         >
-          <Printer className="w-4 h-4 mr-2" />
-          Imprimer BL
+          <Printer className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Imprimer BL</span>
         </Button>
 
         {customerPhone && (
@@ -271,21 +271,22 @@ export default function DeliveryNoteButton({
             className="text-green-600 border-green-200 hover:bg-green-50"
             title="Partager sur WhatsApp"
           >
-            <Share2 className="w-4 h-4 mr-2" />
-            WhatsApp
+            <Share2 className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">WhatsApp</span>
           </Button>
         )}
 
-        <div className="flex items-center text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
-          <Check className="w-4 h-4 mr-1" />
-          BL généré
+        <div className="flex items-center text-xs sm:text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
+          <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+          <span className="hidden sm:inline">BL généré</span>
+          <span className="sm:hidden">✓</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`flex gap-2 ${className}`}>
+    <div className={`flex flex-wrap gap-2 ${className}`}>
       <Button
         onClick={handleGenerateDeliveryNote}
         disabled={isGenerating}
@@ -294,13 +295,14 @@ export default function DeliveryNoteButton({
       >
         {isGenerating ? (
           <>
-            <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            Génération...
+            <div className="w-4 h-4 sm:mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <span className="hidden sm:inline">Génération...</span>
           </>
         ) : (
           <>
-            <Truck className="w-4 h-4 mr-2" />
-            Générer Bon de Livraison
+            <Truck className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Générer Bon de Livraison</span>
+            <span className="sm:hidden">BL</span>
           </>
         )}
       </Button>
@@ -312,8 +314,8 @@ export default function DeliveryNoteButton({
         size="sm"
         className="text-orange-600 border-orange-200 hover:bg-orange-50"
       >
-        <Printer className="w-4 h-4 mr-2" />
-        Imprimer BL
+        <Printer className="w-4 h-4 sm:mr-2" />
+        <span className="hidden sm:inline">Imprimer BL</span>
       </Button>
 
       {customerPhone && (
@@ -325,8 +327,8 @@ export default function DeliveryNoteButton({
           className="text-green-600 border-green-200 hover:bg-green-50"
           title="Partager sur WhatsApp"
         >
-          <Share2 className="w-4 h-4 mr-2" />
-          WhatsApp
+          <Share2 className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">WhatsApp</span>
         </Button>
       )}
     </div>

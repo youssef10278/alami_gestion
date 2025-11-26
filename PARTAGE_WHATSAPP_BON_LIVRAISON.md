@@ -38,22 +38,23 @@ Le système détecte automatiquement l'appareil et utilise la meilleure méthode
 - ✅ **Interface native** - Utilise le menu de partage du téléphone
 - ✅ **Expérience fluide** - Partage en 2 clics
 
-#### **💻 MÉTHODE 2 : Cloudinary + Lien WhatsApp (Desktop)**
+#### **💻 MÉTHODE 2 : Téléchargement Automatique + WhatsApp (Desktop)**
 
 **Détection automatique** : Si l'utilisateur est sur ordinateur
 
 **Processus** :
 1. ✅ Génère le PDF du bon de livraison
-2. ✅ Upload le PDF sur Cloudinary (stockage temporaire)
-3. ✅ Récupère un lien public vers le PDF
-4. ✅ Crée un message WhatsApp avec le lien du PDF
-5. ✅ Ouvre WhatsApp Web avec le message pré-rempli
-6. ✅ L'utilisateur envoie le message avec le lien
+2. ✅ **Télécharge automatiquement** le PDF sur l'ordinateur
+3. ✅ Crée un message WhatsApp avec instructions
+4. ✅ Ouvre WhatsApp Web avec le message pré-rempli
+5. ✅ L'utilisateur joint manuellement le fichier téléchargé
+6. ✅ L'utilisateur envoie le message
 
 **Avantages** :
-- ✅ **Lien direct** - Le client clique et télécharge le PDF
-- ✅ **Pas de téléchargement manuel** - Tout est automatique
-- ✅ **Compatible desktop** - Fonctionne sur ordinateur
+- ✅ **Téléchargement automatique** - Le PDF est prêt à être joint
+- ✅ **Pas de service externe** - Pas de dépendance Cloudinary
+- ✅ **Compatible desktop** - Fonctionne sur tous les navigateurs
+- ✅ **Fichier local** - Disponible sur l'ordinateur
 
 ---
 

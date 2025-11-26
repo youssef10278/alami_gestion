@@ -789,34 +789,39 @@ export default function SalesHistoryPage() {
                 </div>
 
                 {/* Actions - Responsive */}
-                <div className="flex flex-wrap gap-2 pt-3 border-t">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedSale(sale)}
-                    className="flex-1 min-w-[60px] text-xs sm:text-sm"
-                  >
-                    <Eye className="w-4 h-4 mr-1 sm:mr-2" />
-                    <span className="hidden sm:inline">Voir</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingSale(sale)}
-                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-2"
-                    title="Modifier"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => printReceipt(sale)}
-                    className="p-2"
-                    title="Imprimer"
-                  >
-                    <Printer className="w-4 h-4" />
-                  </Button>
+                <div className="pt-3 border-t space-y-2">
+                  {/* Première ligne - Actions principales */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedSale(sale)}
+                      className="flex-1 text-xs sm:text-sm"
+                    >
+                      <Eye className="w-4 h-4 mr-1 sm:mr-2" />
+                      Voir
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingSale(sale)}
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3"
+                      title="Modifier"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => printReceipt(sale)}
+                      className="px-3"
+                      title="Imprimer reçu"
+                    >
+                      <Printer className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Deuxième ligne - Bon de livraison (si disponible) */}
                   {sale.status !== 'CANCELLED' && (
                     <DeliveryNoteButton
                       saleId={sale.id}
@@ -824,7 +829,7 @@ export default function SalesHistoryPage() {
                       isGenerated={sale.deliveryNoteGenerated}
                       customerPhone={sale.customer?.phone}
                       customerName={sale.customer?.name}
-                      className="p-2"
+                      className="w-full"
                     />
                   )}
                 </div>
