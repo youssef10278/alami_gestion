@@ -27,6 +27,7 @@ interface Sale {
     name: string
     company: string | null
     phone: string | null
+    email: string | null
   } | null
   seller: {
     name: string
@@ -729,6 +730,7 @@ export default function SalesHistoryPage() {
                               isGenerated={sale.deliveryNoteGenerated}
                               customerPhone={sale.customer?.phone}
                               customerName={sale.customer?.name}
+                              customerEmail={sale.customer?.email}
                               className="ml-1"
                             />
                           )}
@@ -829,6 +831,7 @@ export default function SalesHistoryPage() {
                       isGenerated={sale.deliveryNoteGenerated}
                       customerPhone={sale.customer?.phone}
                       customerName={sale.customer?.name}
+                      customerEmail={sale.customer?.email}
                       className="w-full"
                     />
                   )}
@@ -932,6 +935,7 @@ export default function SalesHistoryPage() {
                     isGenerated={selectedSale.deliveryNoteGenerated}
                     customerPhone={selectedSale.customer?.phone}
                     customerName={selectedSale.customer?.name}
+                    customerEmail={selectedSale.customer?.email}
                     className="w-full h-10 sm:h-11"
                   />
                 )}
