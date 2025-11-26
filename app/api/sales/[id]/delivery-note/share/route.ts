@@ -34,18 +34,64 @@ export async function POST(
       return NextResponse.json({ error: 'Vente non trouvée' }, { status: 404 })
     }
 
-    // Récupérer les paramètres de l'entreprise
-    const companySettings = await prisma.companySettings.findFirst()
-
-    if (!companySettings) {
+    // Vérifier que la vente n'est pas annulée
+    if (sale.status === 'CANCELLED') {
       return NextResponse.json(
-        { error: 'Paramètres de l\'entreprise non configurés' },
+        { error: 'Impossible de générer un bon de livraison pour une vente annulée' },
         { status: 400 }
       )
     }
 
-    // Générer le PDF
-    const pdfBuffer = await generateDeliveryNotePDF(sale, companySettings)
+    // Récupérer les paramètres de l'entreprise
+    const companySettings = await prisma.companySettings.findFirst()
+
+    // Vérifier les données requises
+    if (!sale.seller) {
+      return NextResponse.json(
+        { error: 'Vendeur manquant pour cette vente' },
+        { status: 400 }
+      )
+    }
+
+    if (!sale.items || sale.items.length === 0) {
+      return NextResponse.json(
+        { error: 'Aucun article dans cette vente' },
+        { status: 400 }
+      )
+    }
+
+    // Préparer les données pour le PDF
+    const deliveryNoteData = {
+      saleNumber: sale.saleNumber,
+      customerName: sale.customer?.name || 'Client de passage',
+      customerAddress: sale.customer?.address,
+      customerPhone: sale.customer?.phone,
+      sellerName: sale.seller.name,
+      items: sale.items.map(item => ({
+        productName: item.product?.name || 'Produit inconnu',
+        productSku: item.product?.sku,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice) || 0,
+        total: Number(item.total) || 0,
+        description: item.product?.description
+      })),
+      notes: sale.notes,
+      createdAt: sale.createdAt,
+      companySettings: companySettings ? {
+        name: companySettings.companyName,
+        address: companySettings.companyAddress,
+        phone: companySettings.companyPhone,
+        email: companySettings.companyEmail,
+        logo: companySettings.companyLogo,
+        primaryColor: companySettings.primaryColor
+      } : undefined
+    }
+
+    // Générer le PDF (retourne Uint8Array)
+    const pdfUint8Array = await generateDeliveryNotePDF(deliveryNoteData)
+
+    // Convertir Uint8Array en Buffer
+    const pdfBuffer = Buffer.from(pdfUint8Array)
 
     // Créer un nom de fichier unique
     const filename = `bon-livraison-${sale.saleNumber}-${Date.now()}`
