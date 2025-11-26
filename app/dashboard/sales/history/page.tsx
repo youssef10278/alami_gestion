@@ -26,6 +26,7 @@ interface Sale {
   customer: {
     name: string
     company: string | null
+    phone: string | null
   } | null
   seller: {
     name: string
@@ -726,6 +727,8 @@ export default function SalesHistoryPage() {
                               saleId={sale.id}
                               saleNumber={sale.saleNumber}
                               isGenerated={sale.deliveryNoteGenerated}
+                              customerPhone={sale.customer?.phone}
+                              customerName={sale.customer?.name}
                               className="ml-1"
                             />
                           )}
@@ -819,6 +822,8 @@ export default function SalesHistoryPage() {
                       saleId={sale.id}
                       saleNumber={sale.saleNumber}
                       isGenerated={sale.deliveryNoteGenerated}
+                      customerPhone={sale.customer?.phone}
+                      customerName={sale.customer?.name}
                       className="p-2"
                     />
                   )}
@@ -920,6 +925,8 @@ export default function SalesHistoryPage() {
                     saleId={selectedSale.id}
                     saleNumber={selectedSale.saleNumber}
                     isGenerated={selectedSale.deliveryNoteGenerated}
+                    customerPhone={selectedSale.customer?.phone}
+                    customerName={selectedSale.customer?.name}
                     className="w-full h-10 sm:h-11"
                   />
                 )}
