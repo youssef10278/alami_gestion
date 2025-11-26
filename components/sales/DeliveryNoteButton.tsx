@@ -139,44 +139,90 @@ export default function DeliveryNoteButton({
 
       setIsGenerating(true)
 
-      // Générer le PDF
-      const response = await fetch(`/api/sales/${saleId}/delivery-note`)
+      // Vérifier si Web Share API est disponible (mobile)
+      const canUseWebShare = typeof navigator !== 'undefined' &&
+                            navigator.share &&
+                            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la génération du PDF')
+      if (canUseWebShare) {
+        // MÉTHODE 1 : Web Share API (Mobile) - Partage direct du PDF
+        try {
+          // Générer le PDF
+          const response = await fetch(`/api/sales/${saleId}/delivery-note`)
+
+          if (!response.ok) {
+            throw new Error('Erreur lors de la génération du PDF')
+          }
+
+          const blob = await response.blob()
+          const file = new File([blob], `bon-livraison-${saleNumber}.pdf`, { type: 'application/pdf' })
+
+          // Nettoyer le numéro de téléphone
+          const cleanPhone = customerPhone.replace(/[\s\-\(\)]/g, '')
+
+          // Message pour WhatsApp
+          const message = `Bonjour ${customerName || 'cher client'},\n\nVoici votre bon de livraison N° ${saleNumber}.\n\nMerci pour votre confiance !`
+
+          // Utiliser Web Share API
+          await navigator.share({
+            title: `Bon de Livraison ${saleNumber}`,
+            text: message,
+            files: [file]
+          })
+
+          // Marquer comme généré
+          setGenerated(true)
+          onGenerated?.()
+
+          toast.success('Bon de livraison partagé avec succès !')
+
+        } catch (shareError: any) {
+          // Si l'utilisateur annule le partage
+          if (shareError.name === 'AbortError') {
+            toast.info('Partage annulé')
+          } else {
+            throw shareError
+          }
+        }
+
+      } else {
+        // MÉTHODE 2 : Upload Cloudinary + Lien WhatsApp (Desktop)
+
+        // Upload le PDF sur Cloudinary
+        const uploadResponse = await fetch(`/api/sales/${saleId}/delivery-note/share`, {
+          method: 'POST'
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error('Erreur lors de l\'upload du PDF')
+        }
+
+        const { url: pdfUrl, publicId } = await uploadResponse.json()
+
+        // Marquer comme généré
+        setGenerated(true)
+        onGenerated?.()
+
+        // Nettoyer le numéro de téléphone
+        const cleanPhone = customerPhone.replace(/[\s\-\(\)]/g, '')
+
+        // Créer le message WhatsApp avec le lien
+        const message = `Bonjour ${customerName || 'cher client'},\n\nVoici votre bon de livraison N° ${saleNumber} :\n\n${pdfUrl}\n\nMerci pour votre confiance !`
+
+        // Encoder le message pour l'URL
+        const encodedMessage = encodeURIComponent(message)
+
+        // Créer le lien WhatsApp
+        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
+
+        // Ouvrir WhatsApp
+        window.open(whatsappUrl, '_blank')
+
+        toast.success('Lien du bon de livraison envoyé sur WhatsApp !')
+
+        // Optionnel : Supprimer le PDF de Cloudinary après 24h
+        // (vous pouvez implémenter un cron job pour nettoyer les vieux fichiers)
       }
-
-      // Télécharger le fichier PDF
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `bon-livraison-${saleNumber}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-
-      // Marquer comme généré
-      setGenerated(true)
-      onGenerated?.()
-
-      // Nettoyer le numéro de téléphone (enlever espaces, tirets, etc.)
-      const cleanPhone = customerPhone.replace(/[\s\-\(\)]/g, '')
-
-      // Créer le message WhatsApp
-      const message = `Bonjour ${customerName || 'cher client'},\n\nVoici votre bon de livraison N° ${saleNumber}.\n\nLe fichier PDF a été téléchargé sur votre appareil. Veuillez le joindre à ce message.\n\nMerci pour votre confiance !`
-
-      // Encoder le message pour l'URL
-      const encodedMessage = encodeURIComponent(message)
-
-      // Créer le lien WhatsApp
-      const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
-
-      // Ouvrir WhatsApp
-      window.open(whatsappUrl, '_blank')
-
-      toast.success('PDF téléchargé ! WhatsApp ouvert - veuillez joindre le fichier manuellement')
 
     } catch (error) {
       console.error('Erreur:', error)

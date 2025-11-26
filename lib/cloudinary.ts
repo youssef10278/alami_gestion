@@ -55,6 +55,43 @@ export async function uploadImage(
   }
 }
 
+// Helper pour uploader un PDF
+export async function uploadPDF(
+  buffer: Buffer,
+  filename: string,
+  folder: string = 'alami-gestion/delivery-notes'
+): Promise<{ url: string; publicId: string }> {
+  try {
+    // Upload vers Cloudinary
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          folder,
+          resource_type: 'raw', // Pour les fichiers non-image (PDF, etc.)
+          public_id: filename.replace('.pdf', ''),
+          format: 'pdf'
+        },
+        (error, result) => {
+          if (error) {
+            console.error('Cloudinary PDF upload error:', error)
+            reject(error)
+          } else if (result) {
+            resolve({
+              url: result.secure_url,
+              publicId: result.public_id
+            })
+          } else {
+            reject(new Error('Upload failed: no result'))
+          }
+        }
+      ).end(buffer)
+    })
+  } catch (error) {
+    console.error('Error uploading PDF to Cloudinary:', error)
+    throw error
+  }
+}
+
 // Helper pour supprimer une image
 export async function deleteImage(publicId: string): Promise<void> {
   try {
