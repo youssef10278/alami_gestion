@@ -721,7 +721,7 @@ export default function SalesHistoryPage() {
                           >
                             <Printer className="w-4 h-4" />
                           </Button>
-                          {sale.status === 'COMPLETED' && (
+                          {sale.status !== 'CANCELLED' && (
                             <DeliveryNoteButton
                               saleId={sale.id}
                               saleNumber={sale.saleNumber}
@@ -814,7 +814,7 @@ export default function SalesHistoryPage() {
                   >
                     <Printer className="w-4 h-4" />
                   </Button>
-                  {sale.status === 'COMPLETED' && (
+                  {sale.status !== 'CANCELLED' && (
                     <DeliveryNoteButton
                       saleId={sale.id}
                       saleNumber={sale.saleNumber}
@@ -915,7 +915,7 @@ export default function SalesHistoryPage() {
                   Imprimer le Reçu
                 </Button>
 
-                {selectedSale.status === 'COMPLETED' && (
+                {selectedSale.status !== 'CANCELLED' && (
                   <DeliveryNoteButton
                     saleId={selectedSale.id}
                     saleNumber={selectedSale.saleNumber}
