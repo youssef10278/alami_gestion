@@ -56,6 +56,11 @@ export default function SalesHistoryPage() {
   const [userRole, setUserRole] = useState<string>('')
   const [userId, setUserId] = useState<string>('')
 
+  // Filtres de date
+  const [dateFilter, setDateFilter] = useState<string>('ALL')
+  const [customStartDate, setCustomStartDate] = useState<string>('')
+  const [customEndDate, setCustomEndDate] = useState<string>('')
+
   useEffect(() => {
     fetchSales()
     fetchUserInfo()
@@ -63,7 +68,7 @@ export default function SalesHistoryPage() {
 
   useEffect(() => {
     applyFilters()
-  }, [sales, filterStatus, filterPayment, searchTerm])
+  }, [sales, filterStatus, filterPayment, searchTerm, dateFilter, customStartDate, customEndDate])
 
   const fetchSales = async () => {
     try {
@@ -149,6 +154,46 @@ export default function SalesHistoryPage() {
         (sale.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
         (sale.customer?.company?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
       )
+    }
+
+    // Filtre par date
+    if (dateFilter !== 'ALL') {
+      const now = new Date()
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+      filtered = filtered.filter(sale => {
+        const saleDate = new Date(sale.createdAt)
+        const saleDateOnly = new Date(saleDate.getFullYear(), saleDate.getMonth(), saleDate.getDate())
+
+        switch (dateFilter) {
+          case 'TODAY':
+            return saleDateOnly.getTime() === today.getTime()
+          case 'YESTERDAY':
+            return saleDateOnly.getTime() === yesterday.getTime()
+          case 'THIS_MONTH':
+            return saleDate >= startOfMonth
+          case 'CUSTOM':
+            if (customStartDate && customEndDate) {
+              const startDate = new Date(customStartDate)
+              const endDate = new Date(customEndDate)
+              endDate.setHours(23, 59, 59, 999) // Inclure toute la journée de fin
+              return saleDate >= startDate && saleDate <= endDate
+            } else if (customStartDate) {
+              const startDate = new Date(customStartDate)
+              return saleDate >= startDate
+            } else if (customEndDate) {
+              const endDate = new Date(customEndDate)
+              endDate.setHours(23, 59, 59, 999)
+              return saleDate <= endDate
+            }
+            return true
+          default:
+            return true
+        }
+      })
     }
 
     setFilteredSales(filtered)
@@ -455,7 +500,8 @@ export default function SalesHistoryPage() {
       {/* Filtres - Responsive */}
       <Card className="glass">
         <CardContent className="p-3 sm:p-4 lg:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+          {/* Première ligne de filtres */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 mb-4">
             {/* Recherche */}
             <div className="sm:col-span-2 lg:col-span-1">
               <label className="text-xs font-medium text-gray-700 mb-1 block">
@@ -513,12 +559,71 @@ export default function SalesHistoryPage() {
                   setSearchTerm('')
                   setFilterStatus('ALL')
                   setFilterPayment('ALL')
+                  setDateFilter('ALL')
+                  setCustomStartDate('')
+                  setCustomEndDate('')
                 }}
                 className="w-full h-9 sm:h-10 text-xs sm:text-sm px-2"
               >
                 🔄 <span className="hidden sm:inline ml-1">Réinit.</span>
               </Button>
             </div>
+          </div>
+
+          {/* Deuxième ligne - Filtres de date */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 pt-4 border-t border-gray-200">
+            {/* Filtre Date */}
+            <div className="sm:col-span-2 lg:col-span-1">
+              <label className="text-xs font-medium text-gray-700 mb-1 block">
+                📅 Période
+              </label>
+              <select
+                value={dateFilter}
+                onChange={(e) => {
+                  setDateFilter(e.target.value)
+                  if (e.target.value !== 'CUSTOM') {
+                    setCustomStartDate('')
+                    setCustomEndDate('')
+                  }
+                }}
+                className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              >
+                <option value="ALL">Toutes les dates</option>
+                <option value="TODAY">Aujourd'hui</option>
+                <option value="YESTERDAY">Hier</option>
+                <option value="THIS_MONTH">Ce mois</option>
+                <option value="CUSTOM">Plage personnalisée</option>
+              </select>
+            </div>
+
+            {/* Date de début (visible uniquement si CUSTOM) */}
+            {dateFilter === 'CUSTOM' && (
+              <>
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">
+                    📆 Date début
+                  </label>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">
+                    📆 Date fin
+                  </label>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="w-full px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
